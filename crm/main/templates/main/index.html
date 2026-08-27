@@ -1,0 +1,44 @@
+{% extends 'base.html' %} {% load static %} {% block extra_css %}
+<link
+  type="text/css"
+  href="{% static 'main/css/styles.css' %}"
+  rel="stylesheet"
+/>{% endblock %} {% block content%}
+<main class="main">
+  <section id="main-section-filter" class="side-filter-panel invisible">
+    Filter
+  </section>
+  <section id="main-section-create" class="side-create-panel invisible">
+    <p>Create</p>
+  </section>
+  <section class="main-window">
+    <section class="control-panel">
+      <button type="button" id="main-menu-filter-toggle" class="panel-btn">
+        Filter
+      </button>
+      <button type="button" id="main-menu-create-toggle" class="panel-btn">
+        Create
+      </button>
+      <button type="button" id="main-menu-save-toggle" class="panel-btn">
+        Save
+      </button>
+      <button type="button" id="main-menu-refresh-toggle" class="panel-btn">
+        Refresh
+      </button>
+      <button type="button" id="test-toggle" class="panel-btn">Test</button>
+    </section>
+    <section id="main-info"></section>
+  </section>
+</main>
+{% endblock%} {% block extra_js %}
+<script>
+  // Этот блок ВНУТРИ шаблона, поэтому Django-теги работают
+  const URLS = {
+    tableOptionsGetURL: "{% url 'main:api_get_table_options' %}",
+    mainProjectGetURL: "{% url 'main:api_get_main_projects_table' %}",
+    mainProjectUpdateURL: "{% url 'main:api_update_main_projects_table' %}",
+  };
+</script>
+
+<script src="{% static 'main/js/render_table.js' %}"></script>
+{% endblock %}

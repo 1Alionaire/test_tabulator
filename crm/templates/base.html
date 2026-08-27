@@ -1,0 +1,70 @@
+{% load static %}
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <link
+      type="text/css"
+      href="{% static 'main/css/styles.css' %}"
+      rel="stylesheet"
+    />
+    <title>{{title}}</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
+    <link
+      href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css"
+      rel="stylesheet"
+    />
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <nav class="navigation-main">
+      <div class="nav-left">
+        <a href="{% url 'main:main' %}" class="nav-tab">Main</a>
+
+        <div class="dropdown">
+          <button type="button" class="dropdown-toggle">Analysis</button>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="" class="analysis-nav-tab">PCM</a>
+            </li>
+            <li>
+              <a href="" class="analysis-nav-tab">PLM</a>
+            </li>
+            <li>
+              <a href="" class="analysis-nav-tab">LEAD</a>
+            </li>
+            <li>
+              <a href="" class="analysis-nav-tab">MOLD</a>
+            </li>
+            <li>
+              <a href="" class="analysis-nav-tab">TEM</a>
+            </li>
+          </ul>
+        </div>
+
+        <a href="" class="nav-tab">QC</a>
+        <a href="" class="nav-tab">FINANCE</a>
+      </div>
+      <a href="" class="nav-user-btn">Login</a>
+    </nav>
+    {% block content %}{% endblock %} {% block extra_js %}{% endblock %}
+
+    <script>
+      document.querySelectorAll(".dropdown-toggle").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation(); // чтобы обработчик на document не закрыл сразу же
+          btn.parentElement.classList.toggle("open");
+        });
+      });
+
+      // закрытие при клике вне меню
+      document.addEventListener("click", () => {
+        document
+          .querySelectorAll(".dropdown.open")
+          .forEach((d) => d.classList.remove("open"));
+      });
+    </script>
+  </body>
+</html>
