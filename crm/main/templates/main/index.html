@@ -6,7 +6,48 @@
 />{% endblock %} {% block content%}
 <main class="main">
   <section id="main-section-filter" class="side-filter-panel invisible">
-    Filter
+    <div class="date-filter-input-box">
+      <span>Date Range</span>
+      <div class="date-filter">
+        <label>Start</label>
+        <input id="filter-input-date-start" type="date"></input>
+      </div>
+      <div class="date-filter">
+        <label>End</label>
+        <input id="filter-input-date-end" type="date"></input>
+      </div>
+      <div class="option-filter">
+        <label>Type</label>
+        <select id="filter-input-sample-type">
+        </select>
+      </div>
+      <div class="option-filter">
+        <label>Company</label>
+        <select id="filter-input-company">
+        </select>
+      </div>
+      <div class="option-filter">
+        <label>Status</label>
+        <select id="filter-input-status">
+        </select>
+      </div>
+      <div class="option-filter">
+        <label>Turn Time</label>
+        <select id="filter-input-turn-around-time">
+        </select>
+      </div>
+      <div class="input-filter-field">
+        <label>Project Name</label>
+        <input id="filter-input-project-name" type="input"></input>
+      </div>
+      <div class="input-filter-field">
+        <label>Project Address</label>
+        <input id="filter-input-project-address" type="input"></input>
+      </div>
+      
+    </div>
+    <button id="filter-panel-apply-button">Apply</button>
+    <button id="filter-panel-reset-filter-button">Reset</button>
   </section>
   <section id="main-section-create" class="side-create-panel invisible">
     <p>Create</p>
@@ -25,7 +66,6 @@
       <button type="button" id="main-menu-refresh-toggle" class="panel-btn">
         Refresh
       </button>
-      <button type="button" id="test-toggle" class="panel-btn">Test</button>
     </section>
     <section id="main-info"></section>
   </section>

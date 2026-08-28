@@ -99,7 +99,7 @@
     display: none;
 }
 
-.visible {
+.visible-flex {
     display: flex;
 }
 
@@ -111,7 +111,7 @@
 }
 
 .control-panel {
-    margin-top: 20px;
+    margin: 20px 10px;
     min-width: 50px;
     min-height: 900px;
     display: flex;
@@ -120,11 +120,14 @@
 }
 
 .side-filter-panel {
+    margin-top: 20px;
+    margin-right: 10px;
     width: 25vw;
+    min-width: 200px;
     min-height: 900px;
-    background-color: red;
-    border-color: black;
     transition: width 0.3s ease;
+    flex-direction: column;
+    gap:10px;
 }
 
 .side-create-panel {
@@ -149,4 +152,14 @@
 
 #main-info {
     width : 100%;
+}
+
+.date-filter-input-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.filter-panel-apply-button {
+
 }

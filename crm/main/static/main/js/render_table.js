@@ -6,21 +6,22 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
-// ==================== Переключение вкладок ====================
-
+// ==================== Open Filter Tab ====================
 const filterPanel = document.getElementById("main-section-filter");
-const createPanel = document.getElementById("main-section-create");
 
 document.getElementById("main-menu-filter-toggle").addEventListener("click", function (e) {
     filterPanel.classList.toggle('invisible');
+    filterPanel.classList.toggle('visible-flex');
 });
 
-// ==================== Переключение вкладок ====================
+// ==================== Generate table ====================
+
+const ORIGINALS = new Map();
+let table;
+
 function onlyOnCreate(cell) {
   return cell.getRow().getData()._isNew === true;
 }
-
-let table;
 
 (async () => { 
   const response = await fetch(URLS.tableOptionsGetURL);
@@ -40,11 +41,36 @@ let table;
         pagination:"local",
         paginationSize: 200,
         paginationSizeSelector:[100, 200, 300],
+        selectableRows:true, 
         columns:[
-            {title: "lab_id_sort", field: "lab_id_sort", visible: false, sorter: "string"},
-            {title:"Lab ID", field:"lab_id", width: 80, editor:"input", editable: onlyOnCreate },
-            {title:"Date", field:"date_registered", editor: "date", formatter:"date", width:80 },
-            {title:"Time", field:"time_registered", editor: "time", formatter:"time", width:80 , headerSort: false },
+            {
+              title: "lab_id_sort", 
+              field: "lab_id_sort", 
+              visible: false, 
+              sorter: "string"
+            },
+            {
+              title:"Lab ID", 
+              field:"lab_id", 
+              width: 80, 
+              editor:"input", 
+              editable: onlyOnCreate 
+            },
+            {
+              title:"Date", 
+              field:"date_registered", 
+              editor: "date", 
+              formatter:"date", 
+              width:80 
+            },
+            {
+              title:"Time", 
+              field:"time_registered", 
+              editor: "time", 
+              formatter:"time",
+              width:80 , 
+              headerSort: false 
+            },
             {
               title: "Company",
               field: "company",
@@ -53,9 +79,16 @@ let table;
               editor: "list",
               editable: onlyOnCreate,
               editorParams: { values: statusOptions['company'] },
-              headerSort: false 
+              headerSort: false,
+              width: 150,
             },
-            {title:"Project Name", field:"project_name", width:400, editor:"input", headerSort: false },
+            {
+              title:"Project Name", 
+              field:"project_name", 
+              width:400, 
+              editor:"input", 
+              headerSort: false
+            },
             {
               title:"Project Address", 
               field:"project_address", 
@@ -80,7 +113,12 @@ let table;
               hozAlign:"center", 
               width:100, 
               editor:"number", 
-              headerSort: false 
+              headerSort: false,
+              editorParams: {
+                min: 0,
+                step: 1,
+              },
+              validator: ["required", "min:0", "integer"],
             },
             {
               title: "Turn Around Time",
@@ -94,7 +132,18 @@ let table;
             },
             {
               title:"NOB Amount Samples", 
-              field:"nob_number_samples", hozAlign:"center", width:100, editor:"number", width:80, headerSort: false },
+              field:"nob_number_samples", 
+              hozAlign:"center", 
+              width:100, 
+              editor: "number", 
+              width:80, 
+              headerSort: false,
+              editorParams: {
+                min: 0,
+                step: 1,
+              },
+              validator: ["required", "min:0", "integer"],
+            },
             {
               title: "Status",
               field: "status",
@@ -103,16 +152,39 @@ let table;
               width: 80,
               headerSort: false 
             },
-              {title:"Technician", field:"technician", hozAlign:"center", width:100, editor:"input", editable:true, headerSort: false },
-              {title:"Comment", field:"comment", hozAlign:"center", width:100, editor:"input", headerSort: false },
+            {
+              title:"Technician", 
+              field:"technician", 
+              hozAlign:"center", 
+              width:100, 
+              editor:"input", 
+              editable:true, 
+              headerSort: false 
+            },
+            {
+              title:"Comment", 
+              field:"comment", 
+              hozAlign:"center", 
+              width:100, 
+              editor:"input", 
+              headerSort: false 
+            },
           ],
       });
   })();
 
+
+  // =================== Refresh table ===================
 document.getElementById("main-menu-refresh-toggle").addEventListener("click", function() {
   table.setData(URLS.mainProjectGetURL);
     });
 
+  // =================== Create new row ===================
+document.getElementById("main-menu-create-toggle").addEventListener("click", function () {
+  table.addRow({ _isNew: true }, true);
+});
+
+  // =================== Save table changes ===================
 function collectChanges() {
   const byRow = new Map();
 
@@ -132,12 +204,6 @@ function collectChanges() {
 
   return [...byRow.values()];
 }
-
-document.getElementById("main-menu-create-toggle").addEventListener("click", function () {
-  table.addRow({ _isNew: true }, true);
-});
-
-const ORIGINALS = new Map();
 
 document.getElementById("main-menu-save-toggle").addEventListener("click", saveChanges);
 
@@ -163,10 +229,6 @@ async function saveChanges() {
       return;
     }
 
-    // const {rows} = await res.json();
-    // table.updateData(rows);
-    // rows.forEach(r => ORIGINALS.set(String(r.lab_id), r.updated_at));
-
     table.getEditedCells().forEach(cell => {
       cell.clearEdited();
       cell.getElement().classList.remove("dirty");
@@ -178,3 +240,65 @@ async function saveChanges() {
   }
 };
 
+  // =================== Filter  ===================
+function fillSelect(selector, items) {
+  const select = document.querySelector(selector);
+  select.innerHTML = '<option value="">— all —</option>';
+  for (const item of items) {
+
+    const opt = document.createElement("option");
+    opt.value = item.value;
+    opt.label = item.label;
+    select.append(opt);
+  }
+}
+
+async function initFilterPanel() {
+  const response = await fetch(URLS.tableOptionsGetURL);
+  const result = await response.json();
+  companies = result['company'];
+  statuses = result['status'];
+  turnAroundTime = result['turn_around_time'];
+  sampleType = result['sample_type'];
+  fillSelect("#filter-input-company", companies);
+  fillSelect("#filter-input-status", statuses);
+  fillSelect("#filter-input-turn-around-time", turnAroundTime);
+  fillSelect("#filter-input-sample-type", sampleType);
+};
+
+function applyFilters() {
+  const filters = [];
+
+  const filterDateStart = document.querySelector("#filter-input-date-start").value;
+  if (filterDateStart) filters.push({ field: "date_registered", type: ">=", value: filterDateStart });
+
+  const filterDateEnd = document.querySelector("#filter-input-date-end").value;
+  if (filterDateEnd) filters.push({ field: "date_registered", type: "<=", value: filterDateEnd });
+
+  const filterCompany = document.querySelector("#filter-input-company").value;
+  if (filterCompany) filters.push({ field: "company", type: "=", value: filterCompany });
+
+  const filterStatus = document.querySelector("#filter-input-status").value;
+  if (filterStatus) filters.push({ field: "status", type: "=", value: filterStatus });
+
+  const filterTurnAroundTime = document.querySelector("#filter-input-turn-around-time").value;
+  if (filterTurnAroundTime) filters.push({ field: "turn_around_time", type: "=", value: filterTurnAroundTime });
+  // 
+  const filterSampleType = document.querySelector("#filter-input-sample-type").value;
+  if (filterSampleType) filters.push({ field: "sample_type", type: "=", value: filterSampleType });
+
+  const filterProjectName = document.querySelector("#filter-input-project-name").value;
+  if (filterProjectName) filters.push({ field: "project_name", type: "like", value: filterProjectName });
+
+  const filterProjectAddress = document.querySelector("#filter-input-project-address").value;
+  if (filterProjectAddress) filters.push({ field: "project_address", type: "like", value: filterProjectAddress });
+
+  table.setFilter(filters);   // пустой массив = снять всё
+}
+
+document.getElementById("filter-panel-apply-button").addEventListener("click", applyFilters);
+
+document.getElementById("filter-panel-reset-filter-button").addEventListener("click", function() {
+  table.setFilter(); 
+    });
+    
