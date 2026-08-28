@@ -41,30 +41,47 @@ let table;
         paginationSize: 200,
         paginationSizeSelector:[100, 200, 300],
         columns:[
+            {title: "lab_id_sort", field: "lab_id_sort", visible: false, sorter: "string"},
             {title:"Lab ID", field:"lab_id", width: 80, editor:"input", editable: onlyOnCreate },
-            {title:"Date", field:"date_registered", editor: "date", formatter:"date", width:80  },
-            {title:"Time", field:"time_registered", editor: "time", formatter:"time", width:80},
-            {title: "Company",
+            {title:"Date", field:"date_registered", editor: "date", formatter:"date", width:80 },
+            {title:"Time", field:"time_registered", editor: "time", formatter:"time", width:80 , headerSort: false },
+            {
+              title: "Company",
               field: "company",
               formatter: "lookup",
               formatterParams: Object.fromEntries(statusOptions['company'].map(o => [o.value, o.label])),
               editor: "list",
               editable: onlyOnCreate,
               editorParams: { values: statusOptions['company'] },
+              headerSort: false 
             },
-            {title:"Project Name", field:"project_name", width:400, editor:"input"},
-            {title:"Project Address", field:"project_address", hozAlign:"center", width:400, editor:"input"},
+            {title:"Project Name", field:"project_name", width:400, editor:"input", headerSort: false },
+            {
+              title:"Project Address", 
+              field:"project_address", 
+              hozAlign:"center", width:400, 
+              editor:"input", 
+              headerSort: false 
+            },
             {
               title: "Type Analysis",
-              field: "sample_type_id",
+              field: "sample_type",
               formatter: "lookup",
               formatterParams: Object.fromEntries(statusOptions['sample_type'].map(o => [o.value, o.label])),
               editor: "list",
               editable: onlyOnCreate,
               editorParams: { values: statusOptions['sample_type']},
               width : 100,
+              headerSort: false 
             },
-            {title:"Amount Samples", field:"number_samples", hozAlign:"center", width:100, editor:"number"},
+            {
+              title:"Amount Samples", 
+              field:"number_samples", 
+              hozAlign:"center", 
+              width:100, 
+              editor:"number", 
+              headerSort: false 
+            },
             {
               title: "Turn Around Time",
               field: "turn_around_time",
@@ -72,18 +89,22 @@ let table;
               formatterParams: Object.fromEntries(statusOptions['turn_around_time'].map(o => [o.value, o.label])),
               editor: "list",
               editorParams: { values: statusOptions['turn_around_time'] },
-              width : 80,
+              width: 80,
+              headerSort: false 
             },
-            {title:"NOB Amount Samples", field:"nob_number_samples", hozAlign:"center", width:100, editor:"number", width:80},
+            {
+              title:"NOB Amount Samples", 
+              field:"nob_number_samples", hozAlign:"center", width:100, editor:"number", width:80, headerSort: false },
             {
               title: "Status",
               field: "status",
               formatter: "lookup",
               formatterParams: Object.fromEntries(statusOptions['status'].map(o => [o.value, o.label])),
               width: 80,
+              headerSort: false 
             },
-              {title:"Technician", field:"technician", hozAlign:"center", width:100, editor:"input", editable:true},
-              {title:"Comment", field:"comment", hozAlign:"center", width:100, editor:"input"},
+              {title:"Technician", field:"technician", hozAlign:"center", width:100, editor:"input", editable:true, headerSort: false },
+              {title:"Comment", field:"comment", hozAlign:"center", width:100, editor:"input", headerSort: false },
           ],
       });
   })();

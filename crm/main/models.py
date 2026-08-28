@@ -40,7 +40,7 @@ class MainProject(BaseModel):
     company = models.ForeignKey('finance.Company', on_delete=models.CASCADE, related_name='companies') # client company
     project_name = models.CharField(max_length=100) # name of the project
     project_address = models.CharField(max_length=200) # address of the project
-    sample_type_id = models.ForeignKey('main.TypeAnalysis', on_delete=models.CASCADE, related_name='project_sample_type')
+    sample_type = models.ForeignKey('main.TypeAnalysis', on_delete=models.CASCADE, related_name='project_sample_type')
     number_samples = models.PositiveIntegerField()
     turn_around_time = models.ForeignKey('main.TurnAroundTime', on_delete=models.CASCADE, related_name='project_turn_time')
     nob_number_samples = models.PositiveIntegerField(null=True, blank=True, default=0)

@@ -41,7 +41,7 @@ class Command(BaseCommand):
                                                             company = random.choice(companies),
                                                             project_name = generate_random_string(10), 
                                                             project_address = generate_random_string(15),
-                                                            sample_type_id = random.choice(type_analysis),
+                                                            sample_type = random.choice(type_analysis),
                                                             number_samples = random.randint(15, 100), 
                                                             turn_around_time = random.choice(turn_around_times),
                                                             nob_number_samples = random.randint(15, 100),
