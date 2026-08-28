@@ -15,7 +15,6 @@ document.getElementById("main-menu-filter-toggle").addEventListener("click", fun
 });
 
 // ==================== Generate table ====================
-
 const ORIGINALS = new Map();
 let table;
 
@@ -184,7 +183,7 @@ document.getElementById("main-menu-create-toggle").addEventListener("click", fun
   table.addRow({ _isNew: true }, true);
 });
 
-  // =================== Save table changes ===================
+  // =================== Save ===================
 function collectChanges() {
   const byRow = new Map();
 
@@ -240,7 +239,7 @@ async function saveChanges() {
   }
 };
 
-  // =================== Filter  ===================
+//  ==================== Filter =================
 function fillSelect(selector, items) {
   const select = document.querySelector(selector);
   select.innerHTML = '<option value="">— all —</option>';
@@ -265,6 +264,8 @@ async function initFilterPanel() {
   fillSelect("#filter-input-turn-around-time", turnAroundTime);
   fillSelect("#filter-input-sample-type", sampleType);
 };
+
+initFilterPanel();
 
 function applyFilters() {
   const filters = [];

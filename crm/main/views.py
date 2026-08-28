@@ -8,21 +8,28 @@ import json
 from django.db import transaction
 import django.utils
 
-def main(request):
-    return render(request, 'main/index.html')
-
-def _serialize(obj):
-    return {
-        'lab_id': obj.lab_id,
-        'number_samples': obj.number_samples,
-        # ...
-        'updated_at': obj.updated_at.isoformat(),   # ← должно быть
-    }
-
 REQUIRED_ON_CREATE = {
     'company_id', 'project_name', 'project_address', 'date_registered', 'time_registered',
     'sample_type_id', 'number_samples', 'turn_around_time_id'
 }
+
+def _serialize(obj):
+    return {
+        'lab_id': obj.lab_id,
+    }
+
+def change_secondary_fields(input_dict):
+    if 'company' in input_dict:
+        input_dict['company_id'] = input_dict.pop('company') 
+    if 'sample_type' in input_dict:
+        input_dict['sample_type_id'] = input_dict.pop('sample_type')
+    if 'turn_around_time' in input_dict:
+        input_dict['turn_around_time_id'] = input_dict.pop('turn_around_time')
+
+
+def main(request):
+    return render(request, 'main/index.html')
+
 
 def api_get_table_options(request):
     return JsonResponse({
@@ -73,12 +80,14 @@ def api_update_main_projects_table(request):
         
         # Checking for lab_id in every record
         for row in rows: 
+            print(f'row : {row}')
             if not row.get('lab_id'): # in case lab_id is empty
                 return JsonResponse({'error': 'lab_id is required'}, status=400)
  
         #creating dict, where key=lab_id and other values = value
-        samples_dict_by_id = [row['fields'] for row in rows]
-        
+        samples_dict_by_id = {row['lab_id']:row['fields'] for row in rows}
+        print(f'samples_dict_by_id :{samples_dict_by_id}')
+
         with transaction.atomic():
             # parsing all existing records from our database
             existing = {
@@ -86,16 +95,14 @@ def api_update_main_projects_table(request):
                 MainProject.objects.select_for_update().filter(pk__in=samples_dict_by_id)
             }
 
+            print(existing)
             projects_to_update, projects_to_create = [], [] #init two list
             touched_fields = set()
 
-            for element_row in samples_dict_by_id:
-                lab_id = element_row['lab_id'] # parsing lab_id
-                fields = {key: value for key, value in element_row.items() if key != 'lab_id'} # filtering data 
+            for lab_id, data in samples_dict_by_id.items():
+                fields = {key: value for key, value in data.items() if key != 'lab_id'} # filtering data 
                 # change fields that have constraints
-                fields['company_id'] = fields.pop('company') 
-                fields['sample_type_id'] = fields.pop('sample_type')
-                fields['turn_around_time_id'] = fields.pop('turn_around_time')
+                change_secondary_fields(fields)
                 # if base already has record with lab_id
                 if lab_id in existing: 
                     project = existing[lab_id] # taking project from dict
