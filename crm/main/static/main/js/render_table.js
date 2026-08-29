@@ -42,6 +42,12 @@ function onlyOnCreate(cell) {
         paginationSizeSelector:[100, 200, 300],
         selectableRows:true, 
         columns:[
+          {
+              title: "id", 
+              field: "id", 
+              visible: false, 
+              sorter: "string"
+            },
             {
               title: "lab_id_sort", 
               field: "lab_id_sort", 

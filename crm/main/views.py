@@ -53,6 +53,7 @@ def api_get_table_options(request):
 
 def api_get_main_projects_table(request):
     main_projects = MainProject.objects.all().order_by('lab_id_sort').values(
+                                                     'id',
                                                      'lab_id',
                                                      'lab_id_sort',
                                                      'date_registered',
@@ -81,6 +82,7 @@ def api_update_main_projects_table(request):
         # Checking for lab_id in every record
         for row in rows: 
             print(f'row : {row}')
+            row.pop('id', None)
             if not row.get('lab_id'): # in case lab_id is empty
                 return JsonResponse({'error': 'lab_id is required'}, status=400)
  
@@ -91,8 +93,8 @@ def api_update_main_projects_table(request):
         with transaction.atomic():
             # parsing all existing records from our database
             existing = {
-                p.pk: p for p in
-                MainProject.objects.select_for_update().filter(pk__in=samples_dict_by_id)
+                p.lab_id: p for p in
+                MainProject.objects.select_for_update().filter(lab_id__in=samples_dict_by_id)
             }
 
             print(existing)

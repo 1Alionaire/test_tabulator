@@ -33,7 +33,7 @@ class ProjectStatus(BaseModel):
         return self.status_name
 
 class MainProject(BaseModel):
-    lab_id = models.SlugField(primary_key=True, max_length=20, unique=True) # project work number
+    lab_id = models.SlugField(max_length=20, unique=True) # project work number
     lab_id_sort = models.CharField(max_length=128, db_index=True, blank=True)
     date_registered = models.DateField(auto_now_add=False, default=timezone.now)  # date when project was registered
     time_registered = models.TimeField(auto_now_add=False, default=timezone.now) # time when project was registered
