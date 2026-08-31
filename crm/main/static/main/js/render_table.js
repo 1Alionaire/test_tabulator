@@ -6,6 +6,18 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
+function isEmpty(inputString) {
+  if (inputString == undefined || inputString == 'undefined' || 
+    inputString == null || inputString == 'null' || 
+    inputString == NaN ||  inputString == 'NaN'
+  ) {
+    return true
+  } 
+  else {
+    return false
+  }
+};
+
 // ==================== Open Filter Tab ====================
 const filterPanel = document.getElementById("main-section-filter");
 
@@ -21,6 +33,10 @@ let table;
 function onlyOnCreate(cell) {
   return cell.getRow().getData()._isNew === true;
 }
+
+// function onlyOnCreate(cell) {
+//   return cell.getRow().getData()._isNew === true;
+// }
 
 (async () => { 
   const response = await fetch(URLS.tableOptionsGetURL);
@@ -59,7 +75,6 @@ function onlyOnCreate(cell) {
               field:"lab_id", 
               width: 80, 
               editor:"input", 
-              editable: onlyOnCreate 
             },
             {
               title:"Date", 
@@ -78,7 +93,7 @@ function onlyOnCreate(cell) {
             },
             {
               title: "Company",
-              field: "company",
+              field: "company_id",
               formatter: "lookup",
               formatterParams: Object.fromEntries(statusOptions['company'].map(o => [o.value, o.label])),
               editor: "list",
@@ -103,7 +118,7 @@ function onlyOnCreate(cell) {
             },
             {
               title: "Type Analysis",
-              field: "sample_type",
+              field: "sample_type_id",
               formatter: "lookup",
               formatterParams: Object.fromEntries(statusOptions['sample_type'].map(o => [o.value, o.label])),
               editor: "list",
@@ -127,7 +142,7 @@ function onlyOnCreate(cell) {
             },
             {
               title: "Turn Around Time",
-              field: "turn_around_time",
+              field: "turn_around_time_id",
               formatter: "lookup",
               formatterParams: Object.fromEntries(statusOptions['turn_around_time'].map(o => [o.value, o.label])),
               editor: "list",
@@ -151,7 +166,7 @@ function onlyOnCreate(cell) {
             },
             {
               title: "Status",
-              field: "status",
+              field: "status_id",
               formatter: "lookup",
               formatterParams: Object.fromEntries(statusOptions['status'].map(o => [o.value, o.label])),
               width: 80,
@@ -191,38 +206,59 @@ document.getElementById("main-menu-create-toggle").addEventListener("click", fun
 
   // =================== Save ===================
 function collectChanges() {
-  const byRow = new Map();
+  const updatedData = {};
+  const createdData = {};
 
-  for (const cell of table.getEditedCells()) {
-    const data = cell.getRow()?.getData();
-    if (!data || !data.lab_id) continue;
+  for (const cell of table.getEditedCells()) {  // going through all edited cells
+    const data = cell.getRow()?.getData();  //parse data from whole row?
+    
+    if (!data || !data.lab_id) continue; // if we dont have data -> continue
 
     const labId = String(data.lab_id);          // единый тип ключа
+    const systemId = String(data.id); 
 
-    let entry = byRow.get(labId);
-    if (!entry) {
-      entry = {lab_id: labId, fields: {}, version: ORIGINALS.get(labId)};
-      byRow.set(labId, entry);
+    if (isEmpty(systemId)) {
+      if (labId in createdData) {
+        createdData[labId].fields[cell.getField()] = cell.getValue();
+        }
+      else {
+        entry = {lab_id: labId, fields: {}, version: ORIGINALS.get(labId)};
+        createdData[labId] = entry;
+        createdData[labId].fields[cell.getField()] = cell.getValue();
+      }
     }
-    entry.fields[cell.getField()] = cell.getValue();
+    else {
+      if (systemId in updatedData) {
+        updatedData[systemId].fields[cell.getField()] = cell.getValue();
+      }
+      else {
+        entry = {id: systemId, fields: {}, version: ORIGINALS.get(systemId)};
+        updatedData[systemId] = entry;
+        updatedData[systemId].fields[cell.getField()] = cell.getValue();
+      }
+    };
   }
 
-  return [...byRow.values()];
+    const result = {
+      updated: Object.values(updatedData),
+      created: Object.values(createdData),
+    };
+  return result;
 }
 
 document.getElementById("main-menu-save-toggle").addEventListener("click", saveChanges);
 
 async function saveChanges() {
   const changes = collectChanges();
-  console.log(changes)
-  if (!changes.length) return;
-
+  if (!changes.updated.length && !changes.created.length) {
+    return;
+  }
   // saveBtn.disabled = true;
   try {
     const res = await fetch(URLS.mainProjectUpdateURL, {
       method: "POST",
       headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
-      body: JSON.stringify({changes}),
+      body: JSON.stringify(changes),
     });
 
     if (res.status === 422) {
@@ -238,12 +274,17 @@ async function saveChanges() {
       cell.clearEdited();
       cell.getElement().classList.remove("dirty");
     });
+
   } catch (e) {
     alert("Не удалось сохранить. Правки остались в таблице.");
     console.log(e)
   } finally {
   }
 };
+
+window.addEventListener("unhandledrejection", (e) => {
+  console.error("Необработанный промис:", e.reason);
+});
 
 //  ==================== Filter =================
 function fillSelect(selector, items) {
