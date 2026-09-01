@@ -35,9 +35,9 @@ function onlyOnCreate(cell) {
   return cell.getRow().getData()._isNew === true;
 }
 
-// function onlyOnCreate(cell) {
-//   return cell.getRow().getData()._isNew === true;
-// }
+function checkNOBType(cell) {
+  if (cell.getRow().getData().sample_type_id == '3' || cell.getRow().getData().sample_type_id == '4') return true
+}
 
 (async () => { 
   const response = await fetch(URLS.tableOptionsGetURL);
@@ -64,7 +64,6 @@ function onlyOnCreate(cell) {
               title: "id", 
               field: "id", 
               visible: false, 
-              sorter: "string"
             },
             {
               title: "lab_id_sort", 
@@ -72,6 +71,7 @@ function onlyOnCreate(cell) {
               visible: false, 
               sorter: "string"
             },
+
             {
               title:"Lab ID", 
               field:"lab_id", 
@@ -167,6 +167,7 @@ function onlyOnCreate(cell) {
                 step: 1,
               },
               validator: ["required", "min:0", "integer"],
+              editable: checkNOBType,
             },
             {
               title: "Status",
@@ -175,6 +176,17 @@ function onlyOnCreate(cell) {
               formatterParams: Object.fromEntries(statusOptions['status'].map(o => [o.value, o.label])),
               width: 80,
               headerSort: false 
+            },
+            {
+              title: "Link",
+              field: "id",
+              formatter: "link",
+              formatterParams: {
+                urlPrefix: "redirect/",
+                target: "_blank",
+                label: "Link",
+              },
+              headerSort: false
             },
             {
               title:"Technician", 
@@ -193,15 +205,7 @@ function onlyOnCreate(cell) {
               editor:"input", 
               headerSort: false 
             },
-            {
-              title: "Link",
-              field: "id",
-              formatter: "link",
-              formatterParams: {
-                urlPrefix: "redirect/",
-                target: "_blank",
-              },
-}
+
           ],
       });
   })();
@@ -406,8 +410,6 @@ document.getElementById("filter-panel-reset-filter-button").addEventListener("cl
 document.getElementById("main-menu-delete-toggle").addEventListener("click", function () {
   const rows = table.getSelectedRows();
   for (const row of rows ) {
-    console.log(`row.getIndex() : ${row.getIndex()}`);
-    console.log(`row.getData() : ${row.getData().id}`);
 
     table.deleteRow(row.getIndex());
     deletedIds.add(row.getData().id);
@@ -425,7 +427,7 @@ document.getElementById("main-menu-redo-toggle").addEventListener("click", funct
     });
 
 document.getElementById("main-menu-test-toggle").addEventListener("click", function() {
-  console.log()
+  checkNOBType();
 });
 
 // ================ show notification ==============
