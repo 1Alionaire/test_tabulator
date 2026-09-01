@@ -322,6 +322,7 @@ async function initFilterPanel() {
 initFilterPanel();
 
 function applyFilters() {
+  
   const filters = [];
 
   const filterDateStart = document.querySelector("#filter-input-date-start").value;
@@ -333,14 +334,32 @@ function applyFilters() {
   const filterCompany = document.querySelector("#filter-input-company").value;
   if (filterCompany) filters.push({ field: "company_id", type: "=", value: filterCompany });
 
-  const filterStatus = document.querySelector("#filter-input-status").value;
-  if (filterStatus) filters.push({ field: "status_id", type: "=", value: filterStatus });
+  // Status of work
+  const filterStatus = document.querySelector("#filter-input-status");
+  const filterStatusSelectedValues = Array.from(filterStatus.selectedOptions)
+    .map((option) => parseInt(option.value, 10));
 
-  const filterTurnAroundTime = document.querySelector("#filter-input-turn-around-time").value;
-  if (filterTurnAroundTime) filters.push({ field: "turn_around_time_id", type: "=", value: filterTurnAroundTime });
-  // 
-  const filterSampleType = document.querySelector("#filter-input-sample-type").value;
-  if (filterSampleType) filters.push({ field: "sample_type_id", type: "=", value: filterSampleType });
+  if (filterStatusSelectedValues.length) {
+    filters.push({ field: "status_id", type: "in", value: filterStatusSelectedValues });
+  }
+
+  // Sample type 
+  const filterSampleType = document.querySelector("#filter-input-sample-type");
+  const filterSampleTypeSelectedValues = Array.from(filterSampleType.selectedOptions)
+    .map((option) => parseInt(option.value, 10));
+
+  if (filterSampleTypeSelectedValues.length) {
+    filters.push({ field: "sample_type_id", type: "in", value: filterSampleTypeSelectedValues });
+  }
+
+  // Turn around time
+  const filterTurnAroundTime = document.querySelector("#filter-input-turn-around-time");
+  const filterTurnAroundTimeSelectedValues = Array.from(filterTurnAroundTime.selectedOptions)
+    .map((option) => parseInt(option.value, 10));
+
+  if (filterTurnAroundTimeSelectedValues.length) {
+    filters.push({ field: "turn_around_time_id", type: "in", value: filterTurnAroundTimeSelectedValues });
+  }
 
   const filterProjectName = document.querySelector("#filter-input-project-name").value;
   if (filterProjectName) filters.push({ field: "project_name", type: "like", value: filterProjectName });
