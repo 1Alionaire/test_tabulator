@@ -38,7 +38,7 @@ def api_get_table_options(request):
     })
 
 def api_get_main_projects_table(request):
-    main_projects = MainProject.objects.all().order_by('lab_id_sort').values(
+    main_projects = MainProject.active_objects.all().order_by('lab_id_sort').values(
                                                      'id',
                                                      'lab_id',
                                                      'lab_id_sort',
@@ -65,14 +65,16 @@ def api_update_main_projects_table(request):
         table_manager = MainProjectTableManager(payload_json)
         checking_error_code = table_manager.validate_whole_object()
 
+        # validating whole object
         if checking_error_code is not None:
             return JsonResponse({'status' : '!ok' , **checking_error_code}, status=400)
-                
+
+        # updating 
         operation_result = table_manager.table_update_processing()
         if operation_result['status'] == '!ok':
-            return JsonResponse({'error': operation_result['error']}, status=400)
+            return JsonResponse(**operation_result, status=400)
 
-        return JsonResponse({ **operation_result })
+        return JsonResponse(operation_result)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 

@@ -19,6 +19,7 @@ class MainProjectTableManager():
         self.input_data = input_data
         self.data_to_update = input_data.get('updated', [])
         self.data_to_create = input_data.get('created', [])
+        self.data_to_delete = input_data.get('deleted', [])
 
         self.error = None
 
@@ -28,6 +29,10 @@ class MainProjectTableManager():
             return error
 
         error = self.validate_created_data()
+        if error is not None:
+            return error
+
+        error = self.validate_deleted_data()
         if error is not None:
             return error
 
@@ -53,14 +58,20 @@ class MainProjectTableManager():
                     return {'error': f"missing required fields {record.get('lab_id')} : {missing}"}
                 
             lab_id_list = [element.get('lab_id') for element in self.data_to_create]
-            if MainProject.objects.filter(lab_id__in=lab_id_list).exists():
+            if MainProject.active_objects.filter(lab_id__in=lab_id_list).exists():
                 return {'error': 'lab_id already exist'} 
+
+    def validate_deleted_data(self):
+        if self.data_to_delete:
+            if MainProject.active_objects.filter(id__in=self.data_to_delete).exists() == False:
+                return {'error': 'records dont exist'} 
 
     def table_update_processing(self) -> dict:
         try:
             with transaction.atomic():
                 updated = self.update_data() if self.data_to_update else 0
                 created = self.create_data() if self.data_to_create else 0
+                deleted = self.delete_data() if self.data_to_delete else 0
         except Exception as e:
             return {'status': '!ok', 'error': e.message_dict if hasattr(e, 'message_dict') else e.messages}
         
@@ -69,6 +80,8 @@ class MainProjectTableManager():
             result['updated'] = updated
         if created != 0:
             result['created'] = created
+        if deleted != 0:
+            result['deleted'] = deleted
 
         return result
             
@@ -79,7 +92,7 @@ class MainProjectTableManager():
             touched_fields = set()
 
             projects_to_update = {project.id : project for project in 
-                                  MainProject.objects.select_for_update().filter(pk__in=id_list)}
+                                  MainProject.active_objects.select_for_update().filter(pk__in=id_list)}
 
             for record_row in work_data:
                 project = projects_to_update[int(record_row.get('id'))]
@@ -88,7 +101,7 @@ class MainProjectTableManager():
                     touched_fields.add(name_field)
                 project.time_update = django.utils.timezone.now()
 
-            updated = MainProject.objects.bulk_update(
+            updated = MainProject.active_objects.bulk_update(
                 projects_to_update.values(), sorted(touched_fields | {'time_update'})
             )
             
@@ -97,13 +110,15 @@ class MainProjectTableManager():
         except Exception as e:
             return {'status':'!ok', "error": f"{str(e)}"} 
 
+    # To do: change lab_id
+
 
     def create_data(self):
         objects = []
         try:
             for data in self.data_to_create:
                 fields = data.get('fields')
-                objects.append(MainProject(status_id=1, **fields))
+                objects.append(MainProject(status_id=1, deleted=False,  **fields))
 
             for project in objects:
                 project.full_clean()
@@ -116,4 +131,9 @@ class MainProjectTableManager():
         
         
     def delete_data(self):
-        pass
+        try:
+            MainProject.active_objects.filter(pk__in=self.data_to_delete).update(deleted=True)
+            return len(self.data_to_delete)
+        except Exception as e:
+            return {'status':'!ok', "error": f"{str(e)}"} 
+        

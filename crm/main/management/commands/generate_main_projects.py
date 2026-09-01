@@ -46,5 +46,6 @@ class Command(BaseCommand):
                                                             turn_around_time = random.choice(turn_around_times),
                                                             nob_number_samples = random.randint(15, 100),
                                                             technician = 'Alibek', 
-                                                            status = random.choice(project_status),)            
+                                                            status = random.choice(project_status),
+                                                            deleted=False)            
 

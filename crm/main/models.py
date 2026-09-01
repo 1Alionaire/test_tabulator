@@ -32,6 +32,10 @@ class ProjectStatus(BaseModel):
     def __str__(self):
         return self.status_name
 
+class ActiveProject(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(deleted=False)
+
 class MainProject(BaseModel):
     lab_id = models.SlugField(max_length=20, unique=True) # project work number
     lab_id_sort = models.CharField(max_length=128, db_index=True, blank=True)
@@ -49,6 +53,10 @@ class MainProject(BaseModel):
     comment = models.CharField(max_length=200, null=True, blank=True) # additional comments
     is_overdue = models.BooleanField(default=False)
     coc_file = models.FileField(upload_to='coc_files/', blank=True, null=True)
+    deleted = models.BooleanField(blank=False, null=False, default=False,)
+
+    objects = models.Manager()
+    active_objects = ActiveProject()
     
     def __str__(self):
         return super().__str__() + f' - {self.lab_id}'
@@ -61,3 +69,4 @@ class MainProject(BaseModel):
     def _make_sort_key(value: str) -> str:
         # каждое число паддим до 8 символов
         return re.sub(r'\d+', lambda m: m.group().zfill(8), value or '')
+

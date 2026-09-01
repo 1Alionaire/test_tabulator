@@ -29,6 +29,7 @@ document.getElementById("main-menu-filter-toggle").addEventListener("click", fun
 // ==================== Generate table ====================
 const ORIGINALS = new Map();
 let table;
+const deletedIds = new Set();
 
 function onlyOnCreate(cell) {
   return cell.getRow().getData()._isNew === true;
@@ -48,6 +49,7 @@ function onlyOnCreate(cell) {
             hozAlign: "center", formatter: "rownum",
             cssClass: "range-header-col", editor: false
         },
+        history:true,
         height: "100%",
         width: "100%", 
         layout:"fitColumns",
@@ -238,10 +240,11 @@ function collectChanges() {
       }
     };
   }
-
+    console.log(deletedIds);
     const result = {
       updated: Object.values(updatedData),
       created: Object.values(createdData),
+      deleted: [...deletedIds]
     };
   return result;
 }
@@ -250,7 +253,8 @@ document.getElementById("main-menu-save-toggle").addEventListener("click", saveC
 
 async function saveChanges() {
   const changes = collectChanges();
-  if (!changes.updated.length && !changes.created.length) {
+  if (!changes.updated.length && !changes.created.length && !changes.deleted.length) {
+    console.log('no data?')
     return;
   }
   // saveBtn.disabled = true;
@@ -279,6 +283,7 @@ async function saveChanges() {
     alert("Не удалось сохранить. Правки остались в таблице.");
     console.log(e)
   } finally {
+    deletedIds.clear();
   }
 };
 
@@ -350,3 +355,32 @@ document.getElementById("filter-panel-reset-filter-button").addEventListener("cl
   table.setFilter(); 
     });
     
+// ================== deleting rows =============
+
+document.getElementById("main-menu-delete-toggle").addEventListener("click", function () {
+  const rows = table.getSelectedRows();
+  for (const row of rows ) {
+    console.log(`row.getIndex() : ${row.getIndex()}`);
+    console.log(`row.getData() : ${row.getData().id}`);
+
+    table.deleteRow(row.getIndex());
+    deletedIds.add(row.getData().id);
+    
+  }
+});
+
+document.getElementById("main-menu-undo-toggle").addEventListener("click", function() {
+  table.undo();
+  deletedIds.clear();
+    });
+
+document.getElementById("main-menu-redo-toggle").addEventListener("click", function() {
+  table.redo();
+    });
+
+document.getElementById("main-menu-test-toggle").addEventListener("click", function() {
+  for (const deletedId of deletedIds) {
+    console.log(`deletedId : ${deletedId}`);
+  }
+});
+
