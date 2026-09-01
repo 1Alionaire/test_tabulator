@@ -77,13 +77,15 @@ function onlyOnCreate(cell) {
               field:"lab_id", 
               width: 80, 
               editor:"input", 
+              headerSort: false
             },
             {
               title:"Date", 
               field:"date_registered", 
               editor: "date", 
               formatter:"date", 
-              width:80 
+              width:80, 
+              headerSort: false
             },
             {
               title:"Time", 
@@ -329,16 +331,16 @@ function applyFilters() {
   if (filterDateEnd) filters.push({ field: "date_registered", type: "<=", value: filterDateEnd });
 
   const filterCompany = document.querySelector("#filter-input-company").value;
-  if (filterCompany) filters.push({ field: "company", type: "=", value: filterCompany });
+  if (filterCompany) filters.push({ field: "company_id", type: "=", value: filterCompany });
 
   const filterStatus = document.querySelector("#filter-input-status").value;
-  if (filterStatus) filters.push({ field: "status", type: "=", value: filterStatus });
+  if (filterStatus) filters.push({ field: "status_id", type: "=", value: filterStatus });
 
   const filterTurnAroundTime = document.querySelector("#filter-input-turn-around-time").value;
-  if (filterTurnAroundTime) filters.push({ field: "turn_around_time", type: "=", value: filterTurnAroundTime });
+  if (filterTurnAroundTime) filters.push({ field: "turn_around_time_id", type: "=", value: filterTurnAroundTime });
   // 
   const filterSampleType = document.querySelector("#filter-input-sample-type").value;
-  if (filterSampleType) filters.push({ field: "sample_type", type: "=", value: filterSampleType });
+  if (filterSampleType) filters.push({ field: "sample_type_id", type: "=", value: filterSampleType });
 
   const filterProjectName = document.querySelector("#filter-input-project-name").value;
   if (filterProjectName) filters.push({ field: "project_name", type: "like", value: filterProjectName });

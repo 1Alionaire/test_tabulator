@@ -99,19 +99,21 @@ class MainProjectTableManager():
                 for name_field, value in record_row.get('fields').items():
                     setattr(project, name_field, value)
                     touched_fields.add(name_field)
+                    if name_field == 'lab_id':
+                        new_lab_id_sort = MainProject._make_sort_key(value)
+                        setattr(project, 'lab_id_sort', new_lab_id_sort)
+                        touched_fields.add('lab_id_sort')
+
                 project.time_update = django.utils.timezone.now()
 
             updated = MainProject.active_objects.bulk_update(
                 projects_to_update.values(), sorted(touched_fields | {'time_update'})
             )
-            
+
             return updated
 
         except Exception as e:
             return {'status':'!ok', "error": f"{str(e)}"} 
-
-    # To do: change lab_id
-
 
     def create_data(self):
         objects = []

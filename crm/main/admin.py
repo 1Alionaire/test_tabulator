@@ -5,10 +5,10 @@ from .models import MainProject, TypeAnalysis, TurnAroundTime, ProjectStatus
 @admin.register(MainProject)
 class MainProjectAdmin(admin.ModelAdmin):
     list_display = ('lab_id', 'project_name', 'company')
-    list_filter = ('company', )
-    search_fields = ('lab_id', 'project_name')
+    list_filter = ('company', 'deleted')
+    search_fields = ('lab_id', 'project_name', )
     ordering = ('-time_create', 'lab_id')
-    list_per_page = 10
+    list_per_page = 100
 
 @admin.register(TypeAnalysis)
 class TypeAnalysisAdmin(admin.ModelAdmin):
