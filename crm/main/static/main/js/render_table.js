@@ -202,7 +202,7 @@ function onlyOnCreate(cell) {
 document.getElementById("main-menu-refresh-toggle").addEventListener("click", function() {
   const changes = collectChanges(); // collecting all changes
   const hasChanges = changes.updated.length || changes.created.length || changes.deleted.length //put all possible changes in const
-  if (hasChanges && !confirm("Несохранённые изменения будут потеряны. Продолжить?")) { //asking user for continue if we have changes
+  if (hasChanges && !confirm("Unsaved changes will be lost. Continue?")) { //asking user for continue if we have changes
         return;
     }
   table.setData(URLS.mainProjectGetURL);
@@ -217,6 +217,8 @@ document.getElementById("main-menu-create-toggle").addEventListener("click", fun
 function collectChanges() {
   const updatedData = {};
   const createdData = {};
+
+  if (deletedIds && !confirm("Projects will be deleted. Continue?")) return
 
   for (const cell of table.getEditedCells()) {  // going through all edited cells
     const data = cell.getRow()?.getData();  //parse data from whole row?
@@ -247,7 +249,7 @@ function collectChanges() {
       }
     };
   }
-    console.log(deletedIds);
+
     const result = {
       updated: Object.values(updatedData),
       created: Object.values(createdData),
