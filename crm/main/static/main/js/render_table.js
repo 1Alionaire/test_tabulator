@@ -200,8 +200,13 @@ function onlyOnCreate(cell) {
 
   // =================== Refresh table ===================
 document.getElementById("main-menu-refresh-toggle").addEventListener("click", function() {
+  const changes = collectChanges(); // collecting all changes
+  const hasChanges = changes.updated.length || changes.created.length || changes.deleted.length //put all possible changes in const
+  if (hasChanges && !confirm("Несохранённые изменения будут потеряны. Продолжить?")) { //asking user for continue if we have changes
+        return;
+    }
   table.setData(URLS.mainProjectGetURL);
-    });
+});
 
   // =================== Create new row ===================
 document.getElementById("main-menu-create-toggle").addEventListener("click", function () {
@@ -409,11 +414,10 @@ document.getElementById("main-menu-redo-toggle").addEventListener("click", funct
     });
 
 document.getElementById("main-menu-test-toggle").addEventListener("click", function() {
-  for (const deletedId of deletedIds) {
-    console.log(`deletedId : ${deletedId}`);
-  }
+  console.log()
 });
 
+// ================ show notification ==============
 function showToast(message, type = "info", duration = 3000) {
     const container = document.getElementById("toast-container");
 
