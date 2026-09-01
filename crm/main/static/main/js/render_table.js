@@ -193,6 +193,15 @@ function onlyOnCreate(cell) {
               editor:"input", 
               headerSort: false 
             },
+            {
+              title: "Link",
+              field: "id",
+              formatter: "link",
+              formatterParams: {
+                urlPrefix: "redirect/",
+                target: "_blank",
+              },
+}
           ],
       });
   })();

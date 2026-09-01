@@ -71,11 +71,14 @@ def api_update_main_projects_table(request):
 
         # updating 
         operation_result = table_manager.table_update_processing()
-        print(f'operation_result : {operation_result}')
         if operation_result['status'] == '!ok':
             return JsonResponse(**operation_result, status=400)
 
         return JsonResponse(operation_result)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+
+def project_redirect(request, id):
+    print(id)
+    return render(request, 'main/test.html')
 
