@@ -71,6 +71,7 @@ def api_update_main_projects_table(request):
 
         # updating 
         operation_result = table_manager.table_update_processing()
+        print(f'operation_result : {operation_result}')
         if operation_result['status'] == '!ok':
             return JsonResponse(**operation_result, status=400)
 

@@ -281,8 +281,17 @@ async function saveChanges() {
       cell.getElement().classList.remove("dirty");
     });
 
+    const resultJSON = await res.json();
+
+    let resultMessage = ''
+    if (resultJSON.updated) {resultMessage += `Updated: ${resultJSON.updated}`};
+    if (resultJSON.created) {resultMessage += `Created: ${resultJSON.created}`};
+    if (resultJSON.deleted) {resultMessage += `Deleted: ${resultJSON.deleted}`};
+    console.log(resultMessage)
+    showToast(`Table Saved: ${resultMessage}`, "success");
+
   } catch (e) {
-    alert("Не удалось сохранить. Правки остались в таблице.");
+    showToast(`Error: ${res.error}`, "error");
     console.log(e)
   } finally {
     deletedIds.clear();
@@ -404,4 +413,27 @@ document.getElementById("main-menu-test-toggle").addEventListener("click", funct
     console.log(`deletedId : ${deletedId}`);
   }
 });
+
+function showToast(message, type = "info", duration = 3000) {
+    const container = document.getElementById("toast-container");
+
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.textContent = message;   // textContent, а не innerHTML —
+                                   // сообщения с сервера могут содержать HTML/XSS
+
+    container.appendChild(toast);
+
+    // Элемент только что вставлен со стилями opacity:0.
+    // Если сразу навесить .show, браузер объединит оба состояния в один пересчёт
+    // и transition не сработает. requestAnimationFrame даёт браузеру
+    // отрисовать начальное состояние, и только потом меняем классы.
+    requestAnimationFrame(() => toast.classList.add("show"));
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+        // ждём окончания transition, потом удаляем узел из DOM
+        toast.addEventListener("transitionend", () => toast.remove(), { once: true });
+    }, duration);
+}
 
