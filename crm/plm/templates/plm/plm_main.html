@@ -1,10 +1,10 @@
 {% extends 'base.html' %} {% load static %} {% block extra_css %}
 <link
   type="text/css"
-  href="{% static 'plm/css/styles.css' %}"
+  href="{% static 'plm/css/plm_main.css' %}"
   rel="stylesheet"
 />{% endblock %} {% block content%}
-<main class="plm-main">
+<main class="main">
   <section id="main-section-filter" class="side-filter-panel invisible">
     <div class="date-filter-input-box">
       <span>Date Range</span>
@@ -61,8 +61,11 @@
 </main>
 {% endblock%} {% block extra_js %}
 <script>
-
+  const URLS = {
+    tableOptionsGetURL: "{% url 'main:api_get_table_options' %}",
+    PLMProjectGetURL: "{% url 'plm:api_get_plm_projects_table' %}",
+  };
 </script>
 
-<script src="{% static 'plm/js/render_table.js' %}"></script>
+<script src="{% static 'plm/js/main_table.js' %}"></script>
 {% endblock %}

@@ -132,14 +132,6 @@
     gap:10px;
 }
 
-.side-create-panel {
-    width: 25vw;
-    min-height: 900px;
-    background-color: blue;
-    border-color: black;
-    transition: width 0.3s ease;
-}
-
 #main-projects {
     width: 100%;
 }

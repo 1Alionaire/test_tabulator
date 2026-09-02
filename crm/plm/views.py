@@ -13,7 +13,7 @@ class PLMTableView(TemplateView):
     template_name = 'plm/plm_main.html'
 
 def api_get_plm_projects_table(request):
-    plm_projects = MainProject.active_objects.all().filter().order_by('lab_id_sort').values(
+    plm_projects = MainProject.active_objects.filter(sample_type_id__in=[2,3,4]).order_by('lab_id_sort').values(
                                                      'id',
                                                      'lab_id',
                                                      'lab_id_sort',
@@ -30,3 +30,6 @@ def api_get_plm_projects_table(request):
                                                      'status_id', 
                                                      'comment')
     return JsonResponse(list(plm_projects), safe=False)
+
+def render_plm_detail(request):
+    pass

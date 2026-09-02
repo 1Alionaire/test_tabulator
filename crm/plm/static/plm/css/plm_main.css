@@ -1,0 +1,92 @@
+* {
+    box-sizing: border-box;
+}
+
+.main {
+    display: flex;
+}
+
+.invisible {
+    display: none;
+}
+
+.visible-flex {
+    display: flex;
+}
+
+.main-window {
+    min-height: 900px;
+    border-color: black;
+    width: 100vw;
+    display: flex;
+}
+
+.control-panel {
+    margin: 20px 10px;
+    min-width: 50px;
+    min-height: 900px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.side-filter-panel {
+    margin-top: 20px;
+    margin-right: 10px;
+    width: 25vw;
+    min-width: 200px;
+    min-height: 900px;
+    transition: width 0.3s ease;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.panel-btn {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0.5px;
+    background-color: white;
+    font-size: 17px;
+}
+
+#main-info {
+    width: 100%;
+}
+
+.date-filter-input-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.option-filter {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-filter-text {
+    width: 100%;
+}
+
+#filter-panel-apply-button {
+    margin: 0 auto;
+    width: 80%;
+    height: 30px;
+    background-color: #045bbe;
+    color: white;
+}
+
+#filter-panel-reset-filter-button {
+    margin: 0 auto;
+    width: 80%;
+    height: 30px;
+    background-color: transparent;
+    color: black;
+}
+
+.tabulator .tabulator-col .tabulator-col-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}

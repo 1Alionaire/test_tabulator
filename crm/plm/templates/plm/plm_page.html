@@ -1,0 +1,17 @@
+{% extends 'base.html' %} {% load static %} {% block extra_css %}
+<link
+  type="text/css"
+  href="{% static 'plm/css/plm_page.css' %}"
+  rel="stylesheet"
+/>{% endblock %} {% block content%}
+<h1></h1>
+{% endblock%} {% block extra_js %}
+<script>
+  const URLS = {
+    tableOptionsGetURL: "{% url 'main:api_get_table_options' %}",
+    PLMProjectGetURL: "{% url 'plm:api_get_plm_projects_table' %}",
+  };
+</script>
+
+<script src="{% static 'plm/js/plm_page.js' %}"></script>
+{% endblock %}

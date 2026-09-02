@@ -42,9 +42,8 @@ class PlmProject(BaseModel):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='reviewed_by',
-        editable=False,                       # не показывать в формах
-        verbose_name='Who update',
+        related_name='reviewed_by',                      # не показывать в формах
+        verbose_name='Who reviewed',
     )
 
     project_file = models.FileField(upload_to='plm_files/scan', blank=True, null=True)

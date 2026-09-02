@@ -22,8 +22,6 @@ class MainTableView(TemplateView):
         }
     template_name = 'main/index.html'
 
-def main(request):
-    return render(request, 'main/index.html')
 
 def api_get_table_options(request):
     return JsonResponse({
