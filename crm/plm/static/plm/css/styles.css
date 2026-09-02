@@ -1,0 +1,242 @@
+* {
+    box-sizing: border-box;
+}
+
+.main {
+    display: flex;
+}
+
+.navigation-main {
+    background-color: #045bbe;
+    min-width: 100px;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+    padding: 1px 15px;
+    position: relative;
+    z-index: 100;
+}
+
+.nav-left {
+    display: flex;
+    gap: 8px;
+}
+
+.dropdown-toggle {
+    background-color: transparent;
+    color: white;
+    display: block;
+    width: 80px;
+    height: 100%;
+    font-size: 20px;
+    border: none;
+    /* margin: 10px 1px; */
+    text-decoration: none;
+    text-align: center;
+}
+
+.nav-tab {
+    background-color: transparent;
+    color: white;
+    display: block;
+    width: 4em;
+    height: 100%;
+    font-size: 20px;
+    border: none;
+    margin: 10px 1px;
+    text-decoration: none;
+    text-align: center;
+}
+
+.nav-user-btn {
+    background-color: transparent;
+    color: white;
+    display: block;
+    width: 3em;
+    font-size: 20px;
+    padding: 1px 15px;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 80px;
+    margin: 4px 0 0;
+    padding: 4px 0;
+    list-style: none;
+    background-color: #045bbe;
+    border: 1px solid #ddd;
+    z-index: 101;
+    /* border-radius: 6px; */
+    /* box-shadow: 0 4px 12px rgba(0, 0, 0, .1); */
+}
+
+.dropdown.open .dropdown-menu {
+    display: block;
+}
+
+.analysis-nav-tab {
+    background-color: transparent;
+    color: white;
+    display: block;
+    width: 100%;
+    height: 100%;
+    font-size: 20px;
+    border: none;
+    margin: 10px 1px;
+    text-decoration: none;
+    text-align: center;
+}
+
+.invisible {
+    display: none;
+}
+
+.visible-flex {
+    display: flex;
+}
+
+.main-window {
+    min-height: 900px;
+    border-color: black;
+    width: 100vw;
+    display: flex;
+}
+
+.control-panel {
+    margin: 20px 10px;
+    min-width: 50px;
+    min-height: 900px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.side-filter-panel {
+    margin-top: 20px;
+    margin-right: 10px;
+    width: 25vw;
+    min-width: 200px;
+    min-height: 900px;
+    transition: width 0.3s ease;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.side-create-panel {
+    width: 25vw;
+    min-height: 900px;
+    background-color: blue;
+    border-color: black;
+    transition: width 0.3s ease;
+}
+
+#main-projects {
+    width: 100%;
+}
+
+.panel-btn {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0.5px;
+    background-color: white;
+    font-size: 17px;
+}
+
+#main-info {
+    width: 100%;
+}
+
+.date-filter-input-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.option-filter {
+    display: flex;
+    flex-direction: column;
+}
+
+#toast-container {
+    position: fixed;
+    /* не зависит от скролла страницы */
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    /* выше Tabulator и его модалок */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+    /* контейнер не перехватывает клики по таблице */
+}
+
+.toast {
+    pointer-events: auto;
+    /* а сам тост — кликабелен (крестик, копирование) */
+    min-width: 260px;
+    max-width: 400px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+    opacity: 0;
+    transform: translateX(30px);
+    transition: opacity .25s ease, transform .25s ease;
+}
+
+.toast.show {
+    /* класс добавляем через кадр — иначе анимации не будет */
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast.success {
+    background: #2e7d32;
+}
+
+.toast.error {
+    background: #c62828;
+}
+
+.toast.info {
+    background: #1565c0;
+}
+
+.input-filter-text {
+    width: 100%;
+}
+
+#filter-panel-apply-button {
+    margin: 0 auto;
+    width: 80%;
+    height: 30px;
+    background-color: #045bbe;
+    color: white;
+}
+
+#filter-panel-reset-filter-button {
+    margin: 0 auto;
+    width: 80%;
+    height: 30px;
+    background-color: transparent;
+    color: black;
+}
+
+.tabulator .tabulator-col .tabulator-col-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}

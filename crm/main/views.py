@@ -8,11 +8,19 @@ import json
 from django.db import transaction
 import django.utils
 from .main_table_logic import MainProjectTableManager
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView
 
 def _serialize(obj):
     return {
         'lab_id': obj.lab_id,
     }
+
+class MainTableView(TemplateView):
+    extra_context = {
+        'title': 'Main'
+        }
+    template_name = 'main/index.html'
 
 def main(request):
     return render(request, 'main/index.html')

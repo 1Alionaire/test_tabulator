@@ -15,7 +15,8 @@
     width: 100%;
     justify-content: space-between;
     padding: 1px 15px;
-    
+    position: relative;
+    z-index: 100;
 }
 
 .nav-left {
@@ -74,6 +75,7 @@
     list-style: none;
     background-color: #045bbe;
     border: 1px solid #ddd;
+    z-index: 101;
     /* border-radius: 6px; */
     /* box-shadow: 0 4px 12px rgba(0, 0, 0, .1); */
 }
@@ -210,4 +212,31 @@
 
 .toast.info {
     background: #1565c0;
+}
+
+.input-filter-text {
+    width: 100%;
+}
+
+#filter-panel-apply-button {
+    margin: 0 auto;
+    width: 80%;
+    height: 30px;
+    background-color : #045bbe;
+    color: white;
+}
+
+#filter-panel-reset-filter-button {
+    margin: 0 auto;
+    width: 80%;
+    height: 30px;
+    background-color: transparent;
+    color: black;
+}
+
+.tabulator .tabulator-col .tabulator-col-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
 }

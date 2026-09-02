@@ -59,6 +59,11 @@ function checkNOBType(cell) {
         paginationSize: 200,
         paginationSizeSelector:[100, 200, 300],
         selectableRows:true, 
+        columnDefaults: {
+          headerHozAlign: "center",
+          hozAlign: "center",
+          vertAlign: "middle",
+        },
         columns:[
           {
               title: "id", 
@@ -77,7 +82,8 @@ function checkNOBType(cell) {
               field:"lab_id", 
               width: 80, 
               editor:"input", 
-              headerSort: false
+              headerSort: false,
+              
             },
             {
               title:"Date", 
@@ -85,7 +91,8 @@ function checkNOBType(cell) {
               editor: "date", 
               formatter:"date", 
               width:80, 
-              headerSort: false
+              headerSort: false,
+              
             },
             {
               title:"Time", 
@@ -93,7 +100,8 @@ function checkNOBType(cell) {
               editor: "time", 
               formatter:"time",
               width:80 , 
-              headerSort: false 
+              headerSort: false, 
+              
             },
             {
               title: "Company",
@@ -105,23 +113,26 @@ function checkNOBType(cell) {
               editorParams: { values: statusOptions['company'] },
               headerSort: false,
               width: 150,
+              
             },
             {
               title:"Project Name", 
               field:"project_name", 
               width:400, 
               editor:"input", 
-              headerSort: false
+              headerSort: false,
+              
             },
             {
               title:"Project Address", 
               field:"project_address", 
               hozAlign:"center", width:400, 
               editor:"input", 
-              headerSort: false 
+              headerSort: false,
+              
             },
             {
-              title: "Type Analysis",
+              title: "Type<br>Analysis",
               field: "sample_type_id",
               formatter: "lookup",
               formatterParams: Object.fromEntries(statusOptions['sample_type'].map(o => [o.value, o.label])),
@@ -129,13 +140,13 @@ function checkNOBType(cell) {
               editable: onlyOnCreate,
               editorParams: { values: statusOptions['sample_type']},
               width : 100,
-              headerSort: false 
+              headerSort: false, 
+              
             },
             {
-              title:"Amount Samples", 
+              title:"Samples", 
               field:"number_samples", 
-              hozAlign:"center", 
-              width:100, 
+              width: 65, 
               editor:"number", 
               headerSort: false,
               editorParams: {
@@ -143,24 +154,25 @@ function checkNOBType(cell) {
                 step: 1,
               },
               validator: ["required", "min:0", "integer"],
-            },
+              
+              },
             {
-              title: "Turn Around Time",
+              title: "TurnAround<br>Time",
               field: "turn_around_time_id",
               formatter: "lookup",
               formatterParams: Object.fromEntries(statusOptions['turn_around_time'].map(o => [o.value, o.label])),
               editor: "list",
               editorParams: { values: statusOptions['turn_around_time'] },
-              width: 80,
-              headerSort: false 
+              width: 90,
+              headerSort: false,
+              
             },
             {
-              title:"NOB Amount Samples", 
+              title:"NOB<br>Samples", 
               field:"nob_number_samples", 
-              hozAlign:"center", 
               width:100, 
               editor: "number", 
-              width:80, 
+              width:65, 
               headerSort: false,
               editorParams: {
                 min: 0,
@@ -168,6 +180,7 @@ function checkNOBType(cell) {
               },
               validator: ["required", "min:0", "integer"],
               editable: checkNOBType,
+              
             },
             {
               title: "Status",
@@ -175,7 +188,8 @@ function checkNOBType(cell) {
               formatter: "lookup",
               formatterParams: Object.fromEntries(statusOptions['status'].map(o => [o.value, o.label])),
               width: 80,
-              headerSort: false 
+              headerSort: false,
+              
             },
             {
               title: "Link",
@@ -186,24 +200,23 @@ function checkNOBType(cell) {
                 target: "_blank",
                 label: "Link",
               },
-              headerSort: false
+              headerSort: false,
+              
             },
             {
               title:"Technician", 
               field:"technician", 
-              hozAlign:"center", 
               width:100, 
               editor:"input", 
               editable:true, 
-              headerSort: false 
+              headerSort: false,
             },
             {
               title:"Comment", 
               field:"comment", 
-              hozAlign:"center", 
               width:100, 
               editor:"input", 
-              headerSort: false 
+              headerSort: false,
             },
 
           ],
