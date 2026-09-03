@@ -39,6 +39,15 @@ function checkNOBType(cell) {
   if (cell.getRow().getData().sample_type_id == '3' || cell.getRow().getData().sample_type_id == '4') return true
 }
 
+function checkCOCFile(cell) {
+  if (cell.getRow().getData().has_coc === true) {
+    return 'Check'
+  }
+  else {
+    return 'Upload'
+  }
+}
+
 (async () => { 
   const response = await fetch(URLS.tableOptionsGetURL);
   const statusOptions = await response.json();
@@ -201,7 +210,6 @@ function checkNOBType(cell) {
                 label: "Link",
               },
               headerSort: false,
-              
             },
             {
               title:"Technician", 
@@ -217,6 +225,18 @@ function checkNOBType(cell) {
               width:100, 
               editor:"input", 
               headerSort: false,
+            },
+            {
+              title: "COC File",
+              field: "id",
+              formatter: "link",
+              formatterParams: {
+                urlPrefix: "upload-coc/",
+                target: "_blank",
+                label: checkCOCFile,
+              },
+              headerSort: false,
+              width: 70,
             },
 
           ],

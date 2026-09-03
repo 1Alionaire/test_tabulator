@@ -18,7 +18,14 @@ class PlmProject(BaseModel):
     date_analyze = models.DateField(auto_now_add=False, default=timezone.now, blank=True, null=True)
     date_report = models.DateField(auto_now_add=False, default=timezone.now, blank=True, null=True)
     date_review = models.DateField(auto_now_add=False, default=timezone.now, blank=True, null=True)
-    prepared_by = models.CharField(max_length=30, blank=True)
+    prepared_by = models.ForeignKey(
+            settings.AUTH_USER_MODEL,
+            on_delete=models.SET_NULL,
+            null=True,
+            blank=True,
+            related_name='prepared_by',
+            verbose_name='Prepare',
+        )
     analyst = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -46,6 +53,7 @@ class PlmProject(BaseModel):
         verbose_name='Who reviewed',
     )
 
+    coc_file = models.FileField(upload_to='plm_files/coc', blank=True, null=True)
     project_file = models.FileField(upload_to='plm_files/scan', blank=True, null=True)
     report_file = models.FileField(upload_to='plm_files/report', blank=True, null=True)
     plm_sample_count = models.PositiveIntegerField(default=0)

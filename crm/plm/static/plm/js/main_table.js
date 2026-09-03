@@ -46,7 +46,7 @@ let table;
           editable: false,
         },
         columns:[
-          {
+            {
               title: "id", 
               field: "id", 
               visible: false, 
@@ -60,12 +60,12 @@ let table;
 
             {
               title:"Lab ID", 
-              field:"lab_id", 
+              field: "id", 
               width: 80, 
               headerSort: false,
               formatter: "link",
               formatterParams: {
-                urlPrefix: "plm/detail/",
+                urlPrefix: "detail/",
                 target: "_blank",
                 label: getLabId,
               },

@@ -4,7 +4,48 @@
   href="{% static 'plm/css/plm_page.css' %}"
   rel="stylesheet"
 />{% endblock %} {% block content%}
-<h1></h1>
+<main class="main">
+  <section class="main-window">
+    <section class="control-panel">
+      <button type="button" id="tab-general" class="panel-btn active">
+        General
+      </button>
+      <button type="button" id="tab-entry" class="panel-btn">Entry</button>
+      <button type="button" id="tab-weight" class="panel-btn">Weight</button>
+      <button type="button" id="tab-nob-analysis" class="panel-btn">NOB</button>
+      <button type="button" id="tab-tem-anaysis" class="panel-btn">TEM</button>
+      <button type="button" id="tab-invoice" class="panel-btn">Invoice</button>
+      <button type="button" id="tab-result" class="panel-btn">Result</button>
+    </section>
+    <section class="work-space">
+      <div class="tab-content active" id="tab-0">
+        <div class="project-update-box">
+          <form
+            action="{% url 'plm:plm_detail' work.id %}"
+            method="post"
+            enctype="multipart/form-data"
+            class="plm-form"
+          >
+            {% for field in form %}
+            <div
+              class="form-row {% if field.field.widget.input_type == 'date' %}form-row--date{% endif %}"
+            >
+              <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              <div class="form-error">{{ field.errors }}</div>
+            </div>
+            {% endfor %}
+            <div class="form-actions">
+              <button type="submit" class="btn btn--primary">Save</button>
+            </div>
+          </form>
+        </div>
+        <div class="coc-file-window"></div>
+      </div>
+      <div class="tab-content" id="tab-1"></div>
+    </section>
+  </section>
+</main>
 {% endblock%} {% block extra_js %}
 <script>
   const URLS = {

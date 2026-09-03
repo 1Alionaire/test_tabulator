@@ -1,0 +1,37 @@
+{% extends 'base.html' %} {% load static %} {% block extra_css %}
+<link
+  type="text/css"
+  href="{% static 'main/css/styles.css' %}"
+  rel="stylesheet"
+/>{% endblock %} {% block content%}
+<main class="main-upload-window">
+  <section class="section-upload">
+    <form
+      action="{% url 'main:upload_coc_file' work.id %}"
+      method="post"
+      enctype="multipart/form-data"
+      class="plm-form"
+    >
+      {% csrf_token %} {% for field in form %}
+      <div
+        class="form-row {% if field.field.widget.input_type == 'date' %}form-row--date{% endif %}"
+      >
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        <div class="form-error">{{ field.errors }}</div>
+      </div>
+      {% endfor %}
+      <div class="form-actions">
+        <button type="submit" class="btn btn--primary">Save</button>
+      </div>
+    </form>
+  </section>
+  <section class="section-show">
+    {% if work.coc_file %}
+    <iframe src="{{ work.coc_file.url }}" width="100%" height="800"></iframe>
+    {% else %}
+    <span>No COC Yet</span>
+    {% endif %}
+  </section>
+</main>
+{% endblock%} {% block extra_js %} {%endblock %}

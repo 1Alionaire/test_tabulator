@@ -9,7 +9,10 @@ from django.db import transaction
 import django.utils
 from .main_table_logic import MainProjectTableManager
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, UpdateView
+from .forms import ProjectCOCUpload
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse_lazy, reverse
 
 def _serialize(obj):
     return {
@@ -88,3 +91,15 @@ def project_redirect(request, id):
     print(id)
     return render(request, 'main/test.html')
 
+class UploadCOCView(UpdateView):
+    model = MainProject
+    form_class = ProjectCOCUpload
+    template_name = 'main/coc_upload_page.html'
+    context = {'title': 'Upload COC'}
+    context_object_name = 'work'
+    
+    def get_object(self):
+        return get_object_or_404(MainProject, id=self.kwargs['id'])
+
+    def get_success_url(self):
+        return reverse_lazy('main:main')

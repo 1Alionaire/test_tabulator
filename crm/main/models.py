@@ -70,3 +70,7 @@ class MainProject(BaseModel):
         # каждое число паддим до 8 символов
         return re.sub(r'\d+', lambda m: m.group().zfill(8), value or '')
 
+    @property
+    def has_coc(self) -> bool:
+        return bool(self.coc_file)
+
