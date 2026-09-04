@@ -42,17 +42,19 @@
         </div>
         <div class="coc-file-window"></div>
       </div>
-      <div class="tab-content" id="tab-1"></div>
+      <div class="tab-content" id="tab-1">
+        <section id="samples-data-entry-table"></section>
+      </div>
     </section>
   </section>
 </main>
 {% endblock%} {% block extra_js %}
 <script>
   const URLS = {
-    tableOptionsGetURL: "{% url 'main:api_get_table_options' %}",
-    PLMProjectGetURL: "{% url 'plm:api_get_plm_projects_table' %}",
+    tableOptionsGetURL: "{% url 'plm:api_get_table_options' %}",
+    dataEntryGetURL: "{% url 'plm:api_get_data_entry_table' work.id %}",
   };
 </script>
 
-<script src="{% static 'plm/js/plm_page.js' %}"></script>
+<script src="{% static 'plm/js/plm_entry.js' %}"></script>
 {% endblock %}

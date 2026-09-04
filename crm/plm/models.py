@@ -66,7 +66,32 @@ class PlmProject(BaseModel):
     def lab_id(self):
         return self.project.lab_id
 
+    # @property
+    def __str__(self):
+        return self.project.lab_id
+
+
 class PlmSample(BaseModel):
+    class SampleMethod(models.IntegerChoices):
+        Sample1981 = 1, '198.1'
+        Sample1984 = 2, '198.4'
+        Sample1986 = 3, '198.6'
+        Sample1994 = 4, '199.4'
+
+    class SampleASbestosType(models.IntegerChoices):
+        Chry = 1, 'Chrysotile'
+        Amo = 2, 'Amosite'
+        Croc = 3, 'Crocidolite'
+        Anth = 4, 'Anthophillite'
+        Trem = 5, 'Tremolite'
+        Act = 6, 'Actinolite'
+    
+    class SampleTexture(models.IntegerChoices):
+        NonFibs = 1, 'Non-Fibs'
+        Fibrous = 2, 'Fibrous'
+        Mixed = 3, 'Mixed'
+        NotApplicable = 4, 'N/A'
+
     class SampleMorphology(models.IntegerChoices):
         Wavy = 1, 'W'
         Straight = 2, 'S'
@@ -87,6 +112,20 @@ class PlmSample(BaseModel):
         L = 1, 'L'
         M = 2, 'M'
 
+    class SampleOtherFiber(models.IntegerChoices):
+        FiberGlass = 1, 'FiberGlass'
+        Cellulose = 2, 'Cellulose'
+        Synthetic = 3, 'Synthetic'
+        HorseHair = 4, 'HorseHair'
+        MineralWool = 5, 'MineralWool'
+
+    class SampleOtherFiberProperty(models.IntegerChoices):
+        Isotropic = 1, 'Isotropic'
+        Ribbon = 2, 'Ribbon'
+        Medula = 3, 'Medula'
+        Cylindrical = 4, 'Cylindrical'
+
+    # status = models.IntegerField(choices=StatusWork.choices, default=StatusWork.NEW, blank=True, null=True)
     #general data
     plm_project = models.ForeignKey('plm.PlmProject', on_delete=models.CASCADE, related_name='plm_samples')
     homo_area = models.CharField(max_length=7, default='', blank=True)
@@ -94,7 +133,7 @@ class PlmSample(BaseModel):
     lab_sample = models.CharField(max_length=25, default='', blank=True, null=True)
     description = models.CharField(max_length=100, default='')
     location = models.CharField(max_length=100, default='')
-    method = models.CharField(max_length=8, blank=True, null=True)
+    method = models.IntegerField(choices=SampleMethod.choices,default=SampleMethod.Sample1981)
     color = models.CharField(max_length=25, default='', blank=True)
 
     #analyze data
@@ -106,22 +145,21 @@ class PlmSample(BaseModel):
     )
 
     analysis_temperature = models.PositiveIntegerField(default=23, null=True)
-    texture = models.CharField(max_length=10, default='Non-Fibs', blank=True)
-    homogeneity = models.CharField(max_length=2, blank=True)
-    matx_reduc = models.CharField(max_length=2, blank=True)
-    morphology = models.CharField(max_length=10, blank=True, default='')
+    texture = models.IntegerField(choices=SampleTexture, default=SampleTexture.NonFibs, null=True, blank=True)
+
+    morphology = models.IntegerField(choices=SampleMorphology, null=True, blank=True)
     ri_alpha_oil = models.CharField(max_length=6, blank=True)
     ri_delta_oil = models.CharField(max_length=6, blank=True)
-    sign_of_elongation = models.CharField(max_length=10, blank=True, default='')
-    extinction_angle = models.CharField(max_length=10, blank=True, default='')
-    pleochroism_color = models.CharField(max_length=10, blank=True, default='')
-    birefringence = models.CharField(max_length=10, blank=True, default='')
-    other_fiber = models.CharField(max_length=20, blank=True, default='')
-    other_fiber_property = models.CharField(max_length=120, blank=True, default='', null=True)
+    sign_of_elongation = models.IntegerField(choices=SampleSignElong, null=True, blank=True)
+    extinction_angle = models.IntegerField(choices=SampleExtincAngle, null=True, blank=True)
+    pleochroism_color = models.IntegerField(choices=SamplePleochColor, null=True, blank=True)
+    birefringence = models.IntegerField(choices=SampleBirefringence, null=True, blank=True)
+    other_fiber = models.IntegerField(choices=SampleOtherFiber, null=True, blank=True)
+    other_fiber_property = models.IntegerField(choices=SampleOtherFiberProperty, null=True, blank=True)
     other_fiber_percent = models.DecimalField(max_digits=4, decimal_places=2, blank=True, default=0)
 
     # asb info
-    asb_type = models.CharField(max_length=15, blank=True, null=True)
+    asb_type = models.IntegerField(choices=SampleASbestosType, null=True, blank=True)
     asb_point_1 = models.PositiveIntegerField(default=0)
     asb_point_2 = models.PositiveIntegerField(default=0)
     asb_point_3 = models.PositiveIntegerField(default=0)
@@ -132,13 +170,13 @@ class PlmSample(BaseModel):
     asb_point_8 = models.PositiveIntegerField(default=0)
     asb_percent = models.DecimalField(max_digits=4, decimal_places=2, default=0, blank=True, null=True)
 
-    tem_asb_type = models.CharField(max_length=15, blank=True, null=True)
+    tem_asb_type = models.IntegerField(choices=SampleASbestosType, null=True, blank=True)
     tem_asb_point = models.PositiveIntegerField(default=0)
     tem_asb_percent = models.DecimalField(max_digits=4, decimal_places=2, default=0, blank=True, null=True)
 
     
     def __str__(self):
-        return self.lab_sample_id
+        return self.lab_sample
 
 # Weights
 class PlmSampleWeight(BaseModel):
@@ -154,5 +192,5 @@ class PlmSampleWeight(BaseModel):
     caco3 = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
     def __str__(self):
-        return f'Weights for {self.sample.lab_sample_id}'
+        return f'Weights for {self.sample.lab_sample}'
 

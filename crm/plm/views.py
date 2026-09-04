@@ -4,10 +4,9 @@ from django.views.generic import TemplateView
 from django.http import JsonResponse
 from main.models import MainProject
 from django.views.generic import UpdateView
-from .models import PlmProject
+from .models import PlmProject, PlmSample
 from .forms import UpdatePlmProject
 from django.shortcuts import render, redirect, get_object_or_404
-
 # Create your views here.
 
 
@@ -49,3 +48,27 @@ class UpdateProjectView(UpdateView):
 def render_plm_detail(request, id):
     return render(request, template_name='plm/plm_page.html', context={'title':'ID', 
                                                 'ID': id})
+
+def api_get_table_options(request):
+    return JsonResponse({
+        'sampleMethod': [{'value': v, 'label': l} for v, l in PlmSample.SampleMethod.choices],
+        'sampleAsbestosType' : [{'value': v, 'label': l} for v, l in PlmSample.SampleASbestosType.choices],
+        'sampleTexture' : [{'value': v, 'label': l} for v, l in PlmSample.SampleTexture.choices],
+        'sampleMorphology' : [{'value': v, 'label': l} for v, l in PlmSample.SampleMorphology.choices],
+        'sampleSignElong' : [{'value': v, 'label': l} for v, l in PlmSample.SampleSignElong.choices],
+        'sampleExtincAngle' : [{'value': v, 'label': l} for v, l in PlmSample.SampleExtincAngle.choices],
+        'samplePleochColor' : [{'value': v, 'label': l} for v, l in PlmSample.SamplePleochColor.choices],
+        'sampleBirefringence' : [{'value': v, 'label': l} for v, l in PlmSample.SampleBirefringence.choices],
+        'sampleOtherFiber' : [{'value': v, 'label': l} for v, l in PlmSample.SampleOtherFiber.choices],
+        'sampleOtherFiberProperty' : [{'value': v, 'label': l} for v, l in PlmSample.SampleOtherFiberProperty.choices],
+    })
+
+def api_get_data_entry_table(request, id):
+    all_samples = PlmSample.objects.filter(plm_project=id).values('id', 
+                                                                  'homo_area', 
+                                                                  'client_sample', 
+                                                                  'lab_sample',
+                                                                  'description', 
+                                                                  'location',
+                                                                  'method')
+    return JsonResponse(list(all_samples), safe=False)
