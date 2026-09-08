@@ -1,3 +1,7 @@
+body { 
+    box-sizing:border-box;
+}
+
 .main-window {
     min-height: 900px;
     border-color: black;
@@ -41,6 +45,8 @@
     display: none;
     border: 0.5px;
     height: 100%;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .tab-content.active {
@@ -55,4 +61,35 @@
 .coc-file-window {
     width: 67%;
     border: 0.5px solid black;
+}
+
+.section-control-panel {
+    width: 100%;
+    background-color: lightgray;
+    min-height: 50px;
+    height: 10%;
+}
+
+.section-table {
+    width: 100%;
+    background-color: lightblue;
+    min-height: 900px;
+}
+
+#data-entry-control-panel {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.control-buttons {
+    background-color:red;
+    min-width: 150px;
+    margin: 5px;
+}
+
+#data-entry-upload-excel-form {
+    background-color: blue;
+    min-width: 200px;
+    margin: 5px;
 }

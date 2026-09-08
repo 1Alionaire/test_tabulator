@@ -129,6 +129,7 @@ class PlmSample(BaseModel):
     #general data
     plm_project = models.ForeignKey('plm.PlmProject', on_delete=models.CASCADE, related_name='plm_samples')
     homo_area = models.CharField(max_length=7, default='', blank=True)
+    row_number = models.PositiveIntegerField(null=True, blank=True, default=1)
     client_sample = models.CharField(max_length=20)
     lab_sample = models.CharField(max_length=25, default='', blank=True, null=True)
     description = models.CharField(max_length=100, default='')
@@ -190,7 +191,4 @@ class PlmSampleWeight(BaseModel):
     w_petri_with_sample = models.DecimalField(max_digits=10, decimal_places=4, blank=True, null=True)
     residue = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     caco3 = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-
-    def __str__(self):
-        return f'Weights for {self.sample.lab_sample}'
 

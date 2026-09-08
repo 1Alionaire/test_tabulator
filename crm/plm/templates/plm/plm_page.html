@@ -43,7 +43,34 @@
         <div class="coc-file-window"></div>
       </div>
       <div class="tab-content" id="tab-1">
-        <section id="samples-data-entry-table"></section>
+        <section class="section-control-panel" id="data-entry-control-panel">
+          <div class="control-buttons"></div>
+          <div id="data-entry-upload-excel-form">
+            <form
+              action="{% url 'plm:data_entry_upload_excel' work.id %}"
+              method="POST"
+              enctype="multipart/form-data"
+            >
+              {% csrf_token %}
+              <!-- Label for accessibility -->
+              <label for="file-upload">Choose a file to upload:</label>
+
+              <!-- The actual file input field -->
+              <input
+                type="file"
+                id="data-entry-file-upload"
+                name="uploaded_file"
+              />
+
+              <!-- Submit button -->
+              <button type="submit">Upload File</button>
+            </form>
+          </div>
+        </section>
+
+        <section class="section-table">
+          <section id="samples-data-entry-table"></section>
+        </section>
       </div>
     </section>
   </section>
