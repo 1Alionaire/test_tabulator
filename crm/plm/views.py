@@ -13,18 +13,21 @@ from openpyxl import load_workbook
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.db import transaction
+import json
 
+# =========== utility functions =============
+def return_int_value_sample_method(input_str):
+    methods = {label:value for value, label in PlmSample.SampleMethod.choices}
+    return methods[input_str]
 
+# ============== render PLM main page ============
 class PLMTableView(TemplateView):
     extra_context = {
         'title': 'PLM Main'
         }
     template_name = 'plm/plm_main.html'
 
-def return_int(input_str):
-    methods = {label:value for value, label in PlmSample.SampleMethod.choices}
-    return methods[input_str]
-
+# ============== getting all PLM projects ============
 def api_get_plm_projects_table(request):
     plm_projects = MainProject.active_objects.filter(sample_type_id__in=[2,3,4]).order_by('lab_id_sort').values(
                                                      'id',
@@ -44,6 +47,7 @@ def api_get_plm_projects_table(request):
                                                      'comment')
     return JsonResponse(list(plm_projects), safe=False)
 
+# =================== upload Excel-file for data-entry ==================
 @csrf_exempt
 @require_POST
 def data_entry_upload_excel(request, id):
@@ -67,11 +71,10 @@ def data_entry_upload_excel(request, id):
                                                     client_sample = str(ws_entry[f'B{excel_row}'].value),
                                                     description = str(ws_entry[f'C{excel_row}'].value),
                                                     location = str(ws_entry[f'D{excel_row}'].value),
-                                                    method = return_int(str(ws_entry[f'E{excel_row}'].value)),
+                                                    method = return_int_value_sample_method(str(ws_entry[f'E{excel_row}'].value)),
                                                     lab_sample = (project_lab_id + '-' + str(excel_row - 3))) )
             excel_row += 1
 
-        print(f'samples_info_from_excel : {samples_info_from_excel}')
         with transaction.atomic():
             if PlmSample.objects.filter(plm_project__id=id).exists():
                 PlmSample.objects.filter(plm_project__id=id).delete()
@@ -85,7 +88,7 @@ def data_entry_upload_excel(request, id):
         print(e)
     return redirect('plm:plm_detail', id=id)  
 
-
+# ============== render PLM project page  ============
 class UpdateProjectView(UpdateView):
     model = PlmProject
     form_class = UpdatePlmProject
@@ -96,10 +99,7 @@ class UpdateProjectView(UpdateView):
     def get_object(self):
         return get_object_or_404(PlmProject, id=self.kwargs['id'])
 
-def render_plm_detail(request, id):
-    return render(request, template_name='plm/plm_page.html', context={'title':'ID', 
-                                                'ID': id})
-
+# ============== getting all options ============
 def api_get_table_options(request):
     return JsonResponse({
         'sampleMethod': [{'value': v, 'label': l} for v, l in PlmSample.SampleMethod.choices],
@@ -114,12 +114,17 @@ def api_get_table_options(request):
         'sampleOtherFiberProperty' : [{'value': v, 'label': l} for v, l in PlmSample.SampleOtherFiberProperty.choices],
     })
 
+# ============== getting all data for data entry ============
 def api_get_data_entry_table(request, id):
-    all_samples = PlmSample.objects.filter(plm_project=id).values('id', 
-                                                                  'homo_area', 
-                                                                  'client_sample', 
-                                                                  'lab_sample',
-                                                                  'description', 
-                                                                  'location',
-                                                                  'method')
+    all_samples = PlmSample.objects.filter(plm_project=id).values('id', 'homo_area', 'client_sample', 'lab_sample',
+                                                                  'description', 'location', 'method')
     return JsonResponse(list(all_samples), safe=False)
+
+# ============== render PLM project ============
+def api_update_data_entry_table(request, id):
+    try:
+        payload_json = json.loads(request.body)
+        print(payload_json)
+        return JsonResponse({'status' : 'ok'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)

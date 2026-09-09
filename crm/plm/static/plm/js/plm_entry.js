@@ -30,6 +30,9 @@ function isEmpty(inputString) {
   }
 };
 
+const ORIGINALS = new Map();
+let table;
+
 const deletedIds = new Set();
 const insertPositions = new Set();
 let tempCounter = 0;
@@ -46,12 +49,11 @@ table = new Tabulator("#samples-data-entry-table", {
             cssClass: "range-header-col", editor: false
         },
         history:true,
-        height: "100%",
+        height: "calc(100vh - 120px)",
         width: "100%", 
         layout:"fitColumns",
         editTriggerEvent: "dblclick",
         ajaxURL: URLS.dataEntryGetURL,
-        // selectableRows:true, 
         selectableRange: true,
         columnDefaults: {
           headerHozAlign: "center",
@@ -153,8 +155,6 @@ document.getElementById("data-entry-insert-toggle").addEventListener("click", fu
   const cells = ranges[0].getCells(); // parsing rows from selectable range
   const cell = cells[0]?.[0] ?? cells[0]; 
 
-  insertPositions.add(cell.getRow().getPosition()); 
-
   table.addRow({}, false, cell.getRow());  // adding row in table
   rewriteLabIds();
 });
@@ -186,16 +186,138 @@ document.getElementById("data-entry-save-toggle").addEventListener("click", save
 
 // ===================== Save =================
 
-async function saveChanges() {
-  if (deletedIds.length || checkNewRows) {
-    
-  }
-  else {
+function collectChanges() {
+  const updatedData = {}; // initialize update dict 
+  const createdData = {};  // initialize create dict 
 
+  for (const cell of table.getEditedCells()) {  // going through all edited cells
+    const data = cell.getRow()?.getData();  //parse data from whole row?
+    
+    if (!data || !data.lab_sample) continue; // if we dont have data -> continue
+
+    const labId = String(data.lab_sample);          // единый тип ключа
+    const systemId = String(data.id); 
+
+    // in case its new cell
+    if (isEmpty(systemId)) { 
+      if (labId in createdData) { // already has record in createdData dict
+        createdData[labId].fields[cell.getField()] = cell.getValue(); //add info: field_name : cell_value
+        }
+      else { //in case dont have record with lab sample yet 
+        entry = {lab_sample: labId, fields: {}, version: ORIGINALS.get(labId)}; // creating new json element
+        createdData[labId] = entry; 
+        createdData[labId].fields[cell.getField()] = cell.getValue(); //add info: field_name : cell_value
+        createdData[labId].fields["row_number"] = cell.getRow().getPosition(); 
+      }
+    }
+    // in case its already existing cell 
+    else {
+      if (systemId in updatedData) { // already has record in updatedData dict
+        updatedData[systemId].fields[cell.getField()] = cell.getValue(); // add info: field_name : cell_value
+      }
+      else {
+        entry = {id: systemId, fields: {}, version: ORIGINALS.get(systemId)}; // creating new json element
+        updatedData[systemId] = entry; 
+        updatedData[systemId].fields[cell.getField()] = cell.getValue(); //add info: field_name : cell_value
+      }
+    };
+  }
+
+    const result = {
+      updated: Object.values(updatedData),
+      created: Object.values(createdData),
+    };
+  return result;
+}
+
+async function saveChanges() {
+  // In case we have changes affects whole table(insert rows in middle, deleting existing rows)
+  if (deletedIds.length || checkNewRows()) {
+    try {
+      const response = await fetch(URLS.mainProjectUpdateURL, {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
+        body: JSON.stringify(),
+      });
+
+      if (response.status === 422) {
+        showErrors((await response.json()).errors);
+        return;                                   // флаги не снимаем — правки живы
+      }
+      if (!response.ok) {
+        console.error("STATUS:", response.status, "BODY:", await response.text());
+        return;
+      }
+
+      table.getEditedCells().forEach(cell => {
+        cell.clearEdited();
+        cell.getElement().classList.remove("dirty");
+      });
+
+      const resultJSON = await response.json();
+      let resultMessage = ''
+      if (resultJSON.updated) {resultMessage += `Updated: ${resultJSON.updated}`};
+      if (resultJSON.created) {resultMessage += `Created: ${resultJSON.created}`};
+      if (resultJSON.deleted) {resultMessage += `Deleted: ${resultJSON.deleted}`};
+      console.log(resultMessage)
+      showToast(`Table Saved: ${resultMessage}`, "success");
+
+    }
+    catch (e) {
+      console.log(e)
+    } finally {
+      deletedIds.clear();
+    }
+  } 
+  // In case we dont have changes affects whole table(edit descriptions or adding rows at the end of table)
+  else {
+    const changes = collectChanges();
+    if (!changes.updated.length && !changes.created.length) {
+      console.log('no data?')
+      return;
+    }
+    try {
+      const response = await fetch(URLS.dataEntryUpdateURL, {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
+        body: JSON.stringify(changes),
+      });
+
+      if (response.status === 422) {
+        showErrors((await response.json()).errors);
+        return;                                   // флаги не снимаем — правки живы
+      }
+      if (!response.ok) {
+        console.error("STATUS:", response.status, "BODY:", await response.text());
+        return;
+      }
+
+      table.getEditedCells().forEach(cell => {
+        cell.clearEdited();
+        cell.getElement().classList.remove("dirty");
+      });
+
+      const resultJSON = await response.json();
+      let resultMessage = ''
+      if (resultJSON.updated) {resultMessage += `Updated: ${resultJSON.updated}`};
+      if (resultJSON.created) {resultMessage += `Created: ${resultJSON.created}`};
+      // showToast(`Table Saved: ${resultMessage}`, "success");
+
+    }
+    catch (e) {
+      console.log(e)
+    } finally {
+      deletedIds.clear();
+    }
   }
 };
 
 
 document.getElementById("data-entry-test-toggle").addEventListener("click", function () {
-  console.log(`checkNewRows : ${checkNewRows()}`);
+  // collectChanges().created.forEach(element => {
+  //   console.log(`element : ${element.values}`);
+  // });
+  
+  console.log(`collectChanges : ${JSON.stringify(collectChanges())}`);
 });
+
