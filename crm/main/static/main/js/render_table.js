@@ -22,8 +22,8 @@ function isEmpty(inputString) {
 const filterPanel = document.getElementById("main-section-filter");
 
 document.getElementById("main-menu-filter-toggle").addEventListener("click", function (e) {
-    filterPanel.classList.toggle('invisible');
-    filterPanel.classList.toggle('visible-flex');
+    filterPanel.classList.toggle('invisible'); //add visible class
+    filterPanel.classList.toggle('visible-flex'); //add invisible class
 });
 
 // ==================== Generate table ====================
@@ -49,8 +49,8 @@ function checkCOCFile(cell) {
 }
 
 (async () => { 
-  const response = await fetch(URLS.tableOptionsGetURL);
-  const statusOptions = await response.json();
+  const response = await fetch(URLS.tableOptionsGetURL); // parse all options from database
+  const statusOptions = await response.json(); //collect into status dict
 
      table = new Tabulator("#main-info", {
         rowHeader: {
@@ -58,16 +58,16 @@ function checkCOCFile(cell) {
             hozAlign: "center", formatter: "rownum",
             cssClass: "range-header-col", editor: false
         },
-        history:true,
-        height: "100%",
-        width: "100%", 
-        layout:"fitColumns",
-        editTriggerEvent: "click",
-        ajaxURL: URLS.mainProjectGetURL,
-        pagination:"local",
-        paginationSize: 200,
-        paginationSizeSelector:[100, 200, 300],
-        selectableRows:true, 
+        history:true, // history for undo/redo
+        height: "100%", // height
+        width: "100%",  // width 
+        layout:"fitColumns", // layout 
+        editTriggerEvent: "click", // edit trigger for editing
+        ajaxURL: URLS.mainProjectGetURL, // URL for request 
+        pagination:"local", // pagination
+        paginationSize: 200, 
+        paginationSizeSelector:[100, 200, 300], 
+        selectableRows:true,  
         columnDefaults: {
           headerHozAlign: "center",
           hozAlign: "center",
@@ -80,7 +80,7 @@ function checkCOCFile(cell) {
               visible: false, 
             },
             {
-              title: "lab_id_sort", 
+              title: "lab_id_sort",  
               field: "lab_id_sort", 
               visible: false, 
               sorter: "string"
@@ -113,7 +113,7 @@ function checkCOCFile(cell) {
               
             },
             {
-              title: "Company",
+              title: "Company", 
               field: "company_id",
               formatter: "lookup",
               formatterParams: Object.fromEntries(statusOptions['company'].map(o => [o.value, o.label])),
@@ -125,7 +125,7 @@ function checkCOCFile(cell) {
               
             },
             {
-              title:"Project Name", 
+              title:"Project Name",  
               field:"project_name", 
               width:400, 
               editor:"input", 
@@ -133,7 +133,7 @@ function checkCOCFile(cell) {
               
             },
             {
-              title:"Project Address", 
+              title:"Project Address",  
               field:"project_address", 
               hozAlign:"center", width:400, 
               editor:"input", 
@@ -141,7 +141,7 @@ function checkCOCFile(cell) {
               
             },
             {
-              title: "Type<br>Analysis",
+              title: "Type<br>Analysis", 
               field: "sample_type_id",
               formatter: "lookup",
               formatterParams: Object.fromEntries(statusOptions['sample_type'].map(o => [o.value, o.label])),

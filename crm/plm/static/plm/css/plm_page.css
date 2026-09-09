@@ -83,13 +83,24 @@ body {
 }
 
 .control-buttons {
-    background-color:red;
-    min-width: 150px;
+    min-width: 250px;
     margin: 5px;
+    display: flex;
+    flex-direction: row;
+    margin: 20px 10px;
+    gap: 20px;
 }
 
 #data-entry-upload-excel-form {
-    background-color: blue;
-    min-width: 200px;
+    /* background-color: blue; */
+    min-width: 100px;
     margin: 5px;
+}
+
+.panel-btn {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0.5px;
+    background-color: white;
+    font-size: 14px;
 }

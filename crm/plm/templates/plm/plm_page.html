@@ -44,7 +44,35 @@
       </div>
       <div class="tab-content" id="tab-1">
         <section class="section-control-panel" id="data-entry-control-panel">
-          <div class="control-buttons"></div>
+          <div class="control-buttons">
+            <button type="button" id="data-entry-save-toggle" class="panel-btn">
+              Save
+            </button>
+            <button
+              type="button"
+              id="data-entry-refresh-toggle"
+              class="panel-btn"
+            >
+              Refresh
+            </button>
+            <button
+              type="button"
+              id="data-entry-insert-toggle"
+              class="panel-btn"
+            >
+              Insert row
+            </button>
+            <button
+              type="button"
+              id="data-entry-delete-toggle"
+              class="panel-btn"
+            >
+              Delete row
+            </button>
+            <button type="button" id="data-entry-test-toggle" class="panel-btn">
+              test
+            </button>
+          </div>
           <div id="data-entry-upload-excel-form">
             <form
               action="{% url 'plm:data_entry_upload_excel' work.id %}"

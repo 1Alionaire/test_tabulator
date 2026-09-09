@@ -11,8 +11,6 @@ tabNav.addEventListener('click', function(e) {
 });
 
 
-
-
 // ==================== CSRF-токен ====================
 function getCookie(name) {
     let value = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
@@ -32,6 +30,10 @@ function isEmpty(inputString) {
   }
 };
 
+const deletedIds = new Set();
+const insertPositions = new Set();
+let tempCounter = 0;
+
 (async () => { 
 const response = await fetch(URLS.tableOptionsGetURL);
 const tableOptions = await response.json();
@@ -47,9 +49,10 @@ table = new Tabulator("#samples-data-entry-table", {
         height: "100%",
         width: "100%", 
         layout:"fitColumns",
-        editTriggerEvent: "click",
+        editTriggerEvent: "dblclick",
         ajaxURL: URLS.dataEntryGetURL,
-        selectableRows:true, 
+        // selectableRows:true, 
+        selectableRange: true,
         columnDefaults: {
           headerHozAlign: "center",
           hozAlign: "center",
@@ -117,5 +120,49 @@ table = new Tabulator("#samples-data-entry-table", {
           ],
       });
 })();
+
+  // =================== Create new row ===================
+document.getElementById("data-entry-insert-toggle").addEventListener("click", function() {
+  const ranges = table.getRanges();
+  if (!ranges.length) return;
+  
+  const cells = ranges[0].getCells();
+  const cell = cells[0]?.[0] ?? cells[0];
+
+  insertPositions.add(cell.getRow().getPosition());
+
+  table.addRow({}, false, cell.getRow());
+});
+
+
+// ================== deleting rows =============
+document.getElementById("data-entry-delete-toggle").addEventListener("click", function () {
+  const ranges = table.getRanges();
+  if (!ranges.length) return;
+
+  const rows = ranges[0].getRows();
+  for (const row of rows) {
+    const data = row.getData();
+    const position = row.getPosition();   // снимаем ДО удаления
+
+    if (insertPositions.has(position)) {
+      insertPositions.delete(position)
+    }
+    if (data.id) {
+      console.log(data.id);
+      deletedIds.add(data.id);
+    }
+    row.delete();
+  }
+});
+
+document.getElementById("data-entry-test-toggle").addEventListener("click", function () {
+  deletedIds.forEach((element) => console.log(`deleted : ${element}`));
+  insertPositions.forEach((element) => console.log(`inserted : ${element}`));
+});
+
+
+
+
 
 
