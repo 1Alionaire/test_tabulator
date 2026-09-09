@@ -312,7 +312,7 @@ async function saveChanges() {
     console.log('no data?')
     return;
   }
-  // saveBtn.disabled = true;
+
   try {
     const res = await fetch(URLS.mainProjectUpdateURL, {
       method: "POST",

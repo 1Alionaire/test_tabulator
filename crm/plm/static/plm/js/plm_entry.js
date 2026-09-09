@@ -121,48 +121,81 @@ table = new Tabulator("#samples-data-entry-table", {
       });
 })();
 
+function checkNewRows() {
+  let freshCell = null
+  const data = table.getRows();
+  for (row of data) {
+    if (!row.getData().id) {
+      freshCell = row.getPosition()
+    }
+    if (row.getData().id && freshCell)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+function rewriteLabIds() {
+  const data = table.getRows();
+  labId = data[0].getData().lab_sample.slice(0, -2);
+  for (row of data) {
+    row.update({ lab_sample: `${labId}-${row.getPosition()}` });
+  }
+}
+
+
   // =================== Create new row ===================
 document.getElementById("data-entry-insert-toggle").addEventListener("click", function() {
-  const ranges = table.getRanges();
-  if (!ranges.length) return;
+  const ranges = table.getRanges(); // parsing ranges from selectable range
+  if (!ranges.length) return; // in case no selected range
   
-  const cells = ranges[0].getCells();
-  const cell = cells[0]?.[0] ?? cells[0];
+  const cells = ranges[0].getCells(); // parsing rows from selectable range
+  const cell = cells[0]?.[0] ?? cells[0]; 
 
-  insertPositions.add(cell.getRow().getPosition());
+  insertPositions.add(cell.getRow().getPosition()); 
 
-  table.addRow({}, false, cell.getRow());
+  table.addRow({}, false, cell.getRow());  // adding row in table
+  rewriteLabIds();
 });
 
 
 // ================== deleting rows =============
 document.getElementById("data-entry-delete-toggle").addEventListener("click", function () {
-  const ranges = table.getRanges();
-  if (!ranges.length) return;
+  const ranges = table.getRanges(); // parsing total range
+  if (!ranges.length) return; // in case no selected range
 
-  const rows = ranges[0].getRows();
+  const rows = ranges[0].getRows(); // parsing rows from selectable range
   for (const row of rows) {
-    const data = row.getData();
-    const position = row.getPosition();   // снимаем ДО удаления
+    const data = row.getData(); //selecting data from tows
+    const position = row.getPosition();   //getting positions from rows
 
-    if (insertPositions.has(position)) {
+    if (insertPositions.has(position)) { // in case insertPositions has position
       insertPositions.delete(position)
     }
-    if (data.id) {
-      console.log(data.id);
-      deletedIds.add(data.id);
+    
+    if (data.id) {  // if deleted row has id(it means table has data)
+      deletedIds.add(data.id);  // adding to set of deleted existing records  
     }
-    row.delete();
+    row.delete(); // deleting row
+    rewriteLabIds();
   }
 });
 
+document.getElementById("data-entry-save-toggle").addEventListener("click", saveChanges);
+
+// ===================== Save =================
+
+async function saveChanges() {
+  if (deletedIds.length || checkNewRows) {
+    
+  }
+  else {
+
+  }
+};
+
+
 document.getElementById("data-entry-test-toggle").addEventListener("click", function () {
-  deletedIds.forEach((element) => console.log(`deleted : ${element}`));
-  insertPositions.forEach((element) => console.log(`inserted : ${element}`));
+  console.log(`checkNewRows : ${checkNewRows()}`);
 });
-
-
-
-
-
-

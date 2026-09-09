@@ -108,6 +108,8 @@
   const URLS = {
     tableOptionsGetURL: "{% url 'plm:api_get_table_options' %}",
     dataEntryGetURL: "{% url 'plm:api_get_data_entry_table' work.id %}",
+    {% comment %} dataEntryPutURL: "{% url 'plm:api_put_data_entry_table' work.id %}", {% endcomment %}
+    {% comment %} dataEntryPatchURL: "{% url 'plm:api_patch_data_entry_table' work.id %}", {% endcomment %}
   };
 </script>
 
