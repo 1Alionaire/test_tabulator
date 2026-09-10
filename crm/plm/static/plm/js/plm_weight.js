@@ -1,5 +1,5 @@
 
-
+// ==================== Making whole table ====================
 let weightTable;
 
 (async () => { 
@@ -17,6 +17,10 @@ weightTable = new Tabulator("#samples-weight-table", {
         editTriggerEvent: "dblclick",
         ajaxURL: URLS.weightGetURL,
         selectableRange: true,
+        selectableRangeColumns: true,
+        selectableRangeRows: true,
+        selectableRangeClearCells: true,
+
         columnDefaults: {
           headerHozAlign: "center",
           hozAlign: "center",
@@ -48,7 +52,7 @@ weightTable = new Tabulator("#samples-weight-table", {
               title:"Crucible", 
               field:"w_crucible", 
               width: 120, 
-              editor:"number", 
+              editor: weightEnterDownEditor, 
               headerSort: false,
             },
 
@@ -56,7 +60,7 @@ weightTable = new Tabulator("#samples-weight-table", {
               title:"Crucible with sample", 
               field:"w_crucible_with_sample", 
               width: 120, 
-              editor:"input", 
+              editor: weightEnterDownEditor, 
               headerSort: false,
               
             },
@@ -64,51 +68,144 @@ weightTable = new Tabulator("#samples-weight-table", {
               title:"Sample Weight", 
               field:"w_sample", 
               width: 120, 
-              editor:"input", 
+              editor: weightEnterDownEditor, 
               headerSort: false,
             },
             {
               title:"Sample Ashed", 
               field:"w_sample_ashed", 
               width: 120, 
-              editor:"input", 
+              editor: weightEnterDownEditor, 
               headerSort: false,
             },
             {
               title:"Organic", 
               field:"org", 
               width: 120, 
-              editor:"input", 
+              editor: weightEnterDownEditor, 
               headerSort: false,
             },
             {
               title:"Petri", 
               field:"w_petri", 
               width: 120, 
-              editor:"input", 
+              editor: weightEnterDownEditor, 
               headerSort: false,
             },
             {
               title:"Petri with Sample", 
               field:"w_petri_with_sample", 
               width: 120, 
-              editor:"input", 
+              editor: weightEnterDownEditor, 
               headerSort: false,
             },
             {
               title:"Residue", 
               field:"residue", 
               width: 120, 
-              editor:"input", 
+              editor: weightEnterDownEditor, 
               headerSort: false,
             },
             {
               title:"CACO3", 
               field:"caco3", 
               width: 120, 
-              editor:"input", 
+              editor: weightEnterDownEditor, 
               headerSort: false,
             },
           ],
       });
+      weightTable.on("tableBuilt", () => bindTypeToEdit(weightTable)); // bindTypeToEdit in plm_entry.js
 })();
+
+  // =================== Create new row ===================
+document.getElementById("weight-insert-toggle").addEventListener("click", function() {
+  const ranges = weightTable.getRanges(); // parsing ranges from selectable range
+  if (!ranges.length) return; // in case no selected range
+  
+  const cells = ranges[0].getCells(); // parsing rows from selectable range
+  const cell = cells[0]?.[0] ?? cells[0]; 
+
+  weightTable.addRow({}, false, cell.getRow());  // adding row in dataEntryTable
+});
+
+// ================== deleting rows =============
+document.getElementById("weight-delete-toggle").addEventListener("click", function () {
+  const ranges = weightTable.getRanges(); // parsing total range
+  if (!ranges.length) return; // in case no selected range
+
+  const rows = ranges[0].getRows(); // parsing rows from selectable range
+  for (const row of rows) {
+    row.delete(); // deleting row
+  }
+});
+
+// ================= custom function for input tabulator ================
+function weightEnterDownEditor(cell, onRendered, success, cancel, editorParams) {
+    const input = document.createElement("input");
+
+    input.type = "number";
+    input.value = cell.getValue() ?? "";
+
+    input.style.width = "100%";
+    input.style.height = "100%";
+    input.style.boxSizing = "border-box";
+    input.style.padding = "4px";
+
+    let finished = false;
+
+    onRendered(function () {
+        input.focus();
+        input.select();
+    });
+
+    input.addEventListener("keydown", function (e) {
+
+        if (e.key === "Enter") {
+            e.preventDefault();
+            e.stopPropagation();
+
+            finished = true;
+
+            // сохраняем значение в Tabulator
+            const accepted = success(input.value);
+
+            // например, validation не прошла
+            if (accepted === false) {
+                finished = false;
+                return;
+            }
+
+            // переходим в ячейку ниже
+            setTimeout(function () {
+                cell.navigateDown();
+            }, 0);
+        }
+
+        if (e.key === "Escape") {
+            e.preventDefault();
+            e.stopPropagation();
+
+            finished = true;
+            cancel();
+        }
+    });
+
+    // если пользователь кликнул мышкой вне ячейки —
+    // тоже сохраняем значение
+    input.addEventListener("blur", function () {
+        if (!finished) {
+            finished = true;
+            success(input.value);
+        }
+    });
+
+    return input;
+}
+
+function calculateWeights() {
+  const data = weightTable.getRows();
+  for (row of data) {
+    
+  }
+}
