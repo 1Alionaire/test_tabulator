@@ -10,22 +10,31 @@ REQUIRED_ON_CREATE = {
 }
 
 class PLMSamplesDataEntryManager():
-    def __init__(self, plm_project, input_data):
+    def __init__(self, plm_project, input_data, type):
         self.plm_project = plm_project
         self.input_data = input_data
-        self.data_to_update = input_data.get('updated', [])
-        self.data_to_create = input_data.get('created', [])
+        self.type = type
+        if self.type == 'update':
+            self.data_to_update = input_data.get('updated', [])
+            self.data_to_create = input_data.get('created', [])
 
         self.error = None
 
     def validate_whole_object(self):
-        error = self.validate_updated_data()
-        if error is not None:
-            return error
+        if self.type == 'update':
+            error = self.validate_updated_data()
+            if error is not None:
+                return error
 
-        error = self.validate_created_data()
-        if error is not None:
-            return error
+            error = self.validate_created_data()
+            if error is not None:
+                return error
+
+        elif self.type == 'replace_all':
+            for record in self.input_data:
+                missing = REQUIRED_ON_CREATE - set(record.keys())
+                if missing:
+                    return {'error': f"missing required fields"}
 
     def validate_updated_data(self):
         if self.data_to_update:
@@ -53,18 +62,37 @@ class PLMSamplesDataEntryManager():
                 return {'error': 'lab_id already exist'} 
 
     def table_update_processing(self) -> dict:
-        try:
-            with transaction.atomic():
-                updated = self.update_data() if self.data_to_update else 0
-                created = self.create_data() if self.data_to_create else 0
-        except Exception as e:
-            return {'status': '!ok', 'error': e.message_dict if hasattr(e, 'message_dict') else e.messages}
+        if self.type == 'update':
+            try:
+                with transaction.atomic():
+                    updated = self.update_data() if self.data_to_update else 0
+                    created = self.create_data() if self.data_to_create else 0
+            except Exception as e:
+                return {'status': '!ok', 'error': e.message_dict if hasattr(e, 'message_dict') else e.messages}
 
-        result = {'status': 'ok'}
-        if updated != 0 :
-            result['updated'] = updated
-        if created != 0:
-            result['created'] = created
+            result = {'status': 'ok'}
+            if updated != 0 :
+                result['updated'] = updated
+            if created != 0:
+                result['created'] = created
+
+        elif self.type == 'replace_all':
+            samples = []
+            try:
+                with transaction.atomic():
+                    PlmSample.objects.filter(plm_project=self.plm_project).delete()
+                    for data in self.input_data:
+                        data['row_number'] = int(data['row_number'])
+                        samples.append(PlmSample(plm_project=self.plm_project, **data))
+
+                    for sample in samples:
+                        sample.full_clean()
+                        sample.save()
+
+                result = {'status': 'ok'}
+
+            except Exception as e:
+                return {'status': '!ok', 'error': e.message_dict if hasattr(e, 'message_dict') else e.messages}
 
         return result
 
@@ -109,4 +137,5 @@ class PLMSamplesDataEntryManager():
             return len(samples)
 
         except Exception as e:
-            return {'status':'!ok', "error": f"{str(e)}"} 
+            return {'status':'!ok', "error": f"{str(e)}"}
+

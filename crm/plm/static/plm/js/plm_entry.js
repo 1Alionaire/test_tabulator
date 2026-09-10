@@ -69,6 +69,13 @@ table = new Tabulator("#samples-data-entry-table", {
               visible: false
             },
             {
+              title:"Row Number", 
+              field:"row_number", 
+              width: 80, 
+              headerSort: false,
+              visible: false
+            },
+            {
               title:"Client ID", 
               field:"client_sample", 
               width: 80, 
@@ -143,6 +150,7 @@ function rewriteLabIds() {
   labId = data[0].getData().lab_sample.slice(0, -2);
   for (row of data) {
     row.update({ lab_sample: `${labId}-${row.getPosition()}` });
+    row.update({ row_number: `${row.getPosition()}` });
   }
 }
 
@@ -233,12 +241,12 @@ function collectChanges() {
 
 async function saveChanges() {
   // In case we have changes affects whole table(insert rows in middle, deleting existing rows)
-  if (deletedIds.length || checkNewRows()) {
+  if ((deletedIds.length || checkNewRows()) && (confirm("All previous samples results will be deleted, continue?"))) {
     try {
-      const response = await fetch(URLS.mainProjectUpdateURL, {
+      const response = await fetch(URLS.dataEntryReplaceAllURL, {
         method: "POST",
         headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
-        body: JSON.stringify(),
+        body: JSON.stringify(table.getData()),
       });
 
       if (response.status === 422) {
@@ -254,14 +262,6 @@ async function saveChanges() {
         cell.clearEdited();
         cell.getElement().classList.remove("dirty");
       });
-
-      const resultJSON = await response.json();
-      let resultMessage = ''
-      if (resultJSON.updated) {resultMessage += `Updated: ${resultJSON.updated}`};
-      if (resultJSON.created) {resultMessage += `Created: ${resultJSON.created}`};
-      if (resultJSON.deleted) {resultMessage += `Deleted: ${resultJSON.deleted}`};
-      console.log(resultMessage)
-      showToast(`Table Saved: ${resultMessage}`, "success");
 
     }
     catch (e) {
@@ -315,10 +315,6 @@ async function saveChanges() {
 
 
 document.getElementById("data-entry-test-toggle").addEventListener("click", function () {
-  // collectChanges().created.forEach(element => {
-  //   console.log(`element : ${element.values}`);
-  // });
-  
-  console.log(`collectChanges : ${JSON.stringify(collectChanges())}`);
+  console.log(JSON.stringify(table.getData()));
 });
 

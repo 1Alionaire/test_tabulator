@@ -109,7 +109,8 @@
     tableOptionsGetURL: "{% url 'plm:api_get_table_options' %}",
     dataEntryGetURL: "{% url 'plm:api_get_data_entry_table' work.id %}",
     dataEntryUpdateURL: "{% url 'plm:api_update_data_entry_table' work.id %}",
-    {% comment %} dataEntryReplaceAllURL: "{% url 'plm:api_replace_all_data_entry_table' work.id %}", {% endcomment %}
+    dataEntryReplaceAllURL:
+      "{% url 'plm:api_replace_all_data_entry_table' work.id %}",
   };
 </script>
 

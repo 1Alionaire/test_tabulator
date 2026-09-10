@@ -13,6 +13,7 @@ urlpatterns = [
     path('api/get-table-options/', views.api_get_table_options, name="api_get_table_options"),
     path('api/data-entry-table/get/<int:id>/', views.api_get_data_entry_table, name='api_get_data_entry_table'),
     path('api/data-entry-table/update/<int:id>/', views.api_update_data_entry_table, name='api_update_data_entry_table'),
+    path('api/data-entry-table/replace-all/<int:id>/', views.api_replace_all_data_entry_table, name='api_replace_all_data_entry_table'),
 ]
 
 
