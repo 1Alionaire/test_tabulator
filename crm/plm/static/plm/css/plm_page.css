@@ -83,6 +83,12 @@ body {
     justify-content: space-between;
 }
 
+#weight-control-panel {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
 .control-buttons {
     min-width: 250px;
     margin: 5px;
@@ -104,4 +110,17 @@ body {
     padding: 0.5px;
     background-color: white;
     font-size: 14px;
+}
+
+.tabulator .tabulator-cell {
+    font-size: 20px;
+}
+
+.tabulator .tabulator-cell input,
+.tabulator .tabulator-cell select,
+.tabulator .tabulator-cell textarea {
+    font-size: inherit;
+    font-family: inherit;
+    line-height: inherit;
+    color: inherit;
 }

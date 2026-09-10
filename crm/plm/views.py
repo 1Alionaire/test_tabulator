@@ -4,31 +4,30 @@ from django.views.generic import TemplateView
 from django.http import JsonResponse
 from main.models import MainProject
 from django.views.generic import UpdateView
-from .models import PlmProject, PlmSample
+from .models import PlmProject, PlmSample, PlmSampleWeight
 from .forms import UpdatePlmProject
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
-from .forms import ExcelUploadForm
 from openpyxl import load_workbook
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib import messages
 from django.db import transaction
 import json
 from plm.plm_table_logic import PLMSamplesDataEntryManager
-# from .main_table_logic import MainProjectTableManager
-# =========== utility functions =============
+
+
+# =============== utility functions ===============
 def return_int_value_sample_method(input_str):
     methods = {label:value for value, label in PlmSample.SampleMethod.choices}
     return methods[input_str]
 
-# ============== render PLM main page ============
+# =============== render PLM main page ===============
 class PLMTableView(TemplateView):
     extra_context = {
         'title': 'PLM Main'
         }
     template_name = 'plm/plm_main.html'
 
-# ============== getting all PLM projects ============
+# =============== getting all PLM projects ===============
 def api_get_plm_projects_table(request):
     plm_projects = MainProject.active_objects.filter(sample_type_id__in=[2,3,4]).order_by('lab_id_sort').values(
                                                      'id',
@@ -48,7 +47,7 @@ def api_get_plm_projects_table(request):
                                                      'comment')
     return JsonResponse(list(plm_projects), safe=False)
 
-# =================== upload Excel-file for data-entry ==================
+# =============== upload Excel-file for data-entry ===============
 @csrf_exempt
 @require_POST
 def data_entry_upload_excel(request, id):
@@ -89,7 +88,7 @@ def data_entry_upload_excel(request, id):
         print(e)
     return redirect('plm:plm_detail', id=id)  
 
-# ============== render PLM project page  ============
+# =============== render PLM project page  ===============
 class UpdateProjectView(UpdateView):
     model = PlmProject
     form_class = UpdatePlmProject
@@ -100,7 +99,7 @@ class UpdateProjectView(UpdateView):
     def get_object(self):
         return get_object_or_404(PlmProject, id=self.kwargs['id'])
 
-# ============== getting all options ============
+# =============== getting all options ===============
 def api_get_table_options(request):
     return JsonResponse({
         'sampleMethod': [{'value': v, 'label': l} for v, l in PlmSample.SampleMethod.choices],
@@ -115,26 +114,26 @@ def api_get_table_options(request):
         'sampleOtherFiberProperty' : [{'value': v, 'label': l} for v, l in PlmSample.SampleOtherFiberProperty.choices],
     })
 
-# ============== getting all data for data entry ============
+# =============== getting all data for data entry ===============
 def api_get_data_entry_table(request, id):
     all_samples = PlmSample.objects.filter(plm_project=id).order_by('row_number').values('id', 'homo_area', 'client_sample', 'lab_sample',
                                                                   'description', 'location', 'method', 'row_number')
     return JsonResponse(list(all_samples), safe=False)
 
-# ============== render PLM project ============
+# =============== render PLM project ===============
 def api_update_data_entry_table(request, id):
     plm_project = PlmProject.objects.get(pk=id)
     try:
         payload_json = json.loads(request.body)
-        data_entry_manager = PLMSamplesDataEntryManager(input_data=payload_json, plm_project=plm_project, type='update')
+        data_entry_manager = PLMSamplesDataEntryManager(input_data=payload_json, 
+                                                        plm_project=plm_project, 
+                                                        type='update')
 
         checking_error_code = data_entry_manager.validate_whole_object()
 
         # validating whole object
         if checking_error_code is not None:
             return JsonResponse({'status' : '!ok' , **checking_error_code}, status=400)
-
-        print(payload_json)
 
         operation_result = data_entry_manager.table_update_processing()
         if operation_result['status'] == '!ok':
@@ -148,8 +147,10 @@ def api_replace_all_data_entry_table(request, id):
     plm_project = PlmProject.objects.get(pk=id)
     try:
         payload_json = json.loads(request.body)
-        print(payload_json)
-        data_entry_manager = PLMSamplesDataEntryManager(input_data=payload_json, plm_project=plm_project, type='replace_all')
+
+        data_entry_manager = PLMSamplesDataEntryManager(input_data=payload_json, 
+                                                        plm_project=plm_project, 
+                                                        type='replace_all')
 
         checking_error_code = data_entry_manager.validate_whole_object()
 
@@ -165,3 +166,12 @@ def api_replace_all_data_entry_table(request, id):
         return JsonResponse({'status':'ok'})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+
+# =============== getting all data for weight ===============
+def api_get_weight_table(request, id):
+    all_samples = PlmSampleWeight.objects.filter(plm_project=id).order_by('sample__row_number', 'client_sample').values('sample__row_number', 'sample__lab_sample', 'client_sample', 'w_crucible', 
+                                                                                                       'w_crucible_with_sample', 'w_sample', 'w_sample_ashed', 
+                                                                                                       'org',  'w_petri', 'w_petri_with_sample', 
+                                                                                                       'residue', 'caco3')
+
+    return JsonResponse(list(all_samples), safe=False)

@@ -30,19 +30,17 @@ function isEmpty(inputString) {
   }
 };
 
-const ORIGINALS = new Map();
-let table;
+const entryORIGINALS = new Map();
+let dataEntryTable;
 
-const deletedIds = new Set();
-const insertPositions = new Set();
-let tempCounter = 0;
+const entryDeletedIds = new Set();
 
 (async () => { 
 const response = await fetch(URLS.tableOptionsGetURL);
 const tableOptions = await response.json();
 
 console.log(tableOptions);
-table = new Tabulator("#samples-data-entry-table", {
+dataEntryTable = new Tabulator("#samples-data-entry-table", {
         rowHeader: {
             resizable: false, frozen: true, width: 40,
             hozAlign: "center", formatter: "rownum",
@@ -132,7 +130,7 @@ table = new Tabulator("#samples-data-entry-table", {
 
 function checkNewRows() {
   let freshCell = null
-  const data = table.getRows();
+  const data = dataEntryTable.getRows();
   for (row of data) {
     if (!row.getData().id) {
       freshCell = row.getPosition()
@@ -146,7 +144,7 @@ function checkNewRows() {
 }
 
 function rewriteLabIds() {
-  const data = table.getRows();
+  const data = dataEntryTable.getRows();
   labId = data[0].getData().lab_sample.slice(0, -2);
   for (row of data) {
     row.update({ lab_sample: `${labId}-${row.getPosition()}` });
@@ -157,33 +155,29 @@ function rewriteLabIds() {
 
   // =================== Create new row ===================
 document.getElementById("data-entry-insert-toggle").addEventListener("click", function() {
-  const ranges = table.getRanges(); // parsing ranges from selectable range
+  const ranges = dataEntryTable.getRanges(); // parsing ranges from selectable range
   if (!ranges.length) return; // in case no selected range
   
   const cells = ranges[0].getCells(); // parsing rows from selectable range
   const cell = cells[0]?.[0] ?? cells[0]; 
 
-  table.addRow({}, false, cell.getRow());  // adding row in table
+  dataEntryTable.addRow({}, false, cell.getRow());  // adding row in dataEntryTable
   rewriteLabIds();
 });
 
 
 // ================== deleting rows =============
 document.getElementById("data-entry-delete-toggle").addEventListener("click", function () {
-  const ranges = table.getRanges(); // parsing total range
+  const ranges = dataEntryTable.getRanges(); // parsing total range
   if (!ranges.length) return; // in case no selected range
 
   const rows = ranges[0].getRows(); // parsing rows from selectable range
   for (const row of rows) {
     const data = row.getData(); //selecting data from tows
     const position = row.getPosition();   //getting positions from rows
-
-    if (insertPositions.has(position)) { // in case insertPositions has position
-      insertPositions.delete(position)
-    }
     
-    if (data.id) {  // if deleted row has id(it means table has data)
-      deletedIds.add(data.id);  // adding to set of deleted existing records  
+    if (data.id) {  // if deleted row has id(it means dataEntryTable has data)
+      entryDeletedIds.add(data.id);  // adding to set of deleted existing records  
     }
     row.delete(); // deleting row
     rewriteLabIds();
@@ -198,7 +192,7 @@ function collectChanges() {
   const updatedData = {}; // initialize update dict 
   const createdData = {};  // initialize create dict 
 
-  for (const cell of table.getEditedCells()) {  // going through all edited cells
+  for (const cell of dataEntryTable.getEditedCells()) {  // going through all edited cells
     const data = cell.getRow()?.getData();  //parse data from whole row?
     
     if (!data || !data.lab_sample) continue; // if we dont have data -> continue
@@ -212,7 +206,7 @@ function collectChanges() {
         createdData[labId].fields[cell.getField()] = cell.getValue(); //add info: field_name : cell_value
         }
       else { //in case dont have record with lab sample yet 
-        entry = {lab_sample: labId, fields: {}, version: ORIGINALS.get(labId)}; // creating new json element
+        entry = {lab_sample: labId, fields: {}, version: entryORIGINALS.get(labId)}; // creating new json element
         createdData[labId] = entry; 
         createdData[labId].fields[cell.getField()] = cell.getValue(); //add info: field_name : cell_value
         createdData[labId].fields["row_number"] = cell.getRow().getPosition(); 
@@ -225,7 +219,7 @@ function collectChanges() {
         updatedData[systemId].fields[cell.getField()] = cell.getValue(); // add info: field_name : cell_value
       }
       else {
-        entry = {id: systemId, fields: {}, version: ORIGINALS.get(systemId)}; // creating new json element
+        entry = {id: systemId, fields: {}, version: entryORIGINALS.get(systemId)}; // creating new json element
         updatedData[systemId] = entry; 
         updatedData[systemId].fields[cell.getField()] = cell.getValue(); //add info: field_name : cell_value
       }
@@ -240,13 +234,13 @@ function collectChanges() {
 }
 
 async function saveChanges() {
-  // In case we have changes affects whole table(insert rows in middle, deleting existing rows)
-  if ((deletedIds.length || checkNewRows()) && (confirm("All previous samples results will be deleted, continue?"))) {
+  // In case we have changes affects whole dataEntryTable(insert rows in middle, deleting existing rows)
+  if ((entryDeletedIds.length || checkNewRows()) && (confirm("All previous samples results will be deleted, continue?"))) {
     try {
       const response = await fetch(URLS.dataEntryReplaceAllURL, {
         method: "POST",
         headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
-        body: JSON.stringify(table.getData()),
+        body: JSON.stringify(dataEntryTable.getData()),
       });
 
       if (response.status === 422) {
@@ -258,7 +252,7 @@ async function saveChanges() {
         return;
       }
 
-      table.getEditedCells().forEach(cell => {
+      dataEntryTable.getEditedCells().forEach(cell => {
         cell.clearEdited();
         cell.getElement().classList.remove("dirty");
       });
@@ -267,10 +261,10 @@ async function saveChanges() {
     catch (e) {
       console.log(e)
     } finally {
-      deletedIds.clear();
+      entryDeletedIds.clear();
     }
   } 
-  // In case we dont have changes affects whole table(edit descriptions or adding rows at the end of table)
+  // In case we dont have changes affects whole dataEntryTable(edit descriptions or adding rows at the end of dataEntryTable)
   else {
     const changes = collectChanges();
     if (!changes.updated.length && !changes.created.length) {
@@ -293,7 +287,7 @@ async function saveChanges() {
         return;
       }
 
-      table.getEditedCells().forEach(cell => {
+      dataEntryTable.getEditedCells().forEach(cell => {
         cell.clearEdited();
         cell.getElement().classList.remove("dirty");
       });
@@ -302,19 +296,19 @@ async function saveChanges() {
       let resultMessage = ''
       if (resultJSON.updated) {resultMessage += `Updated: ${resultJSON.updated}`};
       if (resultJSON.created) {resultMessage += `Created: ${resultJSON.created}`};
-      // showToast(`Table Saved: ${resultMessage}`, "success");
+      // showToast(`dataEntryTable Saved: ${resultMessage}`, "success");
 
     }
     catch (e) {
       console.log(e)
     } finally {
-      deletedIds.clear();
+      entryDeletedIds.clear();
     }
   }
 };
 
 
-document.getElementById("data-entry-test-toggle").addEventListener("click", function () {
-  console.log(JSON.stringify(table.getData()));
-});
+// document.getElementById("data-entry-test-toggle").addEventListener("click", function () {
+//   console.log(JSON.stringify(dataEntryTable.getData()));
+// });
 

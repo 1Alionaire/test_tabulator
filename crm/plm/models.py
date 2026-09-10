@@ -181,6 +181,7 @@ class PlmSample(BaseModel):
 
 # Weights
 class PlmSampleWeight(BaseModel):
+    plm_project = models.ForeignKey('plm.PlmProject', on_delete=models.CASCADE, related_name='plm_weights', null=True, blank=True)
     client_sample = models.CharField(max_length=7, blank=True, null=True)
     w_crucible = models.DecimalField(max_digits=10, decimal_places=4, blank=True, null=True)
     w_crucible_with_sample = models.DecimalField(max_digits=10, decimal_places=4, blank=True, null=True)
