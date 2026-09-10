@@ -208,6 +208,7 @@ function collectChanges() {
         createdData[labId] = entry; 
         createdData[labId].fields[cell.getField()] = cell.getValue(); //add info: field_name : cell_value
         createdData[labId].fields["row_number"] = cell.getRow().getPosition(); 
+        createdData[labId].fields["lab_sample"] = labId;
       }
     }
     // in case its already existing cell 

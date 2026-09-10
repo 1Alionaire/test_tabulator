@@ -14,7 +14,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.db import transaction
 import json
-
+from plm.plm_table_logic import PLMSamplesDataEntryManager
+# from .main_table_logic import MainProjectTableManager
 # =========== utility functions =============
 def return_int_value_sample_method(input_str):
     methods = {label:value for value, label in PlmSample.SampleMethod.choices}
@@ -117,14 +118,29 @@ def api_get_table_options(request):
 # ============== getting all data for data entry ============
 def api_get_data_entry_table(request, id):
     all_samples = PlmSample.objects.filter(plm_project=id).values('id', 'homo_area', 'client_sample', 'lab_sample',
-                                                                  'description', 'location', 'method')
+                                                                  'description', 'location', 'method', 'row_number')
     return JsonResponse(list(all_samples), safe=False)
 
 # ============== render PLM project ============
 def api_update_data_entry_table(request, id):
+    plm_project = PlmProject.objects.get(pk=id)
+    print(f'plm_project : {plm_project}')
     try:
         payload_json = json.loads(request.body)
+        data_entry_manager = PLMSamplesDataEntryManager(input_data=payload_json, plm_project=plm_project)
+
+        checking_error_code = data_entry_manager.validate_whole_object()
+
+        # validating whole object
+        if checking_error_code is not None:
+            return JsonResponse({'status' : '!ok' , **checking_error_code}, status=400)
+
         print(payload_json)
-        return JsonResponse({'status' : 'ok'}, status=400)
+
+        operation_result = data_entry_manager.table_update_processing()
+        if operation_result['status'] == '!ok':
+            return JsonResponse(**operation_result, status=400)
+        
+        return JsonResponse(operation_result)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)

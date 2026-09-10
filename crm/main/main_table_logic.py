@@ -1,13 +1,6 @@
-from django.shortcuts import render
-from .models import MainProject, TypeAnalysis, TurnAroundTime, ProjectStatus
-from django.http import JsonResponse, FileResponse
-from finance.models import Company
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-import json
+from .models import MainProject
 from django.db import transaction
 import django.utils
-from dataclasses import dataclass
 
 REQUIRED_ON_CREATE = {
     'company_id', 'project_name', 'project_address', 'date_registered', 'time_registered',

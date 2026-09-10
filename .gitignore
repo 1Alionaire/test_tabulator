@@ -124,4 +124,6 @@ dmypy.json
 .pyre/
 
 *.pdf
-backup.json
+crm/backup.json
+crm/Entry Sample.xlsx
+crm/test.py
