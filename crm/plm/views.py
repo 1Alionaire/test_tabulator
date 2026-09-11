@@ -179,13 +179,13 @@ def api_update_weight_table(request, id):
     plm_project = PlmProject.objects.get(pk=id)
     try:
         payload_json = json.loads(request.body)
-        # print(f'payload_json : {payload_json}')
+        print(f'payload_json : {payload_json}')
 
-        weight_manager = PLMSamplesWeightManager(plm_project=plm_project,input_data=payload_json)
-        checking_error_code = weight_manager.validate_whole_object()
-        
-        if checking_error_code is not None:
-            return JsonResponse({'status' : '!ok' , **checking_error_code}, status=400)
+        # weight_manager = PLMSamplesWeightManager(plm_project=plm_project,input_data=payload_json)
+        # checking_error_code = weight_manager.validate_whole_object()
+
+        # if checking_error_code is not None:
+        #     return JsonResponse({'status' : '!ok' , **checking_error_code}, status=400)
         
         return JsonResponse({'status' : 'ok' })
         

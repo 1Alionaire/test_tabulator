@@ -251,7 +251,6 @@ document.getElementById("data-entry-delete-toggle").addEventListener("click", fu
   const rows = ranges[0].getRows(); // parsing rows from selectable range
   for (const row of rows) {
     const data = row.getData(); //selecting data from tows
-    const position = row.getPosition();   //getting positions from rows
     
     if (data.id) {  // if deleted row has id(it means dataEntryTable has data)
       entryDeletedIds.add(data.id);  // adding to set of deleted existing records  

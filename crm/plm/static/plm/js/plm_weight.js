@@ -1,4 +1,6 @@
 
+const weightDeletedIds = new Set();
+
 // ==================== Making whole table ====================
 let weightTable;
 
@@ -201,11 +203,14 @@ document.getElementById("weight-delete-toggle").addEventListener("click", functi
 
   const rows = ranges[0].getRows(); // parsing rows from selectable range
   for (const row of rows) {
+    const data = row.getData(); //selecting data from tows
+
+    if (data.sample__row_number) { 
+        weightDeletedIds.add(data.sample__row_number);
+    }
     row.delete(); // deleting row
   }
 });
-
-
 
 function calculateWeights() {
   const data = weightTable.getRows();
@@ -220,19 +225,69 @@ function calculateWeights() {
 }
 
 document.getElementById("weight-test-toggle").addEventListener("click", function () {
-    calculateWeights();
+    for (element of weightDeletedIds) {
+        console.log(element);
+    }
+    console.log(weightDeletedIds);
 });
-
 
 // ============================ Save changes ===========================
 document.getElementById("weight-save-toggle").addEventListener("click", weightSaveChanges);
 
+function weightCollectChanges() {
+  const updatedData = {}; // initialize update dict 
+  const createdData = {};  // initialize create dict 
+
+  for (const cell of weightTable.getEditedCells()) {  // going through all edited cells
+    const data = cell.getRow()?.getData();  //parse data from whole row?
+    
+    if (!data) continue; // if we dont have data -> continue
+
+    const clientId = String(data.client_sample);           // единый тип ключа
+
+    // in case its new cell
+    if (isEmpty(String(data.sample__row_number))) { 
+      if (clientId in createdData) { // already has record in createdData dict
+        createdData[clientId].fields[cell.getField()] = cell.getValue(); //add info: field_name : cell_value
+        }
+      else { //in case dont have record with lab sample yet 
+        entry = {client_id: clientId, fields: {}, version: entryORIGINALS.get(clientId)}; // creating new json element
+        createdData[clientId] = entry; 
+        createdData[clientId].fields[cell.getField()] = cell.getValue(); //add info: field_name : cell_value
+      }
+    }
+    // in case its already existing cell 
+    else {
+      if (clientId in updatedData) { // already has record in updatedData dict
+        updatedData[clientId].fields[cell.getField()] = cell.getValue(); // add info: field_name : cell_value
+      }
+      else {
+        entry = {id: clientId, fields: {}, version: entryORIGINALS.get(systemId)}; // creating new json element
+        updatedData[clientId] = entry; 
+        updatedData[clientId].fields[cell.getField()] = cell.getValue(); //add info: field_name : cell_value
+      }
+    };
+  }
+
+    const result = {
+      updated: Object.values(updatedData),
+      created: Object.values(createdData),
+      deleted: [...weightDeletedIds],
+    };
+  return result;
+}
+
 async function weightSaveChanges() {
     try {
+      const changes = weightCollectChanges();
+      if (!changes.updated.length && !changes.created.length) {
+        console.log('no data?')
+        return;
+        }
       const response = await fetch(URLS.weightUpdateURL, {
         method: "POST",
         headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
-        body: JSON.stringify(weightTable.getData()),
+        body: JSON.stringify(changes),
       });
 
       if (response.status === 422) {
