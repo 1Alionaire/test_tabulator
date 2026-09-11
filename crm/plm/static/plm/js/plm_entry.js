@@ -37,6 +37,69 @@ let dataEntryTable;
 
 const entryDeletedIds = new Set();
 
+// ================= custom function for input tabulator ================
+function entryEnterDownEditor(cell, onRendered, success, cancel, editorParams) {
+    const input = document.createElement("input");
+
+    input.type = "text";
+    input.value = cell.getValue() ?? "";
+
+    input.style.width = "100%";
+    input.style.height = "100%";
+    input.style.boxSizing = "border-box";
+    input.style.padding = "4px";
+
+    let finished = false;
+
+    onRendered(function () {
+        input.focus();
+        input.select();
+    });
+
+    input.addEventListener("keydown", function (e) {
+
+        if (e.key === "Enter") {
+            e.preventDefault();
+            e.stopPropagation();
+
+            finished = true;
+
+            // сохраняем значение в Tabulator
+            const accepted = success(input.value);
+
+            // например, validation не прошла
+            if (accepted === false) {
+                finished = false;
+                return;
+            }
+
+            // переходим в ячейку ниже
+            setTimeout(function () {
+                cell.navigateDown();
+            }, 0);
+        }
+
+        if (e.key === "Escape") {
+            e.preventDefault();
+            e.stopPropagation();
+
+            finished = true;
+            cancel();
+        }
+    });
+
+    // если пользователь кликнул мышкой вне ячейки —
+    // тоже сохраняем значение
+    input.addEventListener("blur", function () {
+        if (!finished) {
+            finished = true;
+            success(input.value);
+        }
+    });
+
+    return input;
+}
+
 (async () => { 
 const response = await fetch(URLS.tableOptionsGetURL);
 const tableOptions = await response.json();
@@ -132,7 +195,7 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
 
 // =================== Refresh table ===================
 document.getElementById("data-entry-refresh-toggle").addEventListener("click", function() {
-  const changes = collectChanges(); // collecting all changes
+  const changes = entryCollectChanges(); // collecting all changes
   const hasChanges = changes.updated.length || changes.created.length || entryDeletedIds.length //put all possible changes in const
   if (hasChanges && !confirm("Unsaved changes will be lost. Continue?")) { //asking user for continue if we have changes
         return;
@@ -156,6 +219,7 @@ function checkNewRows() {
   return false;
 }
 
+  // =================== When adding or deleting row all LabId rewriting ===================
 function rewriteLabIds() {
   const data = dataEntryTable.getRows();
   labId = data[0].getData().lab_sample.slice(0, -2);
@@ -201,7 +265,7 @@ document.getElementById("data-entry-save-toggle").addEventListener("click", save
 
 // ===================== Save =================
 
-function collectChanges() {
+function entryCollectChanges() {
   const updatedData = {}; // initialize update dict 
   const createdData = {};  // initialize create dict 
 
@@ -280,7 +344,7 @@ async function saveChanges() {
   } 
 // Save scenario 2: we dont have changes affects whole dataEntryTable(edit existing cells or adding rows at the end of dataEntryTable)
   else {
-    const changes = collectChanges(); // collect changed cells and new cells 
+    const changes = entryCollectChanges(); // collect changed cells and new cells 
     if (!changes.updated.length && !changes.created.length) {
       console.log('no data?')
       return;
@@ -320,68 +384,7 @@ async function saveChanges() {
   }
 };
 
-// ================= custom function for input tabulator ================
-function entryEnterDownEditor(cell, onRendered, success, cancel, editorParams) {
-    const input = document.createElement("input");
 
-    input.type = "text";
-    input.value = cell.getValue() ?? "";
-
-    input.style.width = "100%";
-    input.style.height = "100%";
-    input.style.boxSizing = "border-box";
-    input.style.padding = "4px";
-
-    let finished = false;
-
-    onRendered(function () {
-        input.focus();
-        input.select();
-    });
-
-    input.addEventListener("keydown", function (e) {
-
-        if (e.key === "Enter") {
-            e.preventDefault();
-            e.stopPropagation();
-
-            finished = true;
-
-            // сохраняем значение в Tabulator
-            const accepted = success(input.value);
-
-            // например, validation не прошла
-            if (accepted === false) {
-                finished = false;
-                return;
-            }
-
-            // переходим в ячейку ниже
-            setTimeout(function () {
-                cell.navigateDown();
-            }, 0);
-        }
-
-        if (e.key === "Escape") {
-            e.preventDefault();
-            e.stopPropagation();
-
-            finished = true;
-            cancel();
-        }
-    });
-
-    // если пользователь кликнул мышкой вне ячейки —
-    // тоже сохраняем значение
-    input.addEventListener("blur", function () {
-        if (!finished) {
-            finished = true;
-            success(input.value);
-        }
-    });
-
-    return input;
-}
 
 // =================== function for start typing in cell without doubleclick ===================
 function bindTypeToEdit(table) {

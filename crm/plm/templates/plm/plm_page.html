@@ -112,6 +112,9 @@
             <button type="button" id="weight-delete-toggle" class="panel-btn">
               Delete row
             </button>
+            <button type="button" id="weight-test-toggle" class="panel-btn">
+              Test
+            </button>
           </div>
           <div id="weight-upload-excel-form">
             <form
@@ -149,6 +152,7 @@
       "{% url 'plm:api_replace_all_data_entry_table' work.id %}",
 
     weightGetURL: "{% url 'plm:api_get_weight_table' work.id %}",
+    weightUpdateURL: "{% url 'plm:api_update_weight_table' work.id %}",
   };
 </script>
 

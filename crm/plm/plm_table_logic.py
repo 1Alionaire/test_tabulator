@@ -4,10 +4,12 @@ from django.views.decorators.http import require_http_methods
 from django.db import transaction
 import django.utils
 
-REQUIRED_ON_CREATE = {
+PLM_ENTRY_REQUIRED_ON_CREATE = {
     'homo_area', 'client_sample', 'lab_sample', 'description',
     'location', 'method', 'row_number'
 }
+
+PLM_WEIGHT_REQUIRED_ON_CREATE = {'client_sample', ''}
 
 class PLMSamplesDataEntryManager():
     def __init__(self, plm_project, input_data, type):
@@ -32,7 +34,7 @@ class PLMSamplesDataEntryManager():
 
         elif self.type == 'replace_all':
             for record in self.input_data:
-                missing = REQUIRED_ON_CREATE - set(record.keys())
+                missing = PLM_ENTRY_REQUIRED_ON_CREATE - set(record.keys())
                 if missing:
                     return {'error': f"missing required fields"}
 
@@ -53,7 +55,7 @@ class PLMSamplesDataEntryManager():
                 if not record.get('lab_sample'):
                     return {'error': 'lab_sample is required'} 
                 
-                missing = REQUIRED_ON_CREATE - set(record.get('fields'))
+                missing = PLM_ENTRY_REQUIRED_ON_CREATE - set(record.get('fields'))
                 if missing:
                     return {'error': f"missing required fields {record.get('lab_id')} : {missing}"}
                 
@@ -139,3 +141,19 @@ class PLMSamplesDataEntryManager():
         except Exception as e:
             return {'status':'!ok', "error": f"{str(e)}"}
 
+class PLMSamplesWeightManager():
+    def __init__(self, plm_project, input_data):
+        self.plm_project = plm_project
+        self.input_data = input_data
+        self.new_weight_data = [element for element in self.input_data if element['sample__row_number'] == None]
+        self.exist_weight_data = [element for element in self.input_data if element['sample__row_number'] != None]
+
+    def validate_whole_object(self):
+        pass
+        # for record in self.input_data:
+        #     for key, value in record.items():
+        #         if key != 'sample__row_number' and key != 'sample__lab_sample':
+        #             if value is None:
+        #                 return {'error': 'all fields required'} 
+
+    # def 

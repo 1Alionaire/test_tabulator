@@ -12,7 +12,7 @@ from openpyxl import load_workbook
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 import json
-from plm.plm_table_logic import PLMSamplesDataEntryManager
+from plm.plm_table_logic import PLMSamplesDataEntryManager, PLMSamplesWeightManager
 
 
 # =============== utility functions ===============
@@ -163,7 +163,6 @@ def api_replace_all_data_entry_table(request, id):
         
         return JsonResponse(operation_result)
 
-        return JsonResponse({'status':'ok'})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
@@ -175,3 +174,20 @@ def api_get_weight_table(request, id):
                                                                                                        'residue', 'caco3')
 
     return JsonResponse(list(all_samples), safe=False)
+
+def api_update_weight_table(request, id):
+    plm_project = PlmProject.objects.get(pk=id)
+    try:
+        payload_json = json.loads(request.body)
+        # print(f'payload_json : {payload_json}')
+
+        weight_manager = PLMSamplesWeightManager(plm_project=plm_project,input_data=payload_json)
+        checking_error_code = weight_manager.validate_whole_object()
+        
+        if checking_error_code is not None:
+            return JsonResponse({'status' : '!ok' , **checking_error_code}, status=400)
+        
+        return JsonResponse({'status' : 'ok' })
+        
+    except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)

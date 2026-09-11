@@ -17,6 +17,7 @@ urlpatterns = [
 
     path('weight-upload-excel/<int:id>/', views.data_entry_upload_excel, name='data_entry_upload_excel'),
     path('api/weight-table/get/<int:id>/', views.api_get_weight_table, name='api_get_weight_table'),
+    path('api/weight-table/update/<int:id>/', views.api_update_weight_table, name='api_update_weight_table'),
 ]
 
 

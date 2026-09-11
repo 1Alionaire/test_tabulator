@@ -136,6 +136,7 @@ class PlmSample(BaseModel):
     location = models.CharField(max_length=100, default='')
     method = models.IntegerField(choices=SampleMethod.choices,default=SampleMethod.Sample1981)
     color = models.CharField(max_length=25, default='', blank=True)
+    qc_sample = models.BooleanField(default=False)
 
     #analyze data
     weight = models.OneToOneField(
