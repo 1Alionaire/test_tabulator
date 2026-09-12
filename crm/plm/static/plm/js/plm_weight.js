@@ -168,7 +168,7 @@ weightTable = new Tabulator("#samples-weight-table", {
               title:"Residue", 
               field:"residue", 
               width: 130, 
-              editable: false, 
+              editor: weightEnterDownEditor, 
               headerSort: false,
             },
             {
@@ -205,8 +205,8 @@ document.getElementById("weight-delete-toggle").addEventListener("click", functi
   for (const row of rows) {
     const data = row.getData(); //selecting data from tows
 
-    if (data.sample__row_number) { 
-        weightDeletedIds.add(data.sample__row_number);
+    if (data.id) { 
+        weightDeletedIds.add(data.id);
     }
     row.delete(); // deleting row
   }
@@ -216,11 +216,12 @@ function calculateWeights() {
   const data = weightTable.getRows();
   for (row of data) {
     let varCrucible = row.getData().w_crucible;
-
-    row.update({w_sample: Math.round(((row.getData().w_crucible_with_sample || 0) - (varCrucible || 0)) * 10000) / 10000 });
-    row.update({org:  Math.round( (((row.getData().w_sample || 0) - ((row.getData().w_sample_ashed || 0) - (varCrucible || 0))) / (row.getData().w_sample || 0) * 100 ) * 100 ) / 100 });
-    row.update({residue: Math.round(  ((((row.getData().w_petri_with_sample || 0) - ((row.getData().w_petri || 0))) / (row.getData().w_sample || 0)) * 100)   * 100) / 100});
-    row.update({caco3: Math.round( ((100 - row.getData().residue - row.getData().org)) * 100) / 100 });
+    if (varCrucible) {
+        row.update({w_sample: Math.round(((row.getData().w_crucible_with_sample || 0) - (varCrucible || 0)) * 10000) / 10000 });
+        row.update({org:  Math.round( (((row.getData().w_sample || 0) - ((row.getData().w_sample_ashed || 0) - (varCrucible || 0))) / (row.getData().w_sample || 0) * 100 ) * 100 ) / 100 });
+        row.update({residue: Math.round(  ((((row.getData().w_petri_with_sample || 0) - ((row.getData().w_petri || 0))) / (row.getData().w_sample || 0)) * 100)   * 100) / 100});
+        row.update({caco3: Math.round( ((100 - row.getData().residue - row.getData().org)) * 100) / 100 });
+    }
   }
 }
 
@@ -228,7 +229,6 @@ document.getElementById("weight-test-toggle").addEventListener("click", function
     for (element of weightDeletedIds) {
         console.log(element);
     }
-    console.log(weightDeletedIds);
 });
 
 // ============================ Save changes ===========================
@@ -243,30 +243,28 @@ function weightCollectChanges() {
     
     if (!data) continue; // if we dont have data -> continue
 
-    const clientId = String(data.client_sample);           // единый тип ключа
+    const clientId = String(data.client_sample);           
+
+    let all_data_row = {id:data.id,
+                        client_sample:data.client_sample,
+                        w_crucible:data.w_crucible, 
+                        w_crucible_with_sample:data.w_crucible_with_sample, 
+                        w_sample:data.w_sample,
+                        w_sample_ashed:data.w_sample_ashed, 
+                        org:data.org,
+                        w_petri:data.w_petri,
+                        w_petri_with_sample:data.w_petri_with_sample,
+                        residue:data.residue,
+                        caco3:data.caco3};
 
     // in case its new cell
-    if (isEmpty(String(data.sample__row_number))) { 
-      if (clientId in createdData) { // already has record in createdData dict
-        createdData[clientId].fields[cell.getField()] = cell.getValue(); //add info: field_name : cell_value
-        }
-      else { //in case dont have record with lab sample yet 
-        entry = {client_id: clientId, fields: {}, version: entryORIGINALS.get(clientId)}; // creating new json element
-        createdData[clientId] = entry; 
-        createdData[clientId].fields[cell.getField()] = cell.getValue(); //add info: field_name : cell_value
-      }
+    if (isEmpty(String(data.id))) { 
+        createdData[clientId] = all_data_row
     }
     // in case its already existing cell 
-    else {
-      if (clientId in updatedData) { // already has record in updatedData dict
-        updatedData[clientId].fields[cell.getField()] = cell.getValue(); // add info: field_name : cell_value
-      }
-      else {
-        entry = {id: clientId, fields: {}, version: entryORIGINALS.get(systemId)}; // creating new json element
-        updatedData[clientId] = entry; 
-        updatedData[clientId].fields[cell.getField()] = cell.getValue(); //add info: field_name : cell_value
-      }
-    };
+    else {        
+        updatedData[clientId] = all_data_row
+      };
   }
 
     const result = {
@@ -280,7 +278,7 @@ function weightCollectChanges() {
 async function weightSaveChanges() {
     try {
       const changes = weightCollectChanges();
-      if (!changes.updated.length && !changes.created.length) {
+      if (!changes.updated.length && !changes.created.length && !changes.deleted) {
         console.log('no data?')
         return;
         }

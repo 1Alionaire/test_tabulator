@@ -168,7 +168,7 @@ def api_replace_all_data_entry_table(request, id):
 
 # =============== getting all data for weight ===============
 def api_get_weight_table(request, id):
-    all_samples = PlmSampleWeight.objects.filter(plm_project=id).order_by('sample__row_number', 'client_sample').values('sample__row_number', 'sample__lab_sample', 'client_sample', 'w_crucible', 
+    all_samples = PlmSampleWeight.objects.filter(plm_project=id).order_by('sample__row_number', 'client_sample').values('id', 'sample__row_number', 'sample__lab_sample', 'client_sample', 'w_crucible', 
                                                                                                        'w_crucible_with_sample', 'w_sample', 'w_sample_ashed', 
                                                                                                        'org',  'w_petri', 'w_petri_with_sample', 
                                                                                                        'residue', 'caco3')
@@ -177,17 +177,18 @@ def api_get_weight_table(request, id):
 
 def api_update_weight_table(request, id):
     plm_project = PlmProject.objects.get(pk=id)
-    try:
-        payload_json = json.loads(request.body)
-        print(f'payload_json : {payload_json}')
+    payload_json = json.loads(request.body)
+    print(f'payload_json : {payload_json}')
 
-        # weight_manager = PLMSamplesWeightManager(plm_project=plm_project,input_data=payload_json)
-        # checking_error_code = weight_manager.validate_whole_object()
+    weight_manager = PLMSamplesWeightManager(plm_project=plm_project,input_data=payload_json)
+    checking_error_code = weight_manager.validate_whole_object()
 
-        # if checking_error_code is not None:
-        #     return JsonResponse({'status' : '!ok' , **checking_error_code}, status=400)
+    if checking_error_code is not None:
+        return JsonResponse({'status' : '!ok' , **checking_error_code}, status=400)
+
+    operation_result = weight_manager.table_update_processing()
+    if operation_result['status'] == '!ok':
+        return JsonResponse(**operation_result, status=400)
+    
+    return JsonResponse(operation_result)
         
-        return JsonResponse({'status' : 'ok' })
-        
-    except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)

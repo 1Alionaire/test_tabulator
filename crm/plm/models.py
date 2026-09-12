@@ -142,7 +142,7 @@ class PlmSample(BaseModel):
     weight = models.OneToOneField(
         "plm.PlmSampleWeight",
         null=True, blank=True,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         related_name="sample",
     )
 
@@ -193,4 +193,7 @@ class PlmSampleWeight(BaseModel):
     w_petri_with_sample = models.DecimalField(max_digits=10, decimal_places=4, blank=True, null=True)
     residue = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     caco3 = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+
+    def __str__(self):
+        return self.client_sample
 
