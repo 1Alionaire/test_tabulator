@@ -139,6 +139,31 @@
           <section id="samples-weight-table"></section>
         </section>
       </div>
+      <div class="tab-content" id="tab-3">
+        <section class="section-control-panel" id="nob-control-panel">
+          <div class="control-buttons">
+            <button type="button" id="nob-save-toggle" class="panel-btn">
+              Save
+            </button>
+            <button type="button" id="nob-refresh-toggle" class="panel-btn">
+              Refresh
+            </button>
+            <button type="button" id="nob-insert-toggle" class="panel-btn">
+              Insert row
+            </button>
+            <button type="button" id="nob-delete-toggle" class="panel-btn">
+              Delete row
+            </button>
+            <button type="button" id="nob-test-toggle" class="panel-btn">
+              Test
+            </button>
+          </div>
+        </section>
+
+        <section class="section-table">
+          <section id="samples-nob-table"></section>
+        </section>
+      </div>
     </section>
   </section>
 </main>
@@ -153,9 +178,12 @@
 
     weightGetURL: "{% url 'plm:api_get_weight_table' work.id %}",
     weightUpdateURL: "{% url 'plm:api_update_weight_table' work.id %}",
+
+    nobGetURL: "{% url 'plm:api_get_nob_analysis_table' work.id %}",
   };
 </script>
 
 <script src="{% static 'plm/js/plm_entry.js' %}"></script>
 <script src="{% static 'plm/js/plm_weight.js' %}"></script>
+<script src="{% static 'plm/js/plm_nob_analysis.js' %}"></script>
 {% endblock %}

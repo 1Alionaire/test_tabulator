@@ -89,6 +89,12 @@ body {
     justify-content: space-between;
 }
 
+#nob-control-panel {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
 .control-buttons {
     min-width: 250px;
     margin: 5px;

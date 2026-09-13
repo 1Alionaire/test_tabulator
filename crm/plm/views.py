@@ -168,13 +168,14 @@ def api_replace_all_data_entry_table(request, id):
 
 # =============== getting all data for weight ===============
 def api_get_weight_table(request, id):
-    all_samples = PlmSampleWeight.objects.filter(plm_project=id).order_by('sample__row_number', 'client_sample').values('id', 'sample__row_number', 'sample__lab_sample', 'client_sample', 'w_crucible', 
+    all_weights = PlmSampleWeight.objects.filter(plm_project=id).order_by('sample__row_number', 'client_sample').values('id', 'sample__row_number', 'sample__lab_sample', 'client_sample', 'w_crucible', 
                                                                                                        'w_crucible_with_sample', 'w_sample', 'w_sample_ashed', 
                                                                                                        'org',  'w_petri', 'w_petri_with_sample', 
                                                                                                        'residue', 'caco3')
 
-    return JsonResponse(list(all_samples), safe=False)
+    return JsonResponse(list(all_weights), safe=False)
 
+# =============== updating weight table ===============
 def api_update_weight_table(request, id):
     plm_project = PlmProject.objects.get(pk=id)
     payload_json = json.loads(request.body)
@@ -191,4 +192,17 @@ def api_update_weight_table(request, id):
         return JsonResponse(**operation_result, status=400)
     
     return JsonResponse(operation_result)
-        
+
+# =============== getting all data for NOB analysis ===============
+def api_get_nob_analysis_table(request, id):
+    all_samples = PlmSample.objects.filter(plm_project=id).order_by('row_number').values('row_number', 'id', 'homo_area', 
+                                                                                        'client_sample', 'lab_sample', 'method', 
+                                                                                        'color', 'weight__residue', 'qc_sample', 
+                                                                                        'analysis_temperature', 'texture', 'morphology', 
+                                                                                        'ri_alpha_oil', 'ri_delta_oil', 'sign_of_elongation', 
+                                                                                        'extinction_angle', 'pleochroism_color', 'birefringence', 
+                                                                                        'other_fiber', 'other_fiber_property', 'other_fiber_percent', 'asb_type',
+                                                                                        'asb_point_1', 'asb_point_2', 'asb_point_3', 'asb_point_4',
+                                                                                        'asb_point_5', 'asb_point_6', 'asb_point_7', 'asb_point_8', 
+                                                                                        'asb_percent')
+    return JsonResponse(list(all_samples), safe=False)
