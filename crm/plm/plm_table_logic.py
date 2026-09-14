@@ -185,11 +185,11 @@ class PLMSamplesWeightManager():
             id_list = [element.get('id') for element in work_data]
             touched_fields = set()
 
-            samlpes_to_update = {sample.id : sample for sample in 
+            samples_to_update = {sample.id : sample for sample in 
                                 PlmSampleWeight.objects.select_for_update().filter(pk__in=id_list)}
 
             for record_row in work_data:
-                sample = samlpes_to_update[int(record_row.get('id'))]
+                sample = samples_to_update[int(record_row.get('id'))]
                 for name_field, value in record_row.items():
                     if name_field != 'id':
                         setattr(sample, name_field, value)
@@ -198,7 +198,7 @@ class PLMSamplesWeightManager():
                 sample.time_update = django.utils.timezone.now()
 
             updated = PlmSampleWeight.objects.bulk_update(
-                            samlpes_to_update.values(), sorted(touched_fields | {'time_update'})
+                            samples_to_update.values(), sorted(touched_fields | {'time_update'})
                         )
 
             return updated

@@ -20,6 +20,7 @@ urlpatterns = [
     path('api/weight-table/update/<int:id>/', views.api_update_weight_table, name='api_update_weight_table'),
     # NOB analysis 
     path('api/nob-analysis-table/get/<int:id>/', views.api_get_nob_analysis_table, name='api_get_nob_analysis_table'),
+    path('api/nob-analysis-table/update/<int:id>/', views.api_update_nob_analysis_table, name='api_update_nob_analysis_table'),
 ]
 
 

@@ -260,7 +260,7 @@ document.getElementById("data-entry-delete-toggle").addEventListener("click", fu
   }
 });
 
-document.getElementById("data-entry-save-toggle").addEventListener("click", saveChanges);
+document.getElementById("data-entry-save-toggle").addEventListener("click", entrySaveChanges);
 
 // ===================== Save =================
 
@@ -310,7 +310,7 @@ function entryCollectChanges() {
 }
 
 // ============================ Save changes ===========================
-async function saveChanges() {
+async function entrySaveChanges() {
 // Save scenario 1: we have changes affects whole dataEntryTable(insert rows in middle, deleting existing rows)
   if ((entryDeletedIds.length || checkNewRows()) && (confirm("All previous samples results will be deleted, continue?"))) {
     try {

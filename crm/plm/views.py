@@ -13,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 import json
 from plm.plm_table_logic import PLMSamplesDataEntryManager, PLMSamplesWeightManager
-
+import django.utils
 
 # =============== utility functions ===============
 def return_int_value_sample_method(input_str):
@@ -206,3 +206,28 @@ def api_get_nob_analysis_table(request, id):
                                                                                         'asb_point_5', 'asb_point_6', 'asb_point_7', 'asb_point_8', 
                                                                                         'asb_percent')
     return JsonResponse(list(all_samples), safe=False)
+
+def api_update_nob_analysis_table(request, id):
+    selected_plm_project = PlmProject.objects.get(pk=id)
+    payload_json = json.loads(request.body)
+    touched_fields = set()
+    try:
+        with transaction.atomic():
+            samples_to_update = {sample.id : sample for sample in 
+                                            PlmSample.objects.select_for_update().filter(plm_project=selected_plm_project)}
+            for record_row in payload_json:
+                sample = samples_to_update[int(record_row.get('id'))]
+                for name_field, value in record_row.items():
+                    if name_field not in ['id', 'weight__residue']:
+                        setattr(sample, name_field, value)
+                        touched_fields.add(name_field)
+                sample.time_update = django.utils.timezone.now()
+
+            PlmSample.objects.bulk_update(samples_to_update.values(), sorted(touched_fields | {'time_update'}))
+                        
+            return JsonResponse({'status':'ok'})
+            
+
+    except Exception as e:
+        return JsonResponse({'status':'!ok', "error": f"{str(e)}"})
+

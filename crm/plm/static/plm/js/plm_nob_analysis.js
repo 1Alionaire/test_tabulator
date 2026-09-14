@@ -1,5 +1,17 @@
 let nobAnalysisTable;
 
+function fillSamplesSameHA (table, homo_area, type) {
+    for (row of table ) {
+        if (row.getData().homo_area  == homo_area) {
+            if (type == 'fill') {
+                row.update({asb_type:7})
+            } else {
+                row.update({asb_type:null})
+            };
+        };
+    };
+}
+
 (async () => { 
 const optionsResponse = await fetch(URLS.tableOptionsGetURL);
 const tableOptions = await optionsResponse.json();
@@ -36,7 +48,7 @@ nobTable = new Tabulator("#samples-nob-table", {
             },
             {
               title:"Row Number", 
-              field:"sample__row_number", 
+              field:"row_number", 
               width: 80, 
               headerSort: false,
               visible: false
@@ -126,6 +138,17 @@ nobTable = new Tabulator("#samples-nob-table", {
               headerSort: false,
               editable: true,
               editorParams: { values: tableOptions['sampleExtincAngle'] },
+            },
+                        {
+              title:"Pleochroism<br>Color", 
+              field:"pleochroism_color", 
+              width: 80, 
+              formatter: "lookup",
+              formatterParams: Object.fromEntries(tableOptions['samplePleochColor'].map(o => [o.value, o.label])),
+              editor: "list",
+              headerSort: false,
+              editable: true,
+              editorParams: { values: tableOptions['samplePleochColor'] },
             },
             {
               title:"Birefringence", 
@@ -260,4 +283,170 @@ nobTable = new Tabulator("#samples-nob-table", {
             }, 
           ],
       });
+
+    nobTable.on("tableBuilt", () => bindTypeToEdit(nobTable)); // bindTypeToEdit in plm_nob_analysis.js
+
+    nobTable.on("cellEditing", function(cell) {
+        let currentRow = cell.getRow();
+        if (cell.getField() == 'asb_point_1' || cell.getField() == 'asb_point_2' || cell.getField() == 'asb_point_3' || cell.getField() == 'asb_point_4' 
+        || cell.getField() == 'asb_point_5' || cell.getField() == 'asb_point_6' || cell.getField() == 'asb_point_7' || cell.getField() == 'asb_point_8')  {
+            if (cell.getValue() == null) {
+                let field = cell.getField();
+                currentRow.update({field:0});
+            };
+        };
+    });
+
+    nobTable.on("cellEdited", function(cell) {
+        let currentRow = cell.getRow();
+        const tableData = nobTable.getRows();
+
+        if (cell.getField() === 'other_fiber') {
+            if (cell.getValue() == null) {currentRow.update({other_fiber_property:null})};
+            if (cell.getValue() == 1) {currentRow.update({other_fiber_property:1})};
+            if (cell.getValue() == 2) {currentRow.update({other_fiber_property:2})};
+            if (cell.getValue() == 3) {currentRow.update({other_fiber_property:4})};
+            if (cell.getValue() == 4) {currentRow.update({other_fiber_property:3})};
+        };
+
+        if (cell.getField() === 'asb_type') {
+            if (cell.getValue() == null) {
+                let var_homogenity = cell.getRow().getData().homo_area;
+                let getCurrentPosition = cell.getRow().getPosition();
+
+                fillSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'delete');
+                currentRow.update({asb_type:null,
+                                    morphology:null, 
+                                    sign_of_elongation:null, 
+                                    extinction_angle:null, 
+                                    pleochroism_color:null, 
+                                    birefringence:null, 
+                                    asb_percent:0,
+                                    asb_point_1:0, 
+                                    asb_point_2:0, 
+                                    asb_point_3:0, 
+                                    asb_point_4:0, 
+                                    asb_point_5:0, 
+                                    asb_point_6:0,
+                                    asb_point_7:0,
+                                    asb_point_8:0});
+            };
+
+
+            if (cell.getValue() in [1, 2, 3, 4, 5, 6]) {
+                // in case Chrysotile
+                if (cell.getValue() == 1) {
+                    currentRow.update({morphology:1, 
+                                        sign_of_elongation:1, 
+                                        extinction_angle:1, 
+                                        pleochroism_color:1, 
+                                        birefringence:1});
+                };
+                // in case Amosite
+                if (cell.getValue() == 2) {
+                    currentRow.update({morphology:2, 
+                                        sign_of_elongation:1, 
+                                        extinction_angle:1, 
+                                        pleochroism_color:1, 
+                                        birefringence:2});
+                };
+                // in case Crocidolite
+                if (cell.getValue() == 3) {
+                    currentRow.update({morphology:2, 
+                                        sign_of_elongation:2, 
+                                        extinction_angle:1, 
+                                        pleochroism_color:2, 
+                                        birefringence:2});
+                };
+                // in case Anthophillite
+                if (cell.getValue() == 4) {
+                    currentRow.update({morphology:2, 
+                                        sign_of_elongation:1, 
+                                        extinction_angle:1, 
+                                        pleochroism_color:1, 
+                                        birefringence:2});
+                };
+                // in case Tremolite
+                if (cell.getValue() == 5) {
+                    currentRow.update({morphology:2, 
+                                        sign_of_elongation:1, 
+                                        extinction_angle:2, 
+                                        pleochroism_color:1, 
+                                        birefringence:2});
+                };
+                // in case Actinolite
+                if (cell.getValue() == 6) {
+                    currentRow.update({morphology:2, 
+                                        sign_of_elongation:1, 
+                                        extinction_angle:2, 
+                                        pleochroism_color:1, 
+                                        birefringence:2});
+                };           
+            };
+        };
+
+        if (cell.getField() == 'asb_point_1' || cell.getField() == 'asb_point_2' || cell.getField() == 'asb_point_3' || cell.getField() == 'asb_point_4') {
+            if (currentRow.getData().asb_type in [1, 2, 3, 4, 5, 6]) {
+                let totalPoints = Number(currentRow.getData().asb_point_1) + Number(currentRow.getData().asb_point_2) + Number(currentRow.getData().asb_point_3) + Number(currentRow.getData().asb_point_4);
+                if (currentRow.getData().method == 1) {
+                    let asbestoCulcResult = Math.round((400 / totalPoints) * 100) / 100;
+                    if (isFinite(asbestoCulcResult)) {
+                        currentRow.update({asb_percent:asbestoCulcResult});
+                    }
+                    else {
+                        currentRow.update({asb_percent:0});
+                    }
+                } else { // * 100 * Number(currentRow.getData().weight__residue)
+                    let asbestoCulcResult = Math.round((400 / totalPoints) * Number(currentRow.getData().weight__residue) ) / 100;
+                    
+                    if (isFinite(asbestoCulcResult)) {
+                        currentRow.update({asb_percent:asbestoCulcResult});
+                    }
+                    else {
+                        currentRow.update({asb_percent:0});
+                    }
+                }
+
+                if (Number(currentRow.getData().asb_percent) < 1) {
+                    let var_homogenity = cell.getRow().getData().homo_area;
+                    let getCurrentPosition = cell.getRow().getPosition() 
+                    fillSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'delete');
+                } else {
+                    let var_homogenity = cell.getRow().getData().homo_area;
+                    let getCurrentPosition = cell.getRow().getPosition() 
+                    fillSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'fill');
+                }
+
+            };
+        };
+        
+    });
 })();
+
+
+document.getElementById("nob-save-toggle").addEventListener("click", nobSaveChanges);
+
+async function nobSaveChanges() {
+    try {
+      const response = await fetch(URLS.nobUpdateURL, {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
+        body: JSON.stringify(nobTable.getData()),
+      });
+
+      if (response.status === 422) {
+        showErrors((await response.json()).errors);
+        return;                                   // флаги не снимаем — правки живы
+      }
+      if (!response.ok) {
+        console.error("STATUS:", response.status, "BODY:", await response.text());
+        return;
+      }
+
+    }
+    catch (e) {
+      console.log(e);
+    } finally {
+      entryDeletedIds.clear();
+    };
+};

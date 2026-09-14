@@ -85,6 +85,7 @@ class PlmSample(BaseModel):
         Anth = 4, 'Anthophillite'
         Trem = 5, 'Tremolite'
         Act = 6, 'Actinolite'
+        NotAnayzed = 7, 'Not analyzed'
     
     class SampleTexture(models.IntegerChoices):
         NonFibs = 1, 'Non-Fibs'
