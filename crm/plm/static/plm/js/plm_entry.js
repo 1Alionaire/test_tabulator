@@ -153,7 +153,13 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
               headerSort: false,
               
             },
-
+            {
+              title:"Layer", 
+              field:"layer", 
+              width: 40, 
+              editor: entryEnterDownEditor, 
+              headerSort: false,
+            },
             {
               title:"Description", 
               field:"description", 

@@ -6,7 +6,7 @@ import django.utils
 
 PLM_ENTRY_REQUIRED_ON_CREATE = {
     'homo_area', 'client_sample', 'lab_sample', 'description',
-    'location', 'method', 'row_number'
+    'location', 'method', 'row_number', 'layer',
 }
 
 PLM_WEIGHT_REQUIRED_ON_CREATE = {'client_sample', 'w_crucible', 'w_crucible_with_sample',

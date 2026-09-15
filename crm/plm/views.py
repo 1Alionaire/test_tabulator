@@ -4,7 +4,6 @@ from django.views.generic import TemplateView
 from django.http import JsonResponse
 from main.models import MainProject
 from django.views.generic import UpdateView
-from .models import PlmProject, PlmSample, PlmSampleWeight
 from .forms import UpdatePlmProject
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
@@ -14,6 +13,23 @@ from django.db import transaction
 import json
 from plm.plm_table_logic import PLMSamplesDataEntryManager, PLMSamplesWeightManager
 import django.utils
+
+from .models import (
+    PlmProject,
+    PlmSample,
+    PlmSampleWeight,
+    SampleMethod,
+    SampleASbestosType,
+    SampleTexture,
+    SampleMorphology,
+    SampleSignElong,
+    SampleExtincAngle,
+    SamplePleochColor,
+    SampleBirefringence,
+    SampleOtherFiber,
+    SampleOtherFiberProperty,
+)
+
 
 # =============== utility functions ===============
 def return_int_value_sample_method(input_str):
@@ -102,22 +118,22 @@ class UpdateProjectView(UpdateView):
 # =============== getting all options ===============
 def api_get_table_options(request):
     return JsonResponse({
-        'sampleMethod': [{'value': v, 'label': l} for v, l in PlmSample.SampleMethod.choices],
-        'sampleAsbestosType' : [{'value': v, 'label': l} for v, l in PlmSample.SampleASbestosType.choices],
-        'sampleTexture' : [{'value': v, 'label': l} for v, l in PlmSample.SampleTexture.choices],
-        'sampleMorphology' : [{'value': v, 'label': l} for v, l in PlmSample.SampleMorphology.choices],
-        'sampleSignElong' : [{'value': v, 'label': l} for v, l in PlmSample.SampleSignElong.choices],
-        'sampleExtincAngle' : [{'value': v, 'label': l} for v, l in PlmSample.SampleExtincAngle.choices],
-        'samplePleochColor' : [{'value': v, 'label': l} for v, l in PlmSample.SamplePleochColor.choices],
-        'sampleBirefringence' : [{'value': v, 'label': l} for v, l in PlmSample.SampleBirefringence.choices],
-        'sampleOtherFiber' : [{'value': v, 'label': l} for v, l in PlmSample.SampleOtherFiber.choices],
-        'sampleOtherFiberProperty' : [{'value': v, 'label': l} for v, l in PlmSample.SampleOtherFiberProperty.choices],
+        'sampleMethod': [{'value': v, 'label': l} for v, l in SampleMethod.choices],
+        'sampleAsbestosType' : [{'value': v, 'label': l} for v, l in SampleASbestosType.choices],
+        'sampleTexture' : [{'value': v, 'label': l} for v, l in SampleTexture.choices],
+        'sampleMorphology' : [{'value': v, 'label': l} for v, l in SampleMorphology.choices],
+        'sampleSignElong' : [{'value': v, 'label': l} for v, l in SampleSignElong.choices],
+        'sampleExtincAngle' : [{'value': v, 'label': l} for v, l in SampleExtincAngle.choices],
+        'samplePleochColor' : [{'value': v, 'label': l} for v, l in SamplePleochColor.choices],
+        'sampleBirefringence' : [{'value': v, 'label': l} for v, l in SampleBirefringence.choices],
+        'sampleOtherFiber' : [{'value': v, 'label': l} for v, l in SampleOtherFiber.choices],
+        'sampleOtherFiberProperty': [{'value': v, 'label': l} for v, l in SampleOtherFiberProperty.choices],
     })
 
 # =============== getting all data for data entry ===============
 def api_get_data_entry_table(request, id):
     all_samples = PlmSample.objects.filter(plm_project=id).order_by('row_number').values('id', 'homo_area', 'client_sample', 'lab_sample',
-                                                                  'description', 'location', 'method', 'row_number')
+                                                                  'description', 'layer', 'location', 'method', 'row_number')
     return JsonResponse(list(all_samples), safe=False)
 
 # =============== render PLM project ===============
@@ -196,7 +212,7 @@ def api_update_weight_table(request, id):
 # =============== getting all data for NOB analysis ===============
 def api_get_nob_analysis_table(request, id):
     all_samples = PlmSample.objects.filter(plm_project=id).order_by('row_number').values('row_number', 'id', 'homo_area', 
-                                                                                        'client_sample', 'lab_sample', 'method', 
+                                                                                        'client_sample', 'lab_sample', 'layer', 'method', 
                                                                                         'color', 'weight__residue', 'qc_sample', 
                                                                                         'analysis_temperature', 'texture', 'morphology', 
                                                                                         'ri_alpha_oil', 'ri_delta_oil', 'sign_of_elongation', 

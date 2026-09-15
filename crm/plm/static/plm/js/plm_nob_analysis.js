@@ -68,6 +68,13 @@ nobTable = new Tabulator("#samples-nob-table", {
               headerSort: false,
             },
             {
+              title:"Layer", 
+              field:"layer", 
+              width: 40, 
+              editable: false,
+              headerSort: false,
+            },
+            {
               title:"Color", 
               field:"color", 
               width: 130, 
