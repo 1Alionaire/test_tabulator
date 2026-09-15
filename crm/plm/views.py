@@ -133,7 +133,7 @@ def api_get_table_options(request):
 # =============== getting all data for data entry ===============
 def api_get_data_entry_table(request, id):
     all_samples = PlmSample.objects.filter(plm_project=id).order_by('row_number').values('id', 'homo_area', 'client_sample', 'lab_sample',
-                                                                  'description', 'layer', 'location', 'method', 'row_number')
+                                                                  'description', 'layer', 'location', 'method', 'row_number', 'is_blank', 'is_qc_sample')
     return JsonResponse(list(all_samples), safe=False)
 
 # =============== render PLM project ===============
@@ -187,7 +187,7 @@ def api_get_weight_table(request, id):
     all_weights = PlmSampleWeight.objects.filter(plm_project=id).order_by('sample__row_number', 'client_sample').values('id', 'sample__row_number', 'sample__lab_sample', 'client_sample', 'w_crucible', 
                                                                                                        'w_crucible_with_sample', 'w_sample', 'w_sample_ashed', 
                                                                                                        'org',  'w_petri', 'w_petri_with_sample', 
-                                                                                                       'residue', 'caco3')
+                                                                                                       'residue', 'caco3', 'sample__is_blank')
 
     return JsonResponse(list(all_weights), safe=False)
 
@@ -213,7 +213,7 @@ def api_update_weight_table(request, id):
 def api_get_nob_analysis_table(request, id):
     all_samples = PlmSample.objects.filter(plm_project=id).order_by('row_number').values('row_number', 'id', 'homo_area', 
                                                                                         'client_sample', 'lab_sample', 'layer', 'method', 
-                                                                                        'color', 'weight__residue', 'qc_sample', 
+                                                                                        'color', 'weight__residue', 'is_qc_sample', 
                                                                                         'analysis_temperature', 'texture', 'morphology', 
                                                                                         'ri_alpha_oil', 'ri_delta_oil', 'sign_of_elongation', 
                                                                                         'extinction_angle', 'pleochroism_color', 'birefringence', 
@@ -247,3 +247,11 @@ def api_update_nob_analysis_table(request, id):
     except Exception as e:
         return JsonResponse({'status':'!ok', "error": f"{str(e)}"})
 
+# =============== getting all data for NOB analysis ===============
+def api_get_tem_analysis_table(request, id):
+    all_samples = PlmSample.objects.filter(plm_project=id, method__in=[2,3,4]).order_by('row_number').values('id', 'row_number', 'client_sample', 'method', 
+                                                                                        'lab_sample', 'layer', 'homo_area', 'weight__residue', 
+                                                                                         'tem_asb_type', 'tem_asb_point', 'tem_asb_percent', 
+                                                                                         'tem_microscope_alignment', 'tem_eccentricity_adjusted', 'tem_grid_pre_acceptability', 
+                                                                                         'tem_grid_box', 'tem_grid_box_id_1', 'tem_grid_box_id_2', 'tem_na_or_ps', 'is_tem_qc_sample', 'is_blank')
+    return JsonResponse(list(all_samples), safe=False)

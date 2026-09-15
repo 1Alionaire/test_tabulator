@@ -4,7 +4,7 @@ function fillSamplesSameHA (table, homo_area, type) {
     for (row of table ) {
         if (row.getData().homo_area  == homo_area) {
             if (type == 'fill') {
-                row.update({asb_type:7})
+                row.update({asb_type:8})
             } else {
                 row.update({asb_type:null})
             };
@@ -268,7 +268,8 @@ nobTable = new Tabulator("#samples-nob-table", {
               title:"Asbestos %", 
               field:"asb_percent", 
               width: 80, 
-              editor: weightEnterDownEditor, 
+            //   editor: weightEnterDownEditor, 
+              editable: false,
               headerSort: false,
             },
             {
@@ -342,7 +343,7 @@ nobTable = new Tabulator("#samples-nob-table", {
 
             if (cell.getValue() in [1, 2, 3, 4, 5, 6]) {
                 // in case Chrysotile
-                if (cell.getValue() == 1) {
+                if (cell.getValue() == 2) {
                     currentRow.update({morphology:1, 
                                         sign_of_elongation:1, 
                                         extinction_angle:1, 
@@ -350,7 +351,7 @@ nobTable = new Tabulator("#samples-nob-table", {
                                         birefringence:1});
                 };
                 // in case Amosite
-                if (cell.getValue() == 2) {
+                if (cell.getValue() == 3) {
                     currentRow.update({morphology:2, 
                                         sign_of_elongation:1, 
                                         extinction_angle:1, 
@@ -358,7 +359,7 @@ nobTable = new Tabulator("#samples-nob-table", {
                                         birefringence:2});
                 };
                 // in case Crocidolite
-                if (cell.getValue() == 3) {
+                if (cell.getValue() == 4) {
                     currentRow.update({morphology:2, 
                                         sign_of_elongation:2, 
                                         extinction_angle:1, 
@@ -366,7 +367,7 @@ nobTable = new Tabulator("#samples-nob-table", {
                                         birefringence:2});
                 };
                 // in case Anthophillite
-                if (cell.getValue() == 4) {
+                if (cell.getValue() == 5) {
                     currentRow.update({morphology:2, 
                                         sign_of_elongation:1, 
                                         extinction_angle:1, 
@@ -374,7 +375,7 @@ nobTable = new Tabulator("#samples-nob-table", {
                                         birefringence:2});
                 };
                 // in case Tremolite
-                if (cell.getValue() == 5) {
+                if (cell.getValue() == 6) {
                     currentRow.update({morphology:2, 
                                         sign_of_elongation:1, 
                                         extinction_angle:2, 
@@ -382,7 +383,7 @@ nobTable = new Tabulator("#samples-nob-table", {
                                         birefringence:2});
                 };
                 // in case Actinolite
-                if (cell.getValue() == 6) {
+                if (cell.getValue() == 7) {
                     currentRow.update({morphology:2, 
                                         sign_of_elongation:1, 
                                         extinction_angle:2, 
@@ -393,7 +394,7 @@ nobTable = new Tabulator("#samples-nob-table", {
         };
 
         if (cell.getField() == 'asb_point_1' || cell.getField() == 'asb_point_2' || cell.getField() == 'asb_point_3' || cell.getField() == 'asb_point_4') {
-            if (currentRow.getData().asb_type in [1, 2, 3, 4, 5, 6]) {
+            if (currentRow.getData().asb_type in [2, 3, 4, 5, 6, 7]) {
                 let totalPoints = Number(currentRow.getData().asb_point_1) + Number(currentRow.getData().asb_point_2) + Number(currentRow.getData().asb_point_3) + Number(currentRow.getData().asb_point_4);
                 if (currentRow.getData().method == 1) {
                     let asbestoCulcResult = Math.round((400 / totalPoints) * 100) / 100;

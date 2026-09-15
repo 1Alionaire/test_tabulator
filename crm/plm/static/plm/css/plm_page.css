@@ -69,6 +69,9 @@ body {
     background-color: lightgray;
     min-height: 50px;
     height: 10%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 }
 
 .section-table {
@@ -77,13 +80,15 @@ body {
     min-height: 900px;
 }
 
-#data-entry-control-panel {
+
+
+/* #data-entry-control-panel {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-}
+} */
 
-#weight-control-panel {
+/* #weight-control-panel {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -93,7 +98,7 @@ body {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-}
+} */
 
 .control-buttons {
     min-width: 250px;

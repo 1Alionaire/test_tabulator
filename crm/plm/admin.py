@@ -16,5 +16,6 @@ class SampleAdmin(admin.ModelAdmin):
 
 @admin.register(PlmSampleWeight)
 class PlmSampleWeightAdmin(admin.ModelAdmin):
-    list_display = ('client_sample',)
+    list_display = ('sample__lab_sample', 'client_sample',)
     search_fields = ('client_sample',)
+

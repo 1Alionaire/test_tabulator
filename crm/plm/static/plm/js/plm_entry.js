@@ -166,7 +166,6 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
               width: 500, 
               editor: entryEnterDownEditor, 
               headerSort: false,
-              
             },
             {
               title:"Location", 

@@ -77,13 +77,14 @@ class SampleMethod(models.IntegerChoices):
     Sample1994 = 4, '199.4'
 
 class SampleASbestosType(models.IntegerChoices):
-    Chry = 1, 'Chrysotile'
-    Amo = 2, 'Amosite'
-    Croc = 3, 'Crocidolite'
-    Anth = 4, 'Anthophillite'
-    Trem = 5, 'Tremolite'
-    Act = 6, 'Actinolite'
-    NotAnayzed = 7, 'Not analyzed'
+    NAD = 1, 'NAD'
+    Chry = 2, 'Chrysotile'
+    Amo = 3, 'Amosite'
+    Croc = 4, 'Crocidolite'
+    Anth = 5, 'Anthophillite'
+    Trem = 6, 'Tremolite'
+    Act = 7, 'Actinolite'
+    NotAnayzed = 8, 'Not analyzed'
 
 class SampleTexture(models.IntegerChoices):
     NonFibs = 1, 'Non-Fibs'
@@ -137,20 +138,13 @@ class PlmSample(BaseModel):
     location = models.CharField(max_length=100, default='')
     method = models.IntegerField(choices=SampleMethod.choices,default=SampleMethod.Sample1981)
     color = models.CharField(max_length=25, default='', blank=True)
-    qc_sample = models.BooleanField(default=False)
+    is_qc_sample = models.BooleanField(default=False)
 
     #analyze data
     weight = models.OneToOneField(
         "plm.PlmSampleWeight",
         null=True, blank=True,
         on_delete=models.SET_NULL,
-        related_name="sample",
-    )
-
-    tem = models.OneToOneField(
-        "plm.PlmSampleTEM",
-        null=True, blank=True,
-        on_delete=models.CASCADE,
         related_name="sample",
     )
 
@@ -169,7 +163,7 @@ class PlmSample(BaseModel):
     other_fiber_percent = models.DecimalField(max_digits=4, decimal_places=2, blank=True, default=0)
 
     # asb info
-    asb_type = models.IntegerField(choices=SampleASbestosType, null=True, blank=True)
+    asb_type = models.IntegerField(choices=SampleASbestosType, default = SampleASbestosType.NAD , null=True, blank=True)
     asb_point_1 = models.PositiveIntegerField(default=0)
     asb_point_2 = models.PositiveIntegerField(default=0)
     asb_point_3 = models.PositiveIntegerField(default=0)
@@ -181,6 +175,22 @@ class PlmSample(BaseModel):
     asb_percent = models.DecimalField(max_digits=4, decimal_places=2, default=0, blank=True, null=True)
 
     rest_percent = models.DecimalField(max_digits=5, decimal_places=2, default=100, blank=True, null=True)
+
+    tem_asb_type = models.IntegerField(choices=SampleASbestosType, default = SampleASbestosType.NAD, null=True, blank=True)
+    tem_asb_point = models.PositiveIntegerField(default=0)
+    tem_asb_percent = models.DecimalField(max_digits=4, decimal_places=2, default=0, blank=True, null=True)
+
+    tem_microscope_alignment = models.CharField(max_length=7, default = 'Y', blank=True, null=True)
+    tem_eccentricity_adjusted = models.CharField(max_length=7, default = 'Y', blank=True, null=True)
+    tem_grid_pre_acceptability = models.CharField(max_length=7, default = 'Y', blank=True, null=True)
+
+    tem_grid_box = models.CharField(max_length=7, blank=True, null=True)
+    tem_grid_box_id_1 = models.CharField(max_length=7, blank=True, null=True)
+    tem_grid_box_id_2 = models.CharField(max_length=7, blank=True, null=True)
+    tem_na_or_ps = models.CharField(max_length=3, blank=True, null=True)
+    is_tem_qc_sample = models.BooleanField(default=False)
+
+    is_blank = models.BooleanField(default=False)
 
     def __str__(self):
         return self.lab_sample
@@ -200,22 +210,8 @@ class PlmSampleWeight(BaseModel):
     caco3 = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
     def __str__(self):
-        return self.client_sample
+        if self.client_sample:
+            return self.client_sample
+        else:
+            return str(self.id)
 
-class PlmSampleTEM(BaseModel):
-
-    asb_type = models.IntegerField(choices=SampleASbestosType, null=True, blank=True)
-    asb_point = models.PositiveIntegerField(default=0)
-    asb_percent = models.DecimalField(max_digits=4, decimal_places=2, default=0, blank=True, null=True)
-
-    microscope_alignment = models.CharField(max_length=7, default = 'Y', blank=True, null=True)
-    eccentricity_adjusted = models.CharField(max_length=7, default = 'Y', blank=True, null=True)
-    grid_pre_acceptability = models.CharField(max_length=7, default = 'Y', blank=True, null=True)
-
-    grid_box = models.CharField(max_length=7, blank=True, null=True)
-    grid_box_id_1 = models.CharField(max_length=7, blank=True, null=True)
-    grid_box_id_2 = models.CharField(max_length=7, blank=True, null=True)
-    na_or_ps = models.CharField(max_length=3, blank=True, null=True)
-
-    def __str__(self):
-        return self.sample__client_sample
