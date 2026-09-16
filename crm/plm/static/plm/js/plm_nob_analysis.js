@@ -458,7 +458,7 @@ document.getElementById("nob-save-toggle").addEventListener("click", nobSaveChan
 
 async function nobSaveChanges() {
     try {
-      const response = await fetch(URLS.nobUpdateURL, {
+      const response = await fetch(URLS.analysisUpdateURL, {
         method: "POST",
         headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
         body: JSON.stringify(nobTable.getData()),

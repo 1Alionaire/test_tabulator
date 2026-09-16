@@ -8,6 +8,18 @@ function checkTEMforPS(cell) {
   if (cell.getRow().getData().tem_na_or_ps != 'PS') return true
 }
 
+function fillTEMAsbResultSamplesSameHA (table, homo_area, type) {
+    for (row of table ) {
+        if (row.getData().homo_area  == homo_area) {
+            if (type == 'fill') {
+                row.update({tem_na_or_ps:'PS'})
+            } else {
+                row.update({tem_na_or_ps:''})
+            };
+        };
+    };
+}
+
 temTable = new Tabulator("#samples-tem-table", {
         rowHeader: {
             resizable: false, frozen: true, width: 40,
@@ -194,31 +206,53 @@ temTable = new Tabulator("#samples-tem-table", {
         let currentRow = cell.getRow();
         const tableData = temTable.getRows();
 
-        if (cell.getField() === 'asb_type') {
-          if (cell.getValue() in [2, 3, 4, 5, 6, 7]) {
-              // in case Chrysotile
-            if (cell.getValue() == 2) {
-                currentRow.update({morphology:1, 
-                                    sign_of_elongation:1, 
-                                    extinction_angle:1, 
-                                    pleochroism_color:1, 
-                                    birefringence:1});
-            };
-          };
-        };
-
         if (cell.getField() === 'tem_asb_point') {
-          if (currentRow.getData().asb_type in [2, 3, 4, 5, 6, 7]) {
-              // in case Chrysotile
-            if (cell.getValue() == 2) {
-                currentRow.update({morphology:1, 
-                                    sign_of_elongation:1, 
-                                    extinction_angle:1, 
-                                    pleochroism_color:1, 
-                                    birefringence:1});
-            };
+          if (currentRow.getData().tem_asb_type in [2, 3, 4, 5, 6, 7]) {
+            result = Math.round((+(cell.getValue()) * (Number(currentRow.getData().weight__residue)) / 100 ) * 100) / 100;
+            if (isFinite(result)) {
+                currentRow.update({tem_asb_percent:result});
+            }
+            else {
+                currentRow.update({tem_asb_percent:0});
+            }
           };
+
+          if (Number(currentRow.getData().tem_asb_percent) < 1) {
+              let var_homogenity = cell.getRow().getData().homo_area;
+              let getCurrentPosition = cell.getRow().getPosition() 
+              fillTEMAsbResultSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'delete');
+          } else {
+              let var_homogenity = cell.getRow().getData().homo_area;
+              let getCurrentPosition = cell.getRow().getPosition() 
+              fillTEMAsbResultSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'fill');
+          }
         };
     });
 
 })();
+
+document.getElementById("tem-save-toggle").addEventListener("click", temSaveChanges);
+
+async function temSaveChanges() {
+    try {
+      const response = await fetch(URLS.analysisUpdateURL, {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
+        body: JSON.stringify(temTable.getData()),
+      });
+
+      if (response.status === 422) {
+        showErrors((await response.json()).errors);
+        return;                                   // флаги не снимаем — правки живы
+      }
+      if (!response.ok) {
+        console.error("STATUS:", response.status, "BODY:", await response.text());
+        return;
+      }
+    }
+    catch (e) {
+      console.log(e);
+    } finally {
+      // entryDeletedIds.clear();
+    };
+};

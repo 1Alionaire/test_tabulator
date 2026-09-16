@@ -224,7 +224,7 @@ def api_get_nob_analysis_table(request, id):
                                                                                         'asb_percent', 'is_blank', 'is_qc_sample', 'tem_na_or_ps')
     return JsonResponse(list(all_samples), safe=False)
 
-def api_update_nob_analysis_table(request, id):
+def api_update_analysis_table(request, id):
     selected_plm_project = PlmProject.objects.get(pk=id)
     payload_json = json.loads(request.body)
     touched_fields = set()
@@ -232,8 +232,6 @@ def api_update_nob_analysis_table(request, id):
         samples_to_update = {sample.id : sample for sample in 
                                         PlmSample.objects.select_for_update().filter(plm_project=selected_plm_project)}
         for record_row in payload_json:
-            print('=' * 20)
-            print(f'record_row : {record_row}')
             sample = samples_to_update[int(record_row.get('id'))]
             for name_field, value in record_row.items():
                 if name_field not in ['id', 'weight__residue']:
@@ -255,6 +253,3 @@ def api_get_tem_analysis_table(request, id):
                                                                                          'tem_microscope_alignment', 'tem_eccentricity_adjusted', 'tem_grid_pre_acceptability', 
                                                                                          'tem_grid_box', 'tem_grid_box_id_1', 'tem_grid_box_id_2', 'tem_na_or_ps', 'is_tem_qc_sample', 'is_blank')
     return JsonResponse(list(all_samples), safe=False)
-
-def api_update_tem_analysis_table(request, id):
-    pass
