@@ -13,6 +13,7 @@ from django.views.generic import TemplateView, UpdateView
 from .forms import ProjectCOCUpload
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
+from plm.models import PlmProject
 
 def _serialize(obj):
     return {
@@ -70,7 +71,7 @@ def api_get_main_projects_table(request):
 def api_update_main_projects_table(request):
     try:
         payload_json = json.loads(request.body)
-
+        print(f'payload_json : {payload_json}')
         table_manager = MainProjectTableManager(payload_json)
         checking_error_code = table_manager.validate_whole_object()
 
@@ -103,3 +104,9 @@ class UploadCOCView(UpdateView):
 
     def get_success_url(self):
         return reverse_lazy('main:main')
+
+def route_work(request, id):
+    main_project = MainProject.objects.get(pk=id)
+    if main_project.sample_type_id in (2, 3, 4):
+        plm_project = PlmProject.objects.get(project=main_project)
+        return redirect('plm:plm_detail', plm_project.id)

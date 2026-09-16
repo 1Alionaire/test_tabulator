@@ -229,8 +229,10 @@ function rewriteLabIds() {
   const data = dataEntryTable.getRows();
   labId = data[0].getData().lab_sample.slice(0, -2);
   for (row of data) {
-    row.update({ lab_sample: `${labId}-${row.getPosition()}` });
-    row.update({ row_number: `${row.getPosition()}` });
+    if (row.getData().is_blank == false && row.getData().is_qc_sample == false) {
+      row.update({ lab_sample: `${labId}-${row.getPosition()}` });
+      row.update({ row_number: `${row.getPosition()}` });
+    }
   }
 }
 
