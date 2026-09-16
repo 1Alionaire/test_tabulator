@@ -23,6 +23,7 @@ urlpatterns = [
     path('api/nob-analysis-table/update/<int:id>/', views.api_update_nob_analysis_table, name='api_update_nob_analysis_table'),
     # TEM analysis
     path('api/tem-analysis-table/get/<int:id>/', views.api_get_tem_analysis_table, name='api_get_tem_analysis_table'),
+    path('api/tem-analysis-table/update/<int:id>/', views.api_update_tem_analysis_table, name='api_update_tem_analysis_table'),
 ]
 
 

@@ -144,7 +144,6 @@ class PLMSamplesWeightManager():
 
     def validate_whole_object(self):
         work_data = self.data_to_update + self.data_to_create
-        print(work_data)
         for record in work_data:
             field_names = set(record.keys())
             missing = PLM_WEIGHT_REQUIRED_ON_CREATE - field_names
@@ -180,9 +179,26 @@ class PLMSamplesWeightManager():
 
             sample.time_update = django.utils.timezone.now()
 
-        return PlmSampleWeight.objects.bulk_update(
+        updated = PlmSampleWeight.objects.bulk_update(
                         samples_to_update.values(), sorted(touched_fields | {'time_update'})
                     )
+
+        # Taking all samples for update
+        samples_to_update = {sample.client_sample : sample for sample in  
+                            PlmSample.objects.select_for_update().filter(plm_project=self.plm_project)}
+
+        for data in work_data:
+            weight_client_sample = data['client_sample']
+            weight_record = PlmSampleWeight.objects.get(plm_project=self.plm_project, client_sample=weight_client_sample) # take weight with client id
+            sample_to_update = samples_to_update[weight_client_sample] #take sample with client id
+            if sample_to_update:
+                setattr(sample_to_update, 'weight', weight_record) # Filling new value 
+            setattr(sample_to_update, 'time_update', django.utils.timezone.now())  # new time update
+
+        # Update all samples
+        PlmSample.objects.bulk_update(samples_to_update.values(), sorted({'weight', 'time_update'}))
+
+        return updated
 
     def _create_data(self):
         weights = []

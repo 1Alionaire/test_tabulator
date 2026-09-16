@@ -1,12 +1,24 @@
 let nobAnalysisTable;
 
-function fillSamplesSameHA (table, homo_area, type) {
+function fillAsbResultSamplesSameHA (table, homo_area, type) {
     for (row of table ) {
         if (row.getData().homo_area  == homo_area) {
             if (type == 'fill') {
                 row.update({asb_type:8})
             } else {
-                row.update({asb_type:null})
+                row.update({asb_type:1})
+            };
+        };
+    };
+}
+
+function fillTEMPSSamplesSameHA (table, homo_area, type) {
+    for (row of table ) {
+        if (row.getData().homo_area  == homo_area) {
+            if (type == 'fill') {
+                row.update({tem_na_or_ps:'PS'})
+            } else {
+                row.update({tem_na_or_ps:''})
             };
         };
     };
@@ -49,6 +61,13 @@ nobTable = new Tabulator("#samples-nob-table", {
             {
               title:"Row Number", 
               field:"row_number", 
+              width: 80, 
+              headerSort: false,
+              visible: false
+            },
+            {
+              title:"NA or PS for TEM", 
+              field:"tem_na_or_ps", 
               width: 80, 
               headerSort: false,
               visible: false
@@ -318,12 +337,13 @@ nobTable = new Tabulator("#samples-nob-table", {
         };
 
         if (cell.getField() === 'asb_type') {
-            if (cell.getValue() == null) {
+            if (cell.getValue() == null || cell.getValue() == 1  ) {
                 let var_homogenity = cell.getRow().getData().homo_area;
                 let getCurrentPosition = cell.getRow().getPosition();
 
-                fillSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'delete');
-                currentRow.update({asb_type:null,
+                fillAsbResultSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'delete');
+                fillTEMPSSamplesSameHA(tableData, var_homogenity, 'delete' )
+                currentRow.update({asb_type:1,
                                     morphology:null, 
                                     sign_of_elongation:null, 
                                     extinction_angle:null, 
@@ -341,7 +361,7 @@ nobTable = new Tabulator("#samples-nob-table", {
             };
 
 
-            if (cell.getValue() in [1, 2, 3, 4, 5, 6]) {
+            if (cell.getValue() in [2, 3, 4, 5, 6, 7]) {
                 // in case Chrysotile
                 if (cell.getValue() == 2) {
                     currentRow.update({morphology:1, 
@@ -418,11 +438,13 @@ nobTable = new Tabulator("#samples-nob-table", {
                 if (Number(currentRow.getData().asb_percent) < 1) {
                     let var_homogenity = cell.getRow().getData().homo_area;
                     let getCurrentPosition = cell.getRow().getPosition() 
-                    fillSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'delete');
+                    fillAsbResultSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'delete');
+                    fillTEMPSSamplesSameHA(tableData, var_homogenity, 'delete' )
                 } else {
                     let var_homogenity = cell.getRow().getData().homo_area;
                     let getCurrentPosition = cell.getRow().getPosition() 
-                    fillSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'fill');
+                    fillAsbResultSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'fill');
+                    fillTEMPSSamplesSameHA(tableData, var_homogenity, 'fill' )
                 }
 
             };
@@ -450,7 +472,6 @@ async function nobSaveChanges() {
         console.error("STATUS:", response.status, "BODY:", await response.text());
         return;
       }
-
     }
     catch (e) {
       console.log(e);

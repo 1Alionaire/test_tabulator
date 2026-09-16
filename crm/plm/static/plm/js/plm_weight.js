@@ -310,3 +310,12 @@ async function weightSaveChanges() {
     }
 };
 
+// =================== Refresh table ===================
+document.getElementById("weight-refresh-toggle").addEventListener("click", function() {
+  const changes = weightCollectChanges(); // collecting all changes
+  const hasChanges = changes.updated.length || changes.created.length || weightDeletedIds.length //put all possible changes in const
+  if (hasChanges && !confirm("Unsaved changes will be lost. Continue?")) { //asking user for continue if we have changes
+        return;
+    }
+  weightTable.setData(URLS.weightGetURL);
+});

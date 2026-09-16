@@ -4,7 +4,11 @@
 const optionsResponse = await fetch(URLS.tableOptionsGetURL);
 const tableOptions = await optionsResponse.json();
 
-nobTable = new Tabulator("#samples-tem-table", {
+function checkTEMforPS(cell) {
+  if (cell.getRow().getData().tem_na_or_ps != 'PS') return true
+}
+
+temTable = new Tabulator("#samples-tem-table", {
         rowHeader: {
             resizable: false, frozen: true, width: 40,
             hozAlign: "center", formatter: "rownum",
@@ -92,13 +96,13 @@ nobTable = new Tabulator("#samples-tem-table", {
             }, 
             {
               title:"Asbestos<br>Type", 
-              field:"asb_type", 
+              field:"tem_asb_type", 
               width: 80, 
               formatter: "lookup",
               formatterParams: Object.fromEntries(tableOptions['sampleAsbestosType'].map(o => [o.value, o.label])),
               editor: "list",
               headerSort: false,
-              editable: true,
+              editable: checkTEMforPS,
               editorParams: { values: tableOptions['sampleAsbestosType'] },
             },
             {
@@ -107,6 +111,7 @@ nobTable = new Tabulator("#samples-tem-table", {
               width: 80, 
               editor: weightEnterDownEditor, 
               headerSort: false,
+              editable: checkTEMforPS,
             },
             {
               title:"Asbestos %", 
@@ -154,6 +159,7 @@ nobTable = new Tabulator("#samples-tem-table", {
               width: 90, 
               editor: entryEnterDownEditor, 
               headerSort: false,
+              editable: checkTEMforPS,
             },
             {
               title:"Grid Box<br> ID I", 
@@ -161,6 +167,7 @@ nobTable = new Tabulator("#samples-tem-table", {
               width: 90, 
               editor: entryEnterDownEditor, 
               headerSort: false,
+              editable: checkTEMforPS,
             },
             {
               title:"Grid Box<br> ID II", 
@@ -168,6 +175,7 @@ nobTable = new Tabulator("#samples-tem-table", {
               width: 90, 
               editor: entryEnterDownEditor, 
               headerSort: false,
+              editable: checkTEMforPS,
             },
             {
               title:"NA or PS", 
@@ -179,6 +187,38 @@ nobTable = new Tabulator("#samples-tem-table", {
           ],
       });
 
-    nobTable.on("tableBuilt", () => bindTypeToEdit(nobTable)); // bindTypeToEdit in plm_nob_analysis.js
+    temTable.on("tableBuilt", () => bindTypeToEdit(temTable)); // bindTypeToEdit in plm_tem_analysis.js
+
+
+    temTable.on("cellEdited", function(cell) {
+        let currentRow = cell.getRow();
+        const tableData = temTable.getRows();
+
+        if (cell.getField() === 'asb_type') {
+          if (cell.getValue() in [2, 3, 4, 5, 6, 7]) {
+              // in case Chrysotile
+            if (cell.getValue() == 2) {
+                currentRow.update({morphology:1, 
+                                    sign_of_elongation:1, 
+                                    extinction_angle:1, 
+                                    pleochroism_color:1, 
+                                    birefringence:1});
+            };
+          };
+        };
+
+        if (cell.getField() === 'tem_asb_point') {
+          if (currentRow.getData().asb_type in [2, 3, 4, 5, 6, 7]) {
+              // in case Chrysotile
+            if (cell.getValue() == 2) {
+                currentRow.update({morphology:1, 
+                                    sign_of_elongation:1, 
+                                    extinction_angle:1, 
+                                    pleochroism_color:1, 
+                                    birefringence:1});
+            };
+          };
+        };
+    });
 
 })();

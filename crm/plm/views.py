@@ -196,7 +196,6 @@ def api_get_weight_table(request, id):
 def api_update_weight_table(request, id):
     plm_project = PlmProject.objects.get(pk=id)
     payload_json = json.loads(request.body)
-    print(f'payload_json : {payload_json}')
 
     weight_manager = PLMSamplesWeightManager(plm_project=plm_project,input_data=payload_json)
     checking_error_code = weight_manager.validate_whole_object()
@@ -221,32 +220,31 @@ def api_get_nob_analysis_table(request, id):
                                                                                         'other_fiber', 'other_fiber_property', 'other_fiber_percent', 'asb_type',
                                                                                         'asb_point_1', 'asb_point_2', 'asb_point_3', 'asb_point_4',
                                                                                         'asb_point_5', 'asb_point_6', 'asb_point_7', 'asb_point_8', 
-                                                                                        'asb_percent', 'is_blank', 'is_qc_sample' )
+                                                                                        'asb_percent', 'is_blank', 'is_qc_sample', 'tem_na_or_ps')
     return JsonResponse(list(all_samples), safe=False)
 
 def api_update_nob_analysis_table(request, id):
     selected_plm_project = PlmProject.objects.get(pk=id)
     payload_json = json.loads(request.body)
     touched_fields = set()
-    try:
-        with transaction.atomic():
-            samples_to_update = {sample.id : sample for sample in 
-                                            PlmSample.objects.select_for_update().filter(plm_project=selected_plm_project)}
-            for record_row in payload_json:
-                sample = samples_to_update[int(record_row.get('id'))]
-                for name_field, value in record_row.items():
-                    if name_field not in ['id', 'weight__residue']:
-                        setattr(sample, name_field, value)
-                        touched_fields.add(name_field)
-                sample.time_update = django.utils.timezone.now()
+    with transaction.atomic():
+        samples_to_update = {sample.id : sample for sample in 
+                                        PlmSample.objects.select_for_update().filter(plm_project=selected_plm_project)}
+        for record_row in payload_json:
+            print('=' * 20)
+            print(f'record_row : {record_row}')
+            sample = samples_to_update[int(record_row.get('id'))]
+            for name_field, value in record_row.items():
+                if name_field not in ['id', 'weight__residue']:
+                    setattr(sample, name_field, value)
+                    touched_fields.add(name_field)
 
-            PlmSample.objects.bulk_update(samples_to_update.values(), sorted(touched_fields | {'time_update'}))
-                        
-            return JsonResponse({'status':'ok'})
-            
+            setattr(sample, 'time_update', django.utils.timezone.now())
 
-    except Exception as e:
-        return JsonResponse({'status':'!ok', "error": f"{str(e)}"})
+        PlmSample.objects.bulk_update(samples_to_update.values(), sorted(touched_fields | {'time_update'}))
+                    
+        return JsonResponse({'status':'ok'})
+
 
 # =============== getting all data for NOB analysis ===============
 def api_get_tem_analysis_table(request, id):
@@ -255,5 +253,7 @@ def api_get_tem_analysis_table(request, id):
                                                                                          'tem_asb_type', 'tem_asb_point', 'tem_asb_percent', 
                                                                                          'tem_microscope_alignment', 'tem_eccentricity_adjusted', 'tem_grid_pre_acceptability', 
                                                                                          'tem_grid_box', 'tem_grid_box_id_1', 'tem_grid_box_id_2', 'tem_na_or_ps', 'is_tem_qc_sample', 'is_blank')
-    print(list(all_samples))
     return JsonResponse(list(all_samples), safe=False)
+
+def api_update_tem_analysis_table(request, id):
+    pass

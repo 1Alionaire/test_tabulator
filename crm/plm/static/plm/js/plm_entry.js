@@ -122,19 +122,23 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
           hozAlign: "center",
           vertAlign: "middle",
         },
+        clipboard: true,
+        clipboardCopyStyled: false,
+        clipboardCopyConfig: { rowHeaders: false, columnHeaders: false },
+        clipboardCopyRowRange: "range",
+        clipboardPasteParser: "range",
+        clipboardPasteAction: "range",
         columns:[
             {
               title:"ID", 
               field:"id", 
               width: 80, 
-              headerSort: false,
               visible: false
             },
             {
               title:"Row Number", 
               field:"row_number", 
               width: 80, 
-              headerSort: false,
               visible: false
             },
             {
@@ -142,7 +146,6 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
               field:"client_sample", 
               width: 80, 
               editor: entryEnterDownEditor, 
-              headerSort: false,
               
             },
             {
@@ -150,7 +153,6 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
               field:"homo_area", 
               width: 80, 
               editor: entryEnterDownEditor, 
-              headerSort: false,
               
             },
             {
@@ -277,7 +279,7 @@ function entryCollectChanges() {
 
   for (const cell of dataEntryTable.getEditedCells()) {  // going through all edited cells
     const data = cell.getRow()?.getData();  //parse data from whole row?
-    
+
     if (!data || !data.lab_sample) continue; // if we dont have data -> continue
 
     const labId = String(data.lab_sample);           // единый тип ключа
