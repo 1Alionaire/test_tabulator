@@ -40,7 +40,9 @@ INSTALLED_APPS = [
     'main',
     'finance', 
     'users',
-    'plm'
+    'plm',
+    'pcm',
+    'qc',
 ]
 
 MIDDLEWARE = [

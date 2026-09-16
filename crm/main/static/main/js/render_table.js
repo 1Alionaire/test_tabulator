@@ -6,6 +6,8 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
+const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
 function isEmpty(inputString) {
   if (inputString == undefined || inputString == 'undefined' || 
     inputString == null || inputString == 'null' || 
@@ -99,18 +101,23 @@ function checkCOCFile(cell) {
               field:"date_registered", 
               editor: "date", 
               formatter:"date", 
-              width:80, 
+              width:120, 
               headerSort: false,
               
             },
             {
               title:"Time", 
               field:"time_registered", 
-              editor: "time", 
               formatter:"time",
               width:80 , 
               headerSort: false, 
-              
+              editor: "input",
+              validator: {
+                type: function (cell, value) {
+                  if (value === "" || value === null) return true;   // пустое разрешаем
+                  return TIME_RE.test(value);
+                },
+              },
             },
             {
               title: "Company", 
@@ -264,8 +271,7 @@ function collectChanges() {
   const updatedData = {};
   const createdData = {};
 
-  if (deletedIds && !confirm("Projects will be deleted. Continue?")) return
-
+  
   for (const cell of table.getEditedCells()) {  // going through all edited cells
     const data = cell.getRow()?.getData();  //parse data from whole row?
     
@@ -309,9 +315,11 @@ document.getElementById("main-menu-save-toggle").addEventListener("click", saveC
 async function saveChanges() {
   const changes = collectChanges();
   if (!changes.updated.length && !changes.created.length && !changes.deleted.length) {
-    console.log('no data?')
     return;
   }
+
+  if (changes.deleted.length && !confirm("Projects will be deleted. Continue?")) return
+
 
   try {
     const res = await fetch(URLS.mainProjectUpdateURL, {
@@ -343,11 +351,13 @@ async function saveChanges() {
     console.log(resultMessage)
     showToast(`Table Saved: ${resultMessage}`, "success");
 
+
   } catch (e) {
     showToast(`Error: ${res.error}`, "error");
     console.log(e)
   } finally {
     deletedIds.clear();
+    table.setData();
   }
 };
 

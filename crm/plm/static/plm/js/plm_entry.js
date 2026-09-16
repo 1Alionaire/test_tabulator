@@ -177,7 +177,7 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
             {
               title:"Method", 
               field:"method", 
-              width: 80, 
+              width: 70, 
               formatter: "lookup",
               formatterParams: Object.fromEntries(tableOptions['sampleMethod'].map(o => [o.value, o.label])),
               editor: "list",
@@ -188,7 +188,7 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
             {
               title:"Lab Sample", 
               field:"lab_sample", 
-              width: 80, 
+              width: 140, 
               editor:"input", 
               headerSort: false,
               

@@ -67,40 +67,31 @@ class PLMSamplesDataEntryManager():
 
     def table_update_processing(self) -> dict:
         if self.type == 'update':
-            try:
-                with transaction.atomic():
-                    updated = self.update_data() if self.data_to_update else 0
-                    created = self.create_data() if self.data_to_create else 0
-            except Exception as e:
-                return {'status': '!ok', 'error': e.message_dict if hasattr(e, 'message_dict') else e.messages}
-
             result = {'status': 'ok'}
-            if updated != 0 :
-                result['updated'] = updated
-            if created != 0:
-                result['created'] = created
+            with transaction.atomic():
+                if self.data_to_update:
+                    result['updated'] = self._update_data()
+                if self.data_to_create:
+                    result['created'] = self._create_data()
+
 
         elif self.type == 'replace_all':
             samples = []
-            try:
-                with transaction.atomic():
-                    PlmSample.objects.filter(plm_project=self.plm_project).delete()
-                    for data in self.input_data:
-                        data['row_number'] = int(data['row_number'])
-                        samples.append(PlmSample(plm_project=self.plm_project, **data))
+            with transaction.atomic():
+                PlmSample.objects.filter(plm_project=self.plm_project).delete()
+                for data in self.input_data:
+                    data['row_number'] = int(data['row_number'])
+                    samples.append(PlmSample(plm_project=self.plm_project, **data))
 
-                    for sample in samples:
-                        sample.full_clean()
-                        sample.save()
+                for sample in samples:
+                    sample.full_clean()
+                    sample.save()
 
-                result = {'status': 'ok'}
-
-            except Exception as e:
-                return {'status': '!ok', 'error': e.message_dict if hasattr(e, 'message_dict') else e.messages}
+            result = {'status': 'ok'}
 
         return result
 
-    def update_data(self):
+    def _update_data(self):
         try:
             work_data = self.data_to_update
             id_list = [element.get('id') for element in work_data]
@@ -127,7 +118,7 @@ class PLMSamplesDataEntryManager():
         except Exception as e:
             return {'status':'!ok', "error": f"{str(e)}"}
 
-    def create_data(self):
+    def _create_data(self):
         samples = []
         try:
             for data in self.data_to_create:
@@ -161,82 +152,63 @@ class PLMSamplesWeightManager():
                 return {'error': f"missing required fields "}
 
     def table_update_processing(self) -> dict:
-        try:
-            with transaction.atomic():
-                updated = self.update_data() if self.data_to_update else 0
-                created = self.create_data() if self.data_to_create else 0
-                deleted = self.delete_data() if self.data_to_delete else 0
-        except Exception as e:
-            return {'status': '!ok', 'error': e.message_dict if hasattr(e, 'message_dict') else e.messages}
-        
         result = {'status': 'ok'}
-        if updated != 0 :
-            result['updated'] = updated
-        if created != 0:
-            result['created'] = created
-        if deleted != 0:
-            result['deleted'] = deleted
+        with transaction.atomic():
+            if self.data_to_update:
+                result['updated'] = self._update_data()
+            if self.data_to_create:
+                result['created'] = self._create_data()
+            if self.data_to_delete:
+                result['deleted'] = self._delete_data()
 
         return result
 
-    def update_data(self):
-        try:
-            work_data = self.data_to_update
-            id_list = [element.get('id') for element in work_data]
-            touched_fields = set()
+    def _update_data(self):
+        work_data = self.data_to_update
+        id_list = [element.get('id') for element in work_data]
+        touched_fields = set()
 
-            samples_to_update = {sample.id : sample for sample in 
-                                PlmSampleWeight.objects.select_for_update().filter(pk__in=id_list)}
+        samples_to_update = {sample.id : sample for sample in 
+                            PlmSampleWeight.objects.select_for_update().filter(pk__in=id_list)}
 
-            for record_row in work_data:
-                sample = samples_to_update[int(record_row.get('id'))]
-                for name_field, value in record_row.items():
-                    if name_field != 'id':
-                        setattr(sample, name_field, value)
-                        touched_fields.add(name_field)
+        for record_row in work_data:
+            sample = samples_to_update[int(record_row.get('id'))]
+            for name_field, value in record_row.items():
+                if name_field != 'id':
+                    setattr(sample, name_field, value)
+                    touched_fields.add(name_field)
 
-                sample.time_update = django.utils.timezone.now()
+            sample.time_update = django.utils.timezone.now()
 
-            updated = PlmSampleWeight.objects.bulk_update(
-                            samples_to_update.values(), sorted(touched_fields | {'time_update'})
-                        )
+        return PlmSampleWeight.objects.bulk_update(
+                        samples_to_update.values(), sorted(touched_fields | {'time_update'})
+                    )
 
-            return updated
-
-        except Exception as e:
-            return {'status':'!ok', "error": f"{str(e)}"} 
-
-    def create_data(self):
+    def _create_data(self):
         weights = []
-        try:
-            for data in self.data_to_create:
-                weights.append(PlmSampleWeight(plm_project=self.plm_project, **data))
+        for data in self.data_to_create:
+            weights.append(PlmSampleWeight(plm_project=self.plm_project, **data))
 
-            for weight in weights:
-                weight.full_clean()
-                weight.save()
+        for weight in weights:
+            weight.full_clean()
+            weight.save()
 
-            # Taking all samples for update
-            samples_to_update = {sample.client_sample : sample for sample in  
-                                PlmSample.objects.select_for_update().filter(plm_project=self.plm_project)}
+        # Taking all samples for update
+        samples_to_update = {sample.client_sample : sample for sample in  
+                            PlmSample.objects.select_for_update().filter(plm_project=self.plm_project)}
 
-            for data in self.data_to_create:
-                weight_record = PlmSampleWeight.objects.get(client_sample=data['client_sample']) # take weight with client id
-                sample_to_update = samples_to_update[data['client_sample']] #take sample with client id
-                setattr(sample_to_update, 'weight', weight_record) # Filling new value 
-                sample_to_update.time_update = django.utils.timezone.now()  # new time update
+        for data in self.data_to_create:
+            weight_record = PlmSampleWeight.objects.get(client_sample=data['client_sample']) # take weight with client id
+            sample_to_update = samples_to_update[data['client_sample']] #take sample with client id
+            setattr(sample_to_update, 'weight', weight_record) # Filling new value 
+            sample_to_update.time_update = django.utils.timezone.now()  # new time update
 
-            # Update all samples
-            PlmSample.objects.bulk_update(samples_to_update.values(), sorted({'weight', 'time_update'}))
+        # Update all samples
+        PlmSample.objects.bulk_update(samples_to_update.values(), sorted({'weight', 'time_update'}))
 
-            return len(weights)
+        return len(weights)
 
-        except Exception as e:
-                    return {'status':'!ok', "error": f"{str(e)}"}
-
-    def delete_data(self):
-        try:
-            PlmSampleWeight.objects.filter(pk__in=self.data_to_delete).delete()
-            return len(self.data_to_delete)
-        except Exception as e:
-            return {'status':'!ok', "error": f"{str(e)}"} 
+    def _delete_data(self):
+        PlmSampleWeight.objects.filter(pk__in=self.data_to_delete).delete()
+        return len(self.data_to_delete)
+ 

@@ -241,3 +241,16 @@
     display: flex;
     flex-direction: column;
 }
+
+.tabulator .tabulator-cell {
+    font-size: 18px;
+}
+
+.tabulator .tabulator-cell input,
+.tabulator .tabulator-cell select,
+.tabulator .tabulator-cell textarea {
+    font-size: inherit;
+    font-family: inherit;
+    line-height: inherit;
+    color: inherit;
+}

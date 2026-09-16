@@ -3,6 +3,8 @@ from django.db import transaction
 from plm.models import PlmProject, PlmSample, PlmSampleWeight
 import django.utils
 from utils.utils import generate_rand_string_4
+import math
+
 
 REQUIRED_ON_CREATE = {
     'company_id', 'project_name', 'project_address', 'date_registered', 'time_registered',
@@ -152,3 +154,17 @@ class ProjectCreateSignal:
             for i in range(amount_nob_samples):
                 weight_item = PlmSampleWeight.objects.create(plm_project = created_plm_project)
                 weight_item.save()
+            amount_blanks = math.ceil(amount_nob_samples/100)
+            for i in range(amount_blanks):
+                sample = PlmSample.objects.create(plm_project = created_plm_project,
+                                                                row_number=(i+1000),
+                                                                method = 3,
+                                                                is_blank = True,
+                                                                client_sample = "BL" + str(i+1))
+                
+                weight_item = PlmSampleWeight.objects.create(plm_project = created_plm_project,
+                                                             client_sample =  "BL" + str(i+1))
+                setattr(sample, 'weight', weight_item)
+                sample.save()
+                weight_item.save()
+                
