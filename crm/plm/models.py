@@ -9,6 +9,10 @@ def get_default_reviewer():
     user = User.objects.filter(username=settings.DEFAULT_REVIEWER_USERNAME).first()
     return user.pk if user else None
 
+class OriginalSamples(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_qc_sample=False, is_tem_qc_sample=False, is_blank=False)
+
 # Create your models here.
 class PlmProject(BaseModel):
     project = models.OneToOneField('main.MainProject', on_delete=models.CASCADE, related_name='plm_project')
@@ -191,6 +195,9 @@ class PlmSample(BaseModel):
     is_tem_qc_sample = models.BooleanField(default=False)
 
     is_blank = models.BooleanField(default=False)
+
+    objects = models.Manager()
+    original_samples = OriginalSamples()
 
     def __str__(self):
         return self.lab_sample

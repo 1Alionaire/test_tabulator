@@ -133,8 +133,8 @@ def api_get_table_options(request):
 
 # =============== getting all data for data entry ===============
 def api_get_data_entry_table(request, id):
-    all_samples = PlmSample.objects.filter(plm_project=id).order_by('row_number').values('id', 'homo_area', 'client_sample', 'lab_sample',
-                                                                  'description', 'layer', 'location', 'method', 'row_number', 'is_blank', 'is_qc_sample')
+    all_samples = PlmSample.original_samples.filter(plm_project=id).order_by('row_number').values('id', 'homo_area', 'client_sample', 'lab_sample',
+                                                                  'description', 'layer', 'location', 'method', 'row_number')
     return JsonResponse(list(all_samples), safe=False)
 
 # =============== render PLM project ===============
@@ -142,6 +142,7 @@ def api_update_data_entry_table(request, id):
     plm_project = PlmProject.objects.get(pk=id)
     try:
         payload_json = json.loads(request.body)
+        print(f'payload_json : {payload_json}')
         data_entry_manager = PLMSamplesDataEntryManager(input_data=payload_json, 
                                                         plm_project=plm_project, 
                                                         type='update')

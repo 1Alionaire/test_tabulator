@@ -37,6 +37,8 @@ let dataEntryTable;
 
 const entryDeletedIds = new Set();
 
+const dirtyRows = [];
+
 // ================= custom function for input tabulator ================
 function entryEnterDownEditor(cell, onRendered, success, cancel, editorParams) {
     const input = document.createElement("input");
@@ -52,8 +54,21 @@ function entryEnterDownEditor(cell, onRendered, success, cancel, editorParams) {
     let finished = false;
 
     onRendered(function () {
-        input.focus();
-        input.select();
+        requestAnimationFrame(() => {
+            input.focus();
+
+            const end = input.value.length;
+            input.setSelectionRange(end, end);
+        });
+    });
+
+    // Позволяем мышкой переставлять курсор внутри текста
+    input.addEventListener("mousedown", (event) => {
+        event.stopPropagation();
+    });
+
+    input.addEventListener("click", (event) => {
+        event.stopPropagation();
     });
 
     input.addEventListener("keydown", function (e) {
@@ -132,21 +147,18 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
             {
               title:"ID", 
               field:"id", 
-              width: 80, 
               visible: false
             },
             {
               title:"Row Number", 
               field:"row_number", 
-              width: 80, 
               visible: false
             },
-            {
+            { 
               title:"Client ID", 
               field:"client_sample", 
               width: 80, 
               editor: entryEnterDownEditor, 
-              
             },
             {
               title:"Homogenity", 
@@ -198,12 +210,26 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
           ],
       });
       dataEntryTable.on("tableBuilt", () => bindTypeToEdit(dataEntryTable));
+
+      dataEntryTable.on("cellEdited", (cell) => {
+        if (!dirtyRows.includes(cell.getRow().getData())) {
+          dirtyRows.push(cell.getRow().getData());
+        }
+      });
+
+      dataEntryTable.on("clipboardPasted", (clipboard, rowData, rows) => {
+        rows.forEach(row =>  {
+          if (!dirtyRows.includes(row.getData())) {
+            dirtyRows.push(row.getData());
+          };
+        }
+      );
+    });
 })();
 
 // =================== Refresh table ===================
 document.getElementById("data-entry-refresh-toggle").addEventListener("click", function() {
-  const changes = entryCollectChanges(); // collecting all changes
-  const hasChanges = changes.updated.length || changes.created.length || entryDeletedIds.length //put all possible changes in const
+  const hasChanges = dirtyRows.length || entryDeletedIds.length //put all possible changes in const
   if (hasChanges && !confirm("Unsaved changes will be lost. Continue?")) { //asking user for continue if we have changes
         return;
     }
@@ -231,10 +257,8 @@ function rewriteLabIds() {
   const data = dataEntryTable.getRows();
   labId = data[0].getData().lab_sample.slice(0, -2);
   for (row of data) {
-    if (row.getData().is_blank == false && row.getData().is_qc_sample == false) {
       row.update({ lab_sample: `${labId}-${row.getPosition()}` });
       row.update({ row_number: `${row.getPosition()}` });
-    }
   }
 }
 
@@ -277,40 +301,6 @@ function entryCollectChanges() {
   const updatedData = {}; // initialize update dict 
   const createdData = {};  // initialize create dict 
 
-  for (const cell of dataEntryTable.getEditedCells()) {  // going through all edited cells
-    const data = cell.getRow()?.getData();  //parse data from whole row?
-
-    if (!data || !data.lab_sample) continue; // if we dont have data -> continue
-
-    const labId = String(data.lab_sample);           // единый тип ключа
-    const systemId = String(data.id); 
-
-    // in case its new cell
-    if (isEmpty(systemId)) { 
-      if (labId in createdData) { // already has record in createdData dict
-        createdData[labId].fields[cell.getField()] = cell.getValue(); //add info: field_name : cell_value
-        }
-      else { //in case dont have record with lab sample yet 
-        entry = {lab_sample: labId, fields: {}, version: entryORIGINALS.get(labId)}; // creating new json element
-        createdData[labId] = entry; 
-        createdData[labId].fields[cell.getField()] = cell.getValue(); //add info: field_name : cell_value
-        createdData[labId].fields["row_number"] = cell.getRow().getPosition(); // add row_number to data 
-        createdData[labId].fields["lab_sample"] = labId; // add lab_sample to data
-      }
-    }
-    // in case its already existing cell 
-    else {
-      if (systemId in updatedData) { // already has record in updatedData dict
-        updatedData[systemId].fields[cell.getField()] = cell.getValue(); // add info: field_name : cell_value
-      }
-      else {
-        entry = {id: systemId, fields: {}, version: entryORIGINALS.get(systemId)}; // creating new json element
-        updatedData[systemId] = entry; 
-        updatedData[systemId].fields[cell.getField()] = cell.getValue(); //add info: field_name : cell_value
-      }
-    };
-  }
-
     const result = {
       updated: Object.values(updatedData),
       created: Object.values(createdData),
@@ -352,8 +342,11 @@ async function entrySaveChanges() {
   } 
 // Save scenario 2: we dont have changes affects whole dataEntryTable(edit existing cells or adding rows at the end of dataEntryTable)
   else {
-    const changes = entryCollectChanges(); // collect changed cells and new cells 
-    if (!changes.updated.length && !changes.created.length) {
+    let payload = {
+      created: dirtyRows.filter((element) => !element.id),
+      updated: dirtyRows.filter((element) => element.id)
+    } // collect changed cells and new cells 
+    if (!dirtyRows.length) {
       console.log('no data?')
       return;
     }
@@ -361,7 +354,7 @@ async function entrySaveChanges() {
       const response = await fetch(URLS.dataEntryUpdateURL, { // fetch data
         method: "POST",
         headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
-        body: JSON.stringify(changes),
+        body: JSON.stringify(payload),
       });
 
       if (response.status === 422) {
@@ -383,6 +376,10 @@ async function entrySaveChanges() {
       if (resultJSON.updated) {resultMessage += `Updated: ${resultJSON.updated}`};
       if (resultJSON.created) {resultMessage += `Created: ${resultJSON.created}`};
 
+      dirtyRows = []
+      dataEntryTable.setData(URLS.dataEntryGetURL);
+      nobTable.setData(URLS.nobGetURL);
+      temTable.setData(URLS.temGetURL);
     }
     catch (e) {
       console.log(e)
@@ -391,8 +388,6 @@ async function entrySaveChanges() {
     }
   }
 };
-
-
 
 // =================== function for start typing in cell without doubleclick ===================
 function bindTypeToEdit(table) {
@@ -436,3 +431,8 @@ function bindTypeToEdit(table) {
     });
   });
 }
+
+
+// ================== test data-entry-test-toggle
+document.getElementById("data-entry-test-toggle").addEventListener("click", function() {
+});
