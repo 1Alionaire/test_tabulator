@@ -362,7 +362,7 @@ nobTable = new Tabulator("#samples-nob-table", {
         || cell.getField() == 'asb_point_5' || cell.getField() == 'asb_point_6' || cell.getField() == 'asb_point_7' || cell.getField() == 'asb_point_8')  {
             if (cell.getValue() == null) {
                 let field = cell.getField();
-                currentRow.update({field:0});
+                currentRow.update({field:50});
             };
         };
     });
@@ -395,14 +395,14 @@ nobTable = new Tabulator("#samples-nob-table", {
                                     pleochroism_color:null, 
                                     birefringence:null, 
                                     asb_percent:0,
-                                    asb_point_1:0, 
-                                    asb_point_2:0, 
-                                    asb_point_3:0, 
-                                    asb_point_4:0, 
-                                    asb_point_5:0, 
-                                    asb_point_6:0,
-                                    asb_point_7:0,
-                                    asb_point_8:0});
+                                    asb_point_1:50, 
+                                    asb_point_2:50, 
+                                    asb_point_3:50, 
+                                    asb_point_4:50, 
+                                    asb_point_5:50, 
+                                    asb_point_6:50,
+                                    asb_point_7:50,
+                                    asb_point_8:50});
             };
 
 
@@ -454,7 +454,24 @@ nobTable = new Tabulator("#samples-nob-table", {
 
             };
         };
-        
+
+        if (cell.getField() == 'asb_point_5' || cell.getField() == 'asb_point_6' || cell.getField() == 'asb_point_7' || cell.getField() == 'asb_point_8') {
+          if (currentRow.getData().asb_type in [2, 3, 4, 5, 6, 7]) {
+            let count_points = 0
+            if (currentRow.getData().asb_point_5 != 50) count_points += 1
+            if (currentRow.getData().asb_point_6 != 50) count_points += 1
+            if (currentRow.getData().asb_point_7 != 50) count_points += 1
+            if (currentRow.getData().asb_point_8 != 50) count_points += 1
+            console.log(count_points)
+            let asbestoCulcResult = Math.round((count_points / 400) * 10000) / 100;
+            if (isFinite(asbestoCulcResult)) {
+                currentRow.update({asb_percent:asbestoCulcResult});
+            }
+            else {
+                currentRow.update({asb_percent:0});
+            }
+          };
+        };
     });
 
 })();
