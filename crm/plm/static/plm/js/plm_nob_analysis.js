@@ -462,8 +462,7 @@ nobTable = new Tabulator("#samples-nob-table", {
             if (currentRow.getData().asb_point_6 != 50) count_points += 1
             if (currentRow.getData().asb_point_7 != 50) count_points += 1
             if (currentRow.getData().asb_point_8 != 50) count_points += 1
-            console.log(count_points)
-            let asbestoCulcResult = Math.round((count_points / 400) * 10000) / 100;
+            let asbestoCulcResult = Math.round((count_points / 4) * 100) / 100;
             if (isFinite(asbestoCulcResult)) {
                 currentRow.update({asb_percent:asbestoCulcResult});
             }
@@ -476,14 +475,7 @@ nobTable = new Tabulator("#samples-nob-table", {
 
 })();
 
-fetch(URLS.temperatureGetURL)
-    .then(r => r.json())
-    .then(temperature => {
-        document.querySelector(".plm-analysis-temperature-select").value = +temperature;
-    });
-    
 document.getElementById("nob-save-toggle").addEventListener("click", nobSaveChanges);
-
 async function nobSaveChanges() {
     try {
       const response = await fetch(URLS.analysisUpdateURL, {
@@ -516,3 +508,64 @@ document.querySelector('.plm-analysis-temperature-select').addEventListener("cha
     row.update({analysis_temperature:+newTemperature})
   };
 });
+
+// ========================== Parse Temperature from server ====================
+fetch(URLS.temperatureGetURL)
+    .then(r => r.json())
+    .then(temperature => {
+        document.querySelector(".plm-analysis-temperature-select").value = +temperature;
+    });
+    
+// ========================== Parse project dates from server ====================
+(async () => {
+  const response = await fetch(URLS.projectDateGetURL);
+  const data = await response.json();
+  console.log(data);
+
+  if (data.date_collect) {
+    document.getElementById("data-entry-date-collected").value = data.date_collect;
+  }
+  if (data.date_analyze) {
+    document.getElementById("nob-date-analysis").value = data.date_analyze;
+  }
+  if (data.date_review) {
+    document.getElementById("nob-date-review").value = data.date_review;
+  }
+})();
+
+// ========================== Update project dates ====================
+document.getElementById("data-entry-date-collected-btn-confirm").addEventListener('click', () => plmProjectDateUpdate('date_collect'));
+document.getElementById("nob-date-analysis-btn-confirm").addEventListener('click', () => plmProjectDateUpdate('date_analyze'));
+document.getElementById("nob-date-review-btn-confirm").addEventListener('click', () => plmProjectDateUpdate('date_review'));
+
+async function plmProjectDateUpdate(selectTypeDate) {
+  let payload;
+  if (selectTypeDate == 'date_collect') {
+    payload = JSON.stringify({'date_collect': document.getElementById("data-entry-date-collected").value})
+  }
+  else if (selectTypeDate == 'date_analyze') {
+    payload = JSON.stringify({'date_analyze': document.getElementById("nob-date-analysis").value})
+  }
+  else if (selectTypeDate == 'date_review') {
+    payload = JSON.stringify({'date_review': document.getElementById("nob-date-review").value})
+  }
+    return fetch(URLS.projectDateUpdateURL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken,
+        },
+        body: payload,
+    })
+    .then(r => r.json())
+    .then(result => {
+        if (result.status === "ok") {
+            console.log('Success! ')
+        } else {
+            console.log('No Success')
+        }
+    })
+    .catch(console.log('No Success'));
+}
+
+

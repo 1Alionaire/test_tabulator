@@ -16,12 +16,12 @@ class OriginalSamples(models.Manager):
 # Create your models here.
 class PlmProject(BaseModel):
     project = models.OneToOneField('main.MainProject', on_delete=models.CASCADE, related_name='plm_project')
-    date_collect = models.DateField(auto_now_add=False, default=timezone.now, blank=True, null=True)
+    date_collect = models.DateField(auto_now_add=False, blank=True, null=True)
     date_receive = models.DateField(auto_now_add=False, default=timezone.now, blank=True, null=True)
-    date_prepare = models.DateField(auto_now_add=False, default=timezone.now, blank=True, null=True)
-    date_analyze = models.DateField(auto_now_add=False, default=timezone.now, blank=True, null=True)
-    date_report = models.DateField(auto_now_add=False, default=timezone.now, blank=True, null=True)
-    date_review = models.DateField(auto_now_add=False, default=timezone.now, blank=True, null=True)
+    date_prepare = models.DateField(auto_now_add=False, blank=True, null=True)
+    date_analyze = models.DateField(auto_now_add=False, blank=True, null=True)
+    date_report = models.DateField(auto_now_add=False, blank=True, null=True)
+    date_review = models.DateField(auto_now_add=False,  blank=True, null=True)
     prepared_by = models.ForeignKey(
             settings.AUTH_USER_MODEL,
             on_delete=models.SET_NULL,

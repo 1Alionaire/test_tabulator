@@ -7,10 +7,9 @@
 <main class="main">
   <section class="main-window">
     <section class="control-panel">
-      <button type="button" id="tab-general" class="panel-btn active">
-        General
+      <button type="button" id="tab-entry" class="panel-btn active">
+        Entry
       </button>
-      <button type="button" id="tab-entry" class="panel-btn">Entry</button>
       <button type="button" id="tab-weight" class="panel-btn">Weight</button>
       <button type="button" id="tab-nob-analysis" class="panel-btn">NOB</button>
       <button type="button" id="tab-tem-anaysis" class="panel-btn">TEM</button>
@@ -19,30 +18,6 @@
     </section>
     <section class="work-space">
       <div class="tab-content active" id="tab-0">
-        <div class="project-update-box">
-          <form
-            action="{% url 'plm:plm_detail' work.id %}"
-            method="post"
-            enctype="multipart/form-data"
-            class="plm-form"
-          >
-            {% for field in form %}
-            <div
-              class="form-row {% if field.field.widget.input_type == 'date' %}form-row--date{% endif %}"
-            >
-              <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-              {{ field }}
-              <div class="form-error">{{ field.errors }}</div>
-            </div>
-            {% endfor %}
-            <div class="form-actions">
-              <button type="submit" class="btn btn--primary">Save</button>
-            </div>
-          </form>
-        </div>
-        <div class="coc-file-window"></div>
-      </div>
-      <div class="tab-content" id="tab-1">
         <section class="section-control-panel" id="data-entry-control-panel">
           <div class="control-buttons">
             <button type="button" id="data-entry-save-toggle" class="panel-btn">
@@ -69,13 +44,16 @@
             >
               Delete row
             </button>
-            <button type="button" id="data-entry-test-toggle" class="panel-btn">
-              Test
-            </button>
+          </div>
+          <div class="data-entry-date-collected-container">
+            <label for="start">Date collected</label>
+            <input type="date" id="data-entry-date-collected" />
+            <button id="data-entry-date-collected-btn-confirm">Confirm</button>
           </div>
           <div id="data-entry-upload-excel-form">
             <form
               action="{% url 'plm:data_entry_upload_excel' work.id %}"
+              class="data-entry-upload-excel-form"
               method="POST"
               enctype="multipart/form-data"
             >
@@ -100,7 +78,7 @@
           <section id="samples-data-entry-table"></section>
         </section>
       </div>
-      <div class="tab-content" id="tab-2">
+      <div class="tab-content" id="tab-1">
         <section class="section-control-panel" id="weight-control-panel">
           <div class="control-buttons">
             <button type="button" id="weight-save-toggle" class="panel-btn">
@@ -125,7 +103,7 @@
           <section id="samples-weight-table"></section>
         </section>
       </div>
-      <div class="tab-content" id="tab-3">
+      <div class="tab-content" id="tab-2">
         <section class="section-control-panel" id="nob-control-panel">
           <div class="tem-control-buttons">
             <button type="button" id="nob-save-toggle" class="panel-btn">
@@ -145,13 +123,23 @@
               <option value="27">27</option>
             </select>
           </div>
+          <div class="nob-date-analysis-container">
+            <label>Date analysis</label>
+            <input type="date" id="nob-date-analysis" />
+            <button id="nob-date-analysis-btn-confirm">Confirm</button>
+          </div>
+          <div class="nob-date-review-container">
+            <label>Date review</label>
+            <input type="date" id="nob-date-review" />
+            <button id="nob-date-review-btn-confirm">Confirm</button>
+          </div>
         </section>
 
         <section class="section-table">
           <section id="samples-nob-table"></section>
         </section>
       </div>
-      <div class="tab-content" id="tab-4">
+      <div class="tab-content" id="tab-3">
         <section class="section-control-panel" id="tem-control-panel">
           <div class="control-buttons">
             <button type="button" id="tem-save-toggle" class="panel-btn">
@@ -185,7 +173,9 @@
     temGetURL: "{% url 'plm:api_get_tem_analysis_table' work.id %}",
     analysisUpdateURL: "{% url 'plm:api_update_analysis_table' work.id %}",
 
-    temperatureGetURL: "{% url 'plm:get_temperature_api' work.id %}",
+    temperatureGetURL: "{% url 'plm:api_get_temperature' work.id %}",
+    projectDateGetURL: "{% url 'plm:api_get_projects_date' work.id %}", //
+    projectDateUpdateURL: "{% url 'plm:api_update_projects_date' work.id %}",
   };
 </script>
 

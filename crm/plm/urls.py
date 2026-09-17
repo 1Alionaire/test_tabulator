@@ -23,7 +23,9 @@ urlpatterns = [
     path('api/tem-analysis-table/get/<int:id>/', views.api_get_tem_analysis_table, name='api_get_tem_analysis_table'),
     path('api/analysis-table/update/<int:id>/', views.api_update_analysis_table, name='api_update_analysis_table'),
 
-    path('api/temperature-get/<int:id>/', views.get_temperature_api, name = 'get_temperature_api'),
+    path('api/temperature-get/<int:id>/', views.api_get_temperature, name = 'api_get_temperature'),
+    path('api/plm-project/date/get/<int:id>/', views.api_get_projects_date, name = 'api_get_projects_date'),
+    path('api/plm-project/date/update/<int:id>/', views.api_update_projects_date, name = 'api_update_projects_date'),
 ]
 
 

@@ -13,6 +13,7 @@ from django.db import transaction
 import json
 from plm.plm_table_logic import PLMSamplesDataEntryManager, PLMSamplesWeightManager
 import django.utils
+from datetime import datetime
 
 from .models import (
     PlmProject,
@@ -254,9 +255,24 @@ def api_get_tem_analysis_table(request, id):
                                                                                          'tem_grid_box', 'tem_grid_box_id_1', 'tem_grid_box_id_2', 'tem_na_or_ps', 'is_tem_qc_sample', 'is_blank')
     return JsonResponse(list(all_samples), safe=False)
 
-def get_temperature_api(request, id):
+def api_get_temperature(request, id):
     try:
         temperature = PlmSample.objects.filter(plm_project=id)[0].analysis_temperature
         return JsonResponse(temperature, safe=False)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+
+def api_get_projects_date(request, id):
+    try:
+        dates = PlmProject.objects.filter(pk=id).values('date_collect', 'date_analyze', 'date_report', 'date_review')[0]
+        print(dates)
+        return JsonResponse(dates, safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+def api_update_projects_date(request, id):
+    with transaction.atomic():
+        payload_json = json.loads(request.body)
+        PlmProject.objects.filter(pk=id).update(**payload_json)
+        return JsonResponse({'status':'ok'})
+

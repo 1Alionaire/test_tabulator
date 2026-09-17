@@ -71,7 +71,7 @@ body {
     height: 10%;
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: start;
 }
 
 .section-table {
@@ -110,10 +110,13 @@ body {
     gap: 20px;
 }
 
-#data-entry-upload-excel-form {
+.data-entry-upload-excel-form{
     /* background-color: blue; */
     min-width: 100px;
     margin: 5px;
+    display: flex;
+    flex-direction: column;
+    gap:5px
 }
 
 .panel-btn {
@@ -157,4 +160,11 @@ body {
 
 .plm-analysis-temperature-select {
     font-size: 20px;
+}
+
+.data-entry-date-collected-container, .nob-date-review-container, .nob-date-analysis-container{
+    display: flex;
+    flex-direction: column;
+    margin: 5px 10px;
+    gap:5px;
 }
