@@ -520,7 +520,6 @@ fetch(URLS.temperatureGetURL)
 (async () => {
   const response = await fetch(URLS.projectDateGetURL);
   const data = await response.json();
-  console.log(data);
 
   if (data.date_collect) {
     document.getElementById("data-entry-date-collected").value = data.date_collect;
@@ -569,3 +568,114 @@ async function plmProjectDateUpdate(selectTypeDate) {
 }
 
 
+function isEmpty(value) {
+  return value === null || value === undefined || String(value).trim() === "";
+}
+
+const overlays = document.querySelectorAll(".table-overlay");
+document.querySelectorAll(".take-btn").forEach(btn => {
+  btn.addEventListener("click", analystTakeProject);
+});
+
+
+async function checkProjectAnalyst() {
+  try {
+    const res = await fetch(URLS.projectAnalystGetURL);
+    if (!res.ok) throw new Error(res.status);
+
+    const data = await res.json();
+    overlays.forEach(function (element) {
+      element.hidden = !isEmpty(data.analyst);
+    });
+    document.getElementById("nob-analyst-username").textContent = data.analyst;
+  } catch {
+    console.error("checkProjectAnalyst:", err);
+  }
+};
+
+async function analystTakeProject(selectTypeDate) {
+  try {
+    const res = await fetch(URLS.projectAnalystUpdateURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showToast(data.error || "Не удалось взять проект", "error");
+      return;
+    }
+    overlays.forEach(function (element) {
+      element.hidden = !isEmpty(data.analyst);
+    })
+    checkProjectAnalyst();
+    //nob-analyst-username
+    // showToast("Проект взят в работу", "success");
+  } catch {
+    // showToast("Нет связи с сервером", "error");
+  } 
+};
+
+checkProjectAnalyst();
+
+// ========================== Parse project dates from server ====================
+(async () => {
+  const response = await fetch(URLS.projectReviewerListGetURL);
+  const data = await response.json();
+
+  const select = document.getElementById("nob-analysis-reviewer-list");
+  const { current, ...users } = data;
+
+  const frag = document.createDocumentFragment();
+
+  const placeholder = new Option("— choose —", "");
+  placeholder.disabled = true;
+  placeholder.selected = current == null;
+  frag.append(placeholder);
+
+  let matched = false;
+
+  for (const [id, username] of Object.entries(users)) {
+    const opt = new Option(username, id);
+    if (username === current) {
+      opt.selected = true;
+      matched = true;
+    }
+    frag.append(opt);
+  }
+
+  // текущий ревьюер есть, но его нет в списке — добавляем, иначе выбор потеряется
+  if (current != null && !matched) {
+    const opt = new Option(`${current}`, "");
+    opt.selected = true;
+    frag.append(opt);
+  }
+
+  select.innerHTML = "";
+  select.append(frag);
+})();
+
+document.getElementById("nob-choose-reviewer-btn-confirm").addEventListener('click', () => updateProjectReviewer());
+
+async function updateProjectReviewer() {
+    return fetch(URLS.projectReviewerUpdateRL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken,
+        },
+        body: JSON.stringify({'reviewed_by': document.getElementById("nob-analysis-reviewer-list").value}),
+    })
+    .then(r => r.json())
+    .then(result => {
+        if (result.status === "ok") {
+            console.log('Success! ')
+        } else {
+            console.log('No Success')
+        }
+    })
+    .catch(console.log('No Success'));
+};

@@ -15,7 +15,6 @@ urlpatterns = [
     path('api/data-entry-table/update/<int:id>/', views.api_update_data_entry_table, name='api_update_data_entry_table'),
     path('api/data-entry-table/replace-all/<int:id>/', views.api_replace_all_data_entry_table, name='api_replace_all_data_entry_table'),
     # weights 
-    # path('weight-upload-excel/<int:id>/', views.data_entry_upload_excel, name='data_entry_upload_excel'),
     path('api/weight-table/get/<int:id>/', views.api_get_weight_table, name='api_get_weight_table'),
     path('api/weight-table/update/<int:id>/', views.api_update_weight_table, name='api_update_weight_table'),
     # Analysis 
@@ -26,6 +25,13 @@ urlpatterns = [
     path('api/temperature-get/<int:id>/', views.api_get_temperature, name = 'api_get_temperature'),
     path('api/plm-project/date/get/<int:id>/', views.api_get_projects_date, name = 'api_get_projects_date'),
     path('api/plm-project/date/update/<int:id>/', views.api_update_projects_date, name = 'api_update_projects_date'),
+
+    path('api/plm-project/analyst/get/<int:id>/', views.api_get_projects_analyst, name = 'api_get_projects_analyst'),
+    path('api/plm-project/analyst/update/<int:id>/', views.api_update_projects_analyst, name = 'api_update_projects_analyst'),
+
+    path('api/plm-project/reviewer-options/get/<int:id>/', views.api_get_projects_reviewer, name = 'api_get_projects_reviewer'),
+    path('api/plm-project/reviewer/update/<int:id>/', views.api_update_project_reviewer, name = 'api_update_project_reviewer'),
+    # path('api/plm-analyst-take_work/<slug:lab_id>/', views.analyst_take_work_api, name = 'analyst_take_work_api'),
 ]
 
 

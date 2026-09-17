@@ -78,6 +78,7 @@ body {
     width: 100%;
     background-color: lightblue;
     min-height: 900px;
+    position: relative;
 }
 
 
@@ -162,9 +163,45 @@ body {
     font-size: 20px;
 }
 
-.data-entry-date-collected-container, .nob-date-review-container, .nob-date-analysis-container{
+.data-entry-date-collected-container, .nob-date-review-container, .nob-date-analysis-container, .nob-reviewer-info-container{
     display: flex;
     flex-direction: column;
     margin: 5px 10px;
     gap:5px;
+}
+
+.table-wrap { position: relative; }
+
+.table-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, .75);
+  backdrop-filter: blur(2px);
+}
+
+.table-overlay[hidden] { display: none; }
+
+.table-overlay__box {
+  padding: 24px 32px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.15);
+  text-align: center;
+}
+
+.nob-analyst-info-container {
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+    gap: 10px;
+    min-width: 50px;
+}
+
+#nob-analysis-reviewer-list {
+    font-size: 16px;
 }

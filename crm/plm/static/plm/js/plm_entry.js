@@ -433,6 +433,3 @@ function bindTypeToEdit(table) {
 }
 
 
-// ================== test data-entry-test-toggle
-document.getElementById("data-entry-test-toggle").addEventListener("click", function() {
-});

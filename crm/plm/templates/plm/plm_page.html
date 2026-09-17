@@ -123,10 +123,19 @@
               <option value="27">27</option>
             </select>
           </div>
+          <div class="nob-analyst-info-container">
+            <span>Analyst: </span>
+            <span id="nob-analyst-username"></span>
+          </div>
           <div class="nob-date-analysis-container">
             <label>Date analysis</label>
             <input type="date" id="nob-date-analysis" />
             <button id="nob-date-analysis-btn-confirm">Confirm</button>
+          </div>
+          <div class="nob-reviewer-info-container">
+            <span>Reviewer: </span>
+            <select id="nob-analysis-reviewer-list"></select>
+            <button id="nob-choose-reviewer-btn-confirm">Confirm</button>
           </div>
           <div class="nob-date-review-container">
             <label>Date review</label>
@@ -137,6 +146,12 @@
 
         <section class="section-table">
           <section id="samples-nob-table"></section>
+          <div class="table-overlay" id="take-nob-overlay">
+            <div class="table-overlay__box">
+              <p>No analyst in project</p>
+              <button type="button" class="take-btn">Start working on</button>
+            </div>
+          </div>
         </section>
       </div>
       <div class="tab-content" id="tab-3">
@@ -152,6 +167,12 @@
         </section>
         <section class="section-table">
           <section id="samples-tem-table"></section>
+          <div class="table-overlay" id="take-tem-overlay">
+            <div class="table-overlay__box">
+              <p>No analyst in project</p>
+              <button type="button" class="take-btn">Start working on</button>
+            </div>
+          </div>
         </section>
       </div>
     </section>
@@ -176,6 +197,15 @@
     temperatureGetURL: "{% url 'plm:api_get_temperature' work.id %}",
     projectDateGetURL: "{% url 'plm:api_get_projects_date' work.id %}", //
     projectDateUpdateURL: "{% url 'plm:api_update_projects_date' work.id %}",
+
+    projectAnalystGetURL: "{% url 'plm:api_get_projects_analyst' work.id %}", //
+    projectAnalystUpdateURL:
+      "{% url 'plm:api_update_projects_analyst' work.id %}", //api_get_projects_reviewer
+
+    projectReviewerListGetURL:
+      "{% url 'plm:api_get_projects_reviewer' work.id %}", //
+    projectReviewerUpdateRL:
+      "{% url 'plm:api_update_project_reviewer' work.id %}", //
   };
 </script>
 

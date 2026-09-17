@@ -14,6 +14,7 @@ import json
 from plm.plm_table_logic import PLMSamplesDataEntryManager, PLMSamplesWeightManager
 import django.utils
 from datetime import datetime
+from users.models import User
 
 from .models import (
     PlmProject,
@@ -265,7 +266,6 @@ def api_get_temperature(request, id):
 def api_get_projects_date(request, id):
     try:
         dates = PlmProject.objects.filter(pk=id).values('date_collect', 'date_analyze', 'date_report', 'date_review')[0]
-        print(dates)
         return JsonResponse(dates, safe=False)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
@@ -276,3 +276,39 @@ def api_update_projects_date(request, id):
         PlmProject.objects.filter(pk=id).update(**payload_json)
         return JsonResponse({'status':'ok'})
 
+def api_get_projects_analyst(request, id):
+    try:
+        if PlmProject.objects.get(pk=id).analyst:
+            analyst = PlmProject.objects.get(pk=id).analyst.username
+        else:
+            analyst = None
+        return JsonResponse({'analyst': analyst}, safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+def api_update_projects_analyst(request, id):
+    with transaction.atomic():
+        project = get_object_or_404(PlmProject, id=id)
+        project.analyst = request.user
+        project.save()
+        return JsonResponse({'status': 'ok'})
+
+def api_get_projects_reviewer(request, id):
+    current_reviewer = PlmProject.objects.get(pk=id).reviewed_by
+    result = {}
+    for user in User.objects.all():
+        if user == current_reviewer:
+            result['current'] = user.username
+        else:
+            result[user.id] = user.username
+    try:
+        print(result)
+        return JsonResponse(result, safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+def api_update_project_reviewer(request, id):
+    with transaction.atomic():
+        payload = json.loads(request.body)
+        PlmProject.objects.filter(pk=id).update(reviewed_by = payload['reviewed_by'])
+        return JsonResponse({'status': 'ok'})
