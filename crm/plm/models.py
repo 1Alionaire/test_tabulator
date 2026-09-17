@@ -156,8 +156,8 @@ class PlmSample(BaseModel):
     texture = models.IntegerField(choices=SampleTexture, default=SampleTexture.NonFibs, null=True, blank=True)
 
     morphology = models.IntegerField(choices=SampleMorphology, null=True, blank=True)
-    ri_alpha_oil = models.CharField(max_length=6, blank=True)
-    ri_delta_oil = models.CharField(max_length=6, blank=True)
+    ri_alpha_oil = models.CharField(max_length=6, blank=True, null=True)
+    ri_delta_oil = models.CharField(max_length=6, blank=True, null=True)
     sign_of_elongation = models.IntegerField(choices=SampleSignElong, null=True, blank=True)
     extinction_angle = models.IntegerField(choices=SampleExtincAngle, null=True, blank=True)
     pleochroism_color = models.IntegerField(choices=SamplePleochColor, null=True, blank=True)
@@ -168,14 +168,14 @@ class PlmSample(BaseModel):
 
     # asb info
     asb_type = models.IntegerField(choices=SampleASbestosType, default = SampleASbestosType.NAD , null=True, blank=True)
-    asb_point_1 = models.PositiveIntegerField(default=0)
-    asb_point_2 = models.PositiveIntegerField(default=0)
-    asb_point_3 = models.PositiveIntegerField(default=0)
-    asb_point_4 = models.PositiveIntegerField(default=0)
-    asb_point_5 = models.PositiveIntegerField(default=0)
-    asb_point_6 = models.PositiveIntegerField(default=0)
-    asb_point_7 = models.PositiveIntegerField(default=0)
-    asb_point_8 = models.PositiveIntegerField(default=0)
+    asb_point_1 = models.PositiveIntegerField(default=50)
+    asb_point_2 = models.PositiveIntegerField(default=50)
+    asb_point_3 = models.PositiveIntegerField(default=50)
+    asb_point_4 = models.PositiveIntegerField(default=50)
+    asb_point_5 = models.PositiveIntegerField(default=50)
+    asb_point_6 = models.PositiveIntegerField(default=50)
+    asb_point_7 = models.PositiveIntegerField(default=50)
+    asb_point_8 = models.PositiveIntegerField(default=50)
     asb_percent = models.DecimalField(max_digits=4, decimal_places=2, default=0, blank=True, null=True)
 
     rest_percent = models.DecimalField(max_digits=5, decimal_places=2, default=100, blank=True, null=True)

@@ -253,3 +253,10 @@ def api_get_tem_analysis_table(request, id):
                                                                                          'tem_microscope_alignment', 'tem_eccentricity_adjusted', 'tem_grid_pre_acceptability', 
                                                                                          'tem_grid_box', 'tem_grid_box_id_1', 'tem_grid_box_id_2', 'tem_na_or_ps', 'is_tem_qc_sample', 'is_blank')
     return JsonResponse(list(all_samples), safe=False)
+
+def get_temperature_api(request, id):
+    try:
+        temperature = PlmSample.objects.filter(plm_project=id)[0].analysis_temperature
+        return JsonResponse(temperature, safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)

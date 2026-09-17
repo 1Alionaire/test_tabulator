@@ -1,4 +1,45 @@
-let nobAnalysisTable;
+let ASB_OIL_PARAMETERS = {2: {'delta':{19:'1.557', 20:'1.557',
+                                        21:'1.556', 22:'1.556', 
+                                        23: '1.555', 24: '1.555', 
+                                        25: '1.554', 26: '1.554',
+                                        27: '1.553'},
+                                'alpha': {19:'1.552', 20:'1.552',
+                                        21:'1.551', 22:'1.551', 
+                                        23: '1.550', 24: '1.550', 
+                                        25: '1.549', 26: '1.549', 
+                                        27: '1.548'}}, 
+                5: {'delta':{19:'1.626', 20:'1.626',
+                                        21:'1.625', 22:'1.625', 
+                                        23: '1.625', 24: '1.625', 
+                                        25: '1.624', 26: '1.624', 
+                                        27: '1.623'},
+                                'alpha': {19:'1.611', 20:'1.611',
+                                        21:'1.611', 22:'1.611', 
+                                        23: '1.610', 24: '1.610', 
+                                        25: '1.609', 26: '1.609', 
+                                        27: '1.608'}}, 
+                3: {'delta': {19:'1.700', 20:'1.700',
+                                        21:'1.699',  22:'1.699',
+                                        23: '1.698', 24: '1.698',
+                                        25: '1.698', 26: '1.698', 
+                                        27: '1.697'},
+                                'alpha': {19:'1.682', 20:'1.682',
+                                        21:'1.681', 22:'1.681',
+                                        23: '1.680', 24: '1.680', 
+                                        25: '1.679', 26: '1.679', 
+                                        27: '1.678'}}}
+
+// Оптические свойства по типу асбеста (значение select-редактора → дефолты)
+const ASBESTOS_PARAMETERS = {
+    2: {morphology: 1, sign_of_elongation: 1, extinction_angle: 1, pleochroism_color: 1, birefringence: 1}, // Chrysotile
+    3: {morphology: 2, sign_of_elongation: 1, extinction_angle: 1, pleochroism_color: 1, birefringence: 2}, // Amosite
+    4: {morphology: 2, sign_of_elongation: 2, extinction_angle: 1, pleochroism_color: 2, birefringence: 2}, // Crocidolite
+    5: {morphology: 2, sign_of_elongation: 1, extinction_angle: 1, pleochroism_color: 1, birefringence: 2}, // Anthophyllite
+    6: {morphology: 2, sign_of_elongation: 1, extinction_angle: 2, pleochroism_color: 1, birefringence: 2}, // Tremolite
+    7: {morphology: 2, sign_of_elongation: 1, extinction_angle: 2, pleochroism_color: 1, birefringence: 2}, // Actinolite
+};
+
+let nobTable;
 
 function fillAsbResultSamplesSameHA (table, homo_area, type) {
     for (row of table ) {
@@ -44,6 +85,8 @@ nobTable = new Tabulator("#samples-nob-table", {
         selectableRangeColumns: true,
         selectableRangeRows: true,
         selectableRangeClearCells: true,
+        selectableRangeClearCellsValue: null,   // Delete/Backspace по диапазону
+        editorEmptyValue: null,      
 
         columnDefaults: {
           headerHozAlign: "center",
@@ -344,6 +387,8 @@ nobTable = new Tabulator("#samples-nob-table", {
                 fillAsbResultSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'delete');
                 fillTEMPSSamplesSameHA(tableData, var_homogenity, 'delete' )
                 currentRow.update({asb_type:1,
+                                    ri_alpha_oil:null,
+                                    ri_delta_oil:null,
                                     morphology:null, 
                                     sign_of_elongation:null, 
                                     extinction_angle:null, 
@@ -363,53 +408,13 @@ nobTable = new Tabulator("#samples-nob-table", {
 
             if (cell.getValue() in [2, 3, 4, 5, 6, 7]) {
                 // in case Chrysotile
-                if (cell.getValue() == 2) {
-                    currentRow.update({morphology:1, 
-                                        sign_of_elongation:1, 
-                                        extinction_angle:1, 
-                                        pleochroism_color:1, 
-                                        birefringence:1});
-                };
-                // in case Amosite
-                if (cell.getValue() == 3) {
-                    currentRow.update({morphology:2, 
-                                        sign_of_elongation:1, 
-                                        extinction_angle:1, 
-                                        pleochroism_color:1, 
-                                        birefringence:2});
-                };
-                // in case Crocidolite
-                if (cell.getValue() == 4) {
-                    currentRow.update({morphology:2, 
-                                        sign_of_elongation:2, 
-                                        extinction_angle:1, 
-                                        pleochroism_color:2, 
-                                        birefringence:2});
-                };
-                // in case Anthophillite
-                if (cell.getValue() == 5) {
-                    currentRow.update({morphology:2, 
-                                        sign_of_elongation:1, 
-                                        extinction_angle:1, 
-                                        pleochroism_color:1, 
-                                        birefringence:2});
-                };
-                // in case Tremolite
-                if (cell.getValue() == 6) {
-                    currentRow.update({morphology:2, 
-                                        sign_of_elongation:1, 
-                                        extinction_angle:2, 
-                                        pleochroism_color:1, 
-                                        birefringence:2});
-                };
-                // in case Actinolite
-                if (cell.getValue() == 7) {
-                    currentRow.update({morphology:2, 
-                                        sign_of_elongation:1, 
-                                        extinction_angle:2, 
-                                        pleochroism_color:1, 
-                                        birefringence:2});
-                };           
+                temperature = cell.getRow().getData().analysis_temperature;
+                const defaults = ASBESTOS_PARAMETERS[cell.getValue()];
+                currentRow.update({ri_alpha_oil: ASB_OIL_PARAMETERS[cell.getValue()]['alpha'][temperature]})
+                currentRow.update({ri_delta_oil: ASB_OIL_PARAMETERS[cell.getValue()]['delta'][temperature]})
+                if (defaults) {
+                    currentRow.update({...defaults});
+                }
             };
         };
 
@@ -451,9 +456,15 @@ nobTable = new Tabulator("#samples-nob-table", {
         };
         
     });
+
 })();
 
-
+fetch(URLS.temperatureGetURL)
+    .then(r => r.json())
+    .then(temperature => {
+        document.querySelector(".plm-analysis-temperature-select").value = +temperature;
+    });
+    
 document.getElementById("nob-save-toggle").addEventListener("click", nobSaveChanges);
 
 async function nobSaveChanges() {
@@ -479,3 +490,12 @@ async function nobSaveChanges() {
       entryDeletedIds.clear();
     };
 };
+
+document.querySelector('.plm-analysis-temperature-select').addEventListener("change", function(e) {
+  newTemperature = e.target.value
+  const tableData = nobTable.getRows();
+  console.log(`newTemperature : ${newTemperature}`);
+  for (row of tableData ) {
+    row.update({analysis_temperature:+newTemperature})
+  };
+});

@@ -119,23 +119,6 @@
               Test
             </button>
           </div>
-          <div id="weight-upload-excel-form">
-            <form
-              action="{% url 'plm:data_entry_upload_excel' work.id %}"
-              method="POST"
-              enctype="multipart/form-data"
-            >
-              {% csrf_token %}
-              <!-- Label for accessibility -->
-              <label for="file-upload">Choose a file to upload:</label>
-
-              <!-- The actual file input field -->
-              <input type="file" id="weight-file-upload" name="uploaded_file" />
-
-              <!-- Submit button -->
-              <button type="submit">Upload File</button>
-            </form>
-          </div>
         </section>
 
         <section class="section-table">
@@ -144,13 +127,23 @@
       </div>
       <div class="tab-content" id="tab-3">
         <section class="section-control-panel" id="nob-control-panel">
-          <div class="control-buttons">
+          <div class="tem-control-buttons">
             <button type="button" id="nob-save-toggle" class="panel-btn">
               Save
             </button>
             <button type="button" id="nob-refresh-toggle" class="panel-btn">
               Refresh
             </button>
+          </div>
+          <div class="temperature-control-panel">
+            <div class="temperature-label"><span>Temperature</span></div>
+            <select class="plm-analysis-temperature-select">
+              <option value="19">19</option>
+              <option value="21">21</option>
+              <option value="23">23</option>
+              <option value="25">25</option>
+              <option value="27">27</option>
+            </select>
           </div>
         </section>
 
@@ -189,9 +182,10 @@
     weightUpdateURL: "{% url 'plm:api_update_weight_table' work.id %}",
 
     nobGetURL: "{% url 'plm:api_get_nob_analysis_table' work.id %}",
+    temGetURL: "{% url 'plm:api_get_tem_analysis_table' work.id %}",
     analysisUpdateURL: "{% url 'plm:api_update_analysis_table' work.id %}",
 
-    temGetURL: "{% url 'plm:api_get_tem_analysis_table' work.id %}",
+    temperatureGetURL: "{% url 'plm:get_temperature_api' work.id %}",
   };
 </script>
 

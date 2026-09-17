@@ -92,13 +92,14 @@ body {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-}
+} */
 
 #nob-control-panel {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
-} */
+    justify-content: start;
+    
+} 
 
 .control-buttons {
     min-width: 250px;
@@ -134,4 +135,26 @@ body {
     font-family: inherit;
     line-height: inherit;
     color: inherit;
+}
+
+.tem-control-buttons {
+    min-width: 150px;
+    margin: 5px;
+    display: flex;
+    flex-direction: row;
+    margin: 20px 10px;
+    gap: 20px;
+}
+
+.temperature-control-panel {
+    min-width: 80px;
+    margin: 5px 10px;
+    display:flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+}
+
+.plm-analysis-temperature-select {
+    font-size: 20px;
 }
