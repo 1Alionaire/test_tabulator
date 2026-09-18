@@ -1,4 +1,4 @@
-{% load static %}
+{% load auth_tags %} {% load static %}
 
 <!doctype html>
 <html lang="en">
@@ -47,7 +47,21 @@
         <a href="" class="nav-tab">QC</a>
         <a href="" class="nav-tab">FINANCE</a>
       </div>
-      <a href="" class="nav-user-btn">Login</a>
+      {% if user.is_authenticated %}
+      <div class="nav-right">
+        <a class="nav-username" href="{% url 'users:profile' %}"
+          >{{user.username}}</a
+        >
+        <form
+          method="post"
+          action="{% url 'users:logout' %}"
+          class="logout-form"
+        >
+          {% csrf_token %}
+          <button class="logout-button" type="submit">Logout</button>
+        </form>
+      </div>
+      {% endif %}
     </nav>
     {% block content %}{% endblock %}
     <script>

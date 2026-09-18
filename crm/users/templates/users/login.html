@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link type="text/css" href="{% static 'users/css/styles.css' %}" rel="stylesheet">
+{% endblock %}
+
+
+{% block content %}
+<div class="login-page">
+    <form class="login-card" method="POST"> 
+        {% csrf_token %}
+
+        <h1 class="login-title">Authorization</h1>
+
+        <div class="form-group">
+            <div class="form-error">{{ form.non_field_errors }}</div>
+            <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+            {{ form.username }}
+            <div class="form-error">{{ form.username.errors }}</div>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+            {{ form.password }}
+            <div class="form-error">{{ form.password.errors }}</div>
+        </div>
+        
+        <label class="checkbox-row">
+            <input type="checkbox" id="show-password-checkbox">
+            <span>Show password</span>
+        </label>
+
+        <button type="submit" class="login-btn">Enter</button>
+
+        <a href="{% url 'users:password_reset' %}">Forgot Password?</a></p>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('show-password-checkbox').addEventListener("change", function() {
+        passwordField = document.getElementById("id_password");
+        passwordField.type = this.checked ? 'text' : 'password';
+    });
+</script> 
+{% endblock %}
+

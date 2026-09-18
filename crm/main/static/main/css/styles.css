@@ -254,3 +254,56 @@
     line-height: inherit;
     color: inherit;
 }
+
+.nav-right {
+    margin-left: auto;
+
+    height: 60px;
+
+    display: flex;
+    align-items: center;
+}
+
+.nav-username {
+    height: 60px;
+    padding: 0 18px;
+
+    display: flex;
+    align-items: center;
+
+    color: white;
+    font-size: 16px;
+    font-family: inherit;
+
+    box-sizing: border-box;
+}
+
+.logout-form {
+    height: 60px;
+    margin: 0;
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+}
+
+.logout-button {
+    appearance: none;
+    -webkit-appearance: none;
+
+    height: 60px;
+    padding: 0 28px;
+
+    color: white;
+    background-color: transparent;
+    border: none;
+
+    font-size: 18px;
+    font-family: inherit;
+
+    cursor: pointer;
+}
+
+.logout-button:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}

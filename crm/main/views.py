@@ -20,7 +20,7 @@ def _serialize(obj):
         'lab_id': obj.lab_id,
     }
 
-class MainTableView(TemplateView):
+class MainTableView(LoginRequiredMixin, TemplateView):
     extra_context = {
         'title': 'Main'
         }
