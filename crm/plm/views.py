@@ -16,6 +16,8 @@ import django.utils
 from datetime import datetime
 from users.models import User
 from django.db.models import Max
+from tem.models import TEMGridQCRecord, TEMGridRecord
+
 
 from .models import (
     PlmProject,
@@ -231,15 +233,25 @@ def api_update_analysis_table(request, id):
     selected_plm_project = PlmProject.objects.get(pk=id)
     payload_json = json.loads(request.body)
     touched_fields = set()
+    print(payload_json)
     with transaction.atomic():
         samples_to_update = {sample.id : sample for sample in 
                                         PlmSample.objects.select_for_update().filter(plm_project=selected_plm_project)}
+
         for record_row in payload_json:
             sample = samples_to_update[int(record_row.get('id'))]
             for name_field, value in record_row.items():
                 if name_field not in ['id', 'weight__residue']:
                     setattr(sample, name_field, value)
                     touched_fields.add(name_field)
+            
+            TEMGridRecord.objects.filter(grid_box=record_row['tem_grid_box'], 
+                                         grid_id_1=record_row['tem_grid_box_id_1'], 
+                                         grid_id_2=record_row['tem_grid_box_id_2']).update(
+                                             plm_tem_project=selected_plm_project,
+                                             plm_tem_sample=sample,
+                                             filled=True
+                                         )
 
             setattr(sample, 'time_update', django.utils.timezone.now())
 
