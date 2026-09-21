@@ -31,7 +31,10 @@ urlpatterns = [
 
     path('api/plm-project/reviewer-options/get/<int:id>/', views.api_get_projects_reviewer, name = 'api_get_projects_reviewer'),
     path('api/plm-project/reviewer/update/<int:id>/', views.api_update_project_reviewer, name = 'api_update_project_reviewer'),
-    # path('api/plm-analyst-take_work/<slug:lab_id>/', views.analyst_take_work_api, name = 'analyst_take_work_api'),
+
+    path('api/qc/generate-samples/<int:id>/', views.api_generate_qc_samples, name = 'api_generate_qc_samples'),
+
+    path('api/test/<int:id>/', views.get_test_function, name='get_test_function')
 ]
 
 

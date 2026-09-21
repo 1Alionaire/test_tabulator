@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'plm',
     'pcm',
     'qc',
+    'tem'
 ]
 
 MIDDLEWARE = [

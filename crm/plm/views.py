@@ -15,6 +15,7 @@ from plm.plm_table_logic import PLMSamplesDataEntryManager, PLMSamplesWeightMana
 import django.utils
 from datetime import datetime
 from users.models import User
+from django.db.models import Max
 
 from .models import (
     PlmProject,
@@ -39,7 +40,7 @@ def return_int_value_sample_method(input_str):
     return methods[input_str]
 
 # =============== render PLM main page ===============
-class PLMTableView(TemplateView):
+class PLMTableView(LoginRequiredMixin, TemplateView):
     extra_context = {
         'title': 'PLM Main'
         }
@@ -108,7 +109,7 @@ def data_entry_upload_excel(request, id):
     return redirect('plm:plm_detail', id=id)  
 
 # =============== render PLM project page  ===============
-class UpdateProjectView(UpdateView):
+class UpdateProjectView(LoginRequiredMixin, UpdateView):
     model = PlmProject
     form_class = UpdatePlmProject
     template_name = 'plm/plm_page.html'
@@ -312,3 +313,10 @@ def api_update_project_reviewer(request, id):
         payload = json.loads(request.body)
         PlmProject.objects.filter(pk=id).update(reviewed_by = payload['reviewed_by'])
         return JsonResponse({'status': 'ok'})
+
+def get_test_function(request, id):
+    max_rownumber = PlmSample.objects.aggregate(Max('row_number'))
+    return JsonResponse(max_rownumber)
+
+def api_generate_qc_samples(request, id):
+    pass
