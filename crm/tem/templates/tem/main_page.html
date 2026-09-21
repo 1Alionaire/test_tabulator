@@ -4,5 +4,10 @@
   href="{% static 'tem/css/tem_main.css' %}"
   rel="stylesheet"
 />{% endblock %} {% block content%}
-<h1>test</h1>
+<main class="center-menu">
+  <a href="{% url 'tem:original_grid_book' %}" class="menu-btn"
+    >Grid book Original</a
+  >
+  <a href="{% url 'tem:qc_grid_book' %}" class="menu-btn">Grid Book QC</a>
+</main>
 {% endblock%} {% block extra_js %} {% endblock %}

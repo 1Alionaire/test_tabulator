@@ -1,0 +1,37 @@
+{% extends 'base.html' %} {% load static %} {% block extra_css %}
+<link
+  type="text/css"
+  href="{% static 'tem/css/tem_main.css' %}"
+  rel="stylesheet"
+/>{% endblock %} {% block content%}
+<main class="main">
+  <section id="main-section-filter" class="side-filter-panel invisible">
+    <div class="date-filter-input-box">
+      <span>Date Range</span>
+      <div class="date-filter">
+        <label>Start</label>
+        <input id="filter-input-date-start" type="date"></input>
+      </div>
+      <div class="date-filter">
+        <label>End</label>
+        <input id="filter-input-date-end" type="date"></input>
+      </div>
+    </div>
+    <button id="filter-panel-apply-button">Apply</button>
+    <button id="filter-panel-reset-filter-button">Reset</button>
+  </section>
+  <section class="main-window">
+    <section class="control-panel">
+    </section>
+    <section id="main-info"></section>
+    <div id="toast-container"></div>
+  </section>
+</main>
+{% endblock%} {% block extra_js %} <script>
+  // Этот блок ВНУТРИ шаблона, поэтому Django-теги работают
+  const URLS = {
+    temQCGridBoxGetURL: "{% url 'tem:api_get_qc_grid_book_table' %}",
+  };
+</script>
+
+<script src="{% static 'tem/js/qc_grid_book.js' %}"></script> {% endblock %}
