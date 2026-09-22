@@ -5,13 +5,13 @@ from django.http import JsonResponse
 from main.models import MainProject
 from django.views.generic import UpdateView
 from .forms import UpdatePlmProject
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import  redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 from openpyxl import load_workbook
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 import json
-from plm.plm_table_logic import PLMSamplesDataEntryManager, PLMSamplesWeightManager
+from plm.plm_table_logic import PLMSamplesDataEntryManager, PLMSamplesWeightManager, generate_qc_sample
 import django.utils
 from datetime import datetime
 from users.models import User
@@ -202,6 +202,7 @@ def api_get_weight_table(request, id):
 def api_update_weight_table(request, id):
     plm_project = PlmProject.objects.get(pk=id)
     payload_json = json.loads(request.body)
+    print(f'payload_json : {payload_json}')
 
     weight_manager = PLMSamplesWeightManager(plm_project=plm_project,input_data=payload_json)
     checking_error_code = weight_manager.validate_whole_object()
@@ -331,4 +332,6 @@ def get_test_function(request, id):
     return JsonResponse(max_rownumber)
 
 def api_generate_qc_samples(request, id):
-    pass
+    with transaction.atomic():
+        created_samples = generate_qc_sample(id)
+    return JsonResponse({'status': 'ok', 'created':created_samples})

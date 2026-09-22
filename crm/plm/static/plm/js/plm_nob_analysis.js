@@ -76,7 +76,8 @@ nobTable = new Tabulator("#samples-nob-table", {
             cssClass: "range-header-col", editor: false
         },
         history:true,
-        height: "calc(100vh - 120px)",
+        height: '100vh', //"calc(100vh - 120px)",
+        
         width: "100%", 
         layout:"fitColumns",
         editTriggerEvent: "dblclick",
@@ -679,3 +680,24 @@ async function updateProjectReviewer() {
     })
     .catch(console.log('No Success'));
 };
+
+
+document.getElementById("nob-qc-generate-toggle").addEventListener("click", async (e) => {
+  e.target.disabled = true;
+  try {
+    const res = await fetch(URLS.qcGenerateSamplesURL, {
+      method: "POST",
+      headers: { "X-CSRFToken": getCookie("csrftoken") },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+    nobTable.replaceData();          // перезапросить таблицу с сервера
+    // showToast("Готово", "success");
+  } catch (err) {
+    console.error(err);
+    // showToast(err.message, "error");
+  } finally {
+    e.target.disabled = false;
+  }
+});

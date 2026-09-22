@@ -142,6 +142,14 @@
             <input type="date" id="nob-date-review" />
             <button id="nob-date-review-btn-confirm">Confirm</button>
           </div>
+          <div class="tem-control-buttons">
+            <button type="button" id="nob-qc-generate-toggle" class="panel-btn">
+              QC Generate samples
+            </button>
+            <button type="button" id="nob-qc-complete-toggle" class="panel-btn">
+              Complete QC
+            </button>
+          </div>
         </section>
 
         <section class="section-table">
@@ -156,7 +164,7 @@
       </div>
       <div class="tab-content" id="tab-3">
         <section class="section-control-panel" id="tem-control-panel">
-          <div class="control-buttons">
+          <div class="tem-control-buttons">
             <button type="button" id="tem-save-toggle" class="panel-btn">
               Save
             </button>
@@ -205,7 +213,9 @@
     projectReviewerListGetURL:
       "{% url 'plm:api_get_projects_reviewer' work.id %}", //
     projectReviewerUpdateRL:
-      "{% url 'plm:api_update_project_reviewer' work.id %}", //
+      "{% url 'plm:api_update_project_reviewer' work.id %}", //api_generate_qc_samples
+
+    qcGenerateSamplesURL: "{% url 'plm:api_generate_qc_samples' work.id %}",
   };
 </script>
 
