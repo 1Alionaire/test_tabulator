@@ -191,7 +191,7 @@ def api_replace_all_data_entry_table(request, id):
 
 # =============== getting all data for weight ===============
 def api_get_weight_table(request, id):
-    all_weights = PlmSampleWeight.objects.filter(plm_project=id).order_by('sample__row_number', 'client_sample').values('id', 'sample__row_number', 'sample__lab_sample', 'client_sample', 'w_crucible', 
+    all_weights = PlmSampleWeight.objects.filter(plm_project=id).order_by('sample__row_number').values('id', 'sample__row_number', 'sample__lab_sample', 'client_sample', 'w_crucible', 
                                                                                                        'w_crucible_with_sample', 'w_sample', 'w_sample_ashed', 
                                                                                                        'org',  'w_petri', 'w_petri_with_sample', 
                                                                                                        'residue', 'caco3', 'sample__is_blank', 'sample__is_blank', 'sample__is_qc_sample')
@@ -218,16 +218,16 @@ def api_update_weight_table(request, id):
 
 # =============== getting all data for NOB analysis ===============
 def api_get_nob_analysis_table(request, id):
-    all_samples = PlmSample.objects.filter(plm_project=id).order_by('row_number').values('row_number', 'id', 'homo_area', 
-                                                                                        'client_sample', 'lab_sample', 'layer', 'method', 
-                                                                                        'color', 'weight__residue', 'is_qc_sample', 
-                                                                                        'analysis_temperature', 'texture', 'morphology', 
-                                                                                        'ri_alpha_oil', 'ri_delta_oil', 'sign_of_elongation', 
-                                                                                        'extinction_angle', 'pleochroism_color', 'birefringence', 
-                                                                                        'other_fiber', 'other_fiber_property', 'other_fiber_percent', 'asb_type',
-                                                                                        'asb_point_1', 'asb_point_2', 'asb_point_3', 'asb_point_4',
-                                                                                        'asb_point_5', 'asb_point_6', 'asb_point_7', 'asb_point_8', 
-                                                                                        'asb_percent', 'is_blank', 'is_qc_sample', 'tem_na_or_ps')
+    all_samples = PlmSample.objects.filter(plm_project=id, is_tem_qc_sample=False).order_by('row_number').values('row_number', 'id', 'homo_area', 
+                                                                                                                'client_sample', 'lab_sample', 'layer', 'method', 
+                                                                                                                'color', 'weight__residue', 'is_qc_sample', 
+                                                                                                                'analysis_temperature', 'texture', 'morphology', 
+                                                                                                                'ri_alpha_oil', 'ri_delta_oil', 'sign_of_elongation', 
+                                                                                                                'extinction_angle', 'pleochroism_color', 'birefringence', 
+                                                                                                                'other_fiber', 'other_fiber_property', 'other_fiber_percent', 'asb_type',
+                                                                                                                'asb_point_1', 'asb_point_2', 'asb_point_3', 'asb_point_4',
+                                                                                                                'asb_point_5', 'asb_point_6', 'asb_point_7', 'asb_point_8', 
+                                                                                                                'asb_percent', 'is_blank', 'is_qc_sample', 'tem_na_or_ps')
     return JsonResponse(list(all_samples), safe=False)
 
 def api_update_analysis_table(request, id):
@@ -263,11 +263,13 @@ def api_update_analysis_table(request, id):
 
 # =============== getting all data for NOB analysis ===============
 def api_get_tem_analysis_table(request, id):
-    all_samples = PlmSample.objects.filter(plm_project=id, method__in=[2, 3, 4]).order_by('row_number').values('id', 'row_number', 'client_sample', 'method', 
-                                                                                        'lab_sample', 'layer', 'homo_area', 'weight__residue', 
-                                                                                         'tem_asb_type', 'tem_asb_point', 'tem_asb_percent', 
-                                                                                         'tem_microscope_alignment', 'tem_eccentricity_adjusted', 'tem_grid_pre_acceptability', 
-                                                                                         'tem_grid_box', 'tem_grid_box_id_1', 'tem_grid_box_id_2', 'tem_na_or_ps', 'is_tem_qc_sample', 'is_blank')
+    all_samples = PlmSample.objects.filter(plm_project=id, 
+                                           method__in=[2, 3, 4], 
+                                           is_qc_sample=False).order_by('row_number').values('id', 'row_number', 'client_sample', 'method', 
+                                                                                            'lab_sample', 'layer', 'homo_area', 'weight__residue', 
+                                                                                            'tem_asb_type', 'tem_asb_point', 'tem_asb_percent', 'tem_microscope_alignment',
+                                                                                            'tem_eccentricity_adjusted', 'tem_grid_pre_acceptability', 'tem_grid_box', 
+                                                                                            'tem_grid_box_id_1', 'tem_grid_box_id_2', 'tem_na_or_ps', 'is_tem_qc_sample', 'is_blank')
     return JsonResponse(list(all_samples), safe=False)
 
 def api_get_temperature(request, id):

@@ -1,4 +1,4 @@
-from tem.models import TEMGridRecord
+from tem.models import TEMGridRecord, TEMGridQCRecord
 from django.core.management.base import BaseCommand
 
 all_grid_id = [('A1', 'B1'), ('C1', 'D1'), ('E1', 'A2'), ('B2', 'C2'), ('D2', 'E2'), 
@@ -17,7 +17,7 @@ class Command(BaseCommand):
         for iter_year in years:
             for iter_grid_box in range(1, 5):
                 for grid_element in all_grid_id:
-                    TEMGridRecord.objects.create(position=counter, 
+                    TEMGridQCRecord.objects.create(position=counter, 
                                                 year = iter_year, 
                                                 grid_box=iter_grid_box,
                                                 grid_id_1 = grid_element[0],
