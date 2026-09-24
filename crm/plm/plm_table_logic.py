@@ -21,6 +21,26 @@ PLM_WEIGHT_REQUIRED_ON_CREATE = {'client_sample', 'w_crucible', 'w_crucible_with
                                  'w_sample', 'w_sample_ashed', 'org',
                                  'w_petri', 'w_petri_with_sample', 'residue', 'caco3' }
 
+
+def copy_weight_item(plm_project, sample_to_copy, prefix):
+    if sample_to_copy.weight is not None:
+        copied_weight = PlmSampleWeight(plm_project=plm_project, 
+                                            client_sample=(prefix + sample_to_copy.weight.client_sample),
+                                            w_crucible=sample_to_copy.weight.w_crucible,
+                                            w_crucible_with_sample=sample_to_copy.weight.w_crucible_with_sample,
+                                            w_sample=sample_to_copy.weight.w_sample,
+                                            w_sample_ashed=sample_to_copy.weight.w_sample_ashed,
+                                            org=sample_to_copy.weight.org, 
+                                            w_petri=sample_to_copy.weight.w_petri,
+                                            w_petri_with_sample=sample_to_copy.weight.w_petri_with_sample,
+                                            residue=sample_to_copy.weight.residue,
+                                            caco3=sample_to_copy.weight.caco3)
+        copied_weight.full_clean()
+        copied_weight.save()
+        return copied_weight
+    else:
+        return None
+
 class PLMSamplesDataEntryManager():
     def __init__(self, plm_project, input_data, type):
         self.plm_project = plm_project
@@ -229,7 +249,47 @@ class PLMSamplesWeightManager():
         PlmSampleWeight.objects.filter(pk__in=self.data_to_delete).delete()
         return len(self.data_to_delete)
 
-def generate_plm_qc_sample(samples, max_row_number, select_project):
+def generate_qc_sample(inp_project, copy_of_sample, copy_of_weight, max_row_number, prefix, is_nob_qb, is_tem_qc):
+    sample = PlmSample(plm_project=inp_project, 
+                        row_number=max_row_number,
+                        client_sample=(prefix + copy_of_sample.client_sample),
+                        lab_sample=(prefix + copy_of_sample.lab_sample),
+                        weight=copy_of_weight,
+                        is_qc_sample = is_nob_qb, 
+                        is_tem_qc_sample = is_tem_qc, 
+                        asb_type = copy_of_sample.asb_type,
+                        homo_area= copy_of_sample.homo_area,
+                        layer= copy_of_sample.layer,
+                        description= copy_of_sample.description,
+                        location= copy_of_sample.location,
+                        method= copy_of_sample.method,
+                        color= copy_of_sample.color,
+                        analysis_temperature= copy_of_sample.analysis_temperature,
+                        texture= copy_of_sample.texture,
+                        morphology= copy_of_sample.morphology,
+                        ri_alpha_oil= copy_of_sample.ri_alpha_oil,
+                        ri_delta_oil= copy_of_sample.ri_delta_oil,
+                        sign_of_elongation= copy_of_sample.sign_of_elongation,
+                        extinction_angle= copy_of_sample.extinction_angle,
+                        pleochroism_color= copy_of_sample.pleochroism_color,
+                        birefringence= copy_of_sample.birefringence,
+                        other_fiber= copy_of_sample.other_fiber,
+                        other_fiber_property= copy_of_sample.other_fiber_property,
+                        other_fiber_percent= copy_of_sample.other_fiber_percent,
+                        tem_microscope_alignment=copy_of_sample.tem_microscope_alignment, 
+                        tem_eccentricity_adjusted=copy_of_sample.tem_eccentricity_adjusted, 
+                        tem_grid_pre_acceptability=copy_of_sample.tem_grid_pre_acceptability, 
+                        tem_grid_box=copy_of_sample.tem_grid_box,
+                        tem_grid_box_id_1=copy_of_sample.tem_grid_box_id_1,
+                        tem_grid_box_id_2=copy_of_sample.tem_grid_box_id_2,
+                        tem_na_or_ps=copy_of_sample.tem_na_or_ps,
+                        is_blank=copy_of_sample.is_blank)
+    sample.full_clean()
+    sample.save()
+
+    return sample
+
+def generate_plm_qc_sample(max_row_number, select_project):
     samples_to_copy = PlmSample.original_samples.filter(plm_project=select_project, 
                                                             method=SampleMethod.Sample1981).exclude(asb_type=SampleASbestosType.NotAnayzed)
         
@@ -238,65 +298,30 @@ def generate_plm_qc_sample(samples, max_row_number, select_project):
 
     for _ in range(amount_rep_samples):
         random_sample_to_copy = random.choice(samples_to_copy)
-        sample = PlmSample(plm_project=select_project, 
-                                    row_number=max_row_number,
-                                    client_sample=('R' + random_sample_to_copy.client_sample),
-                                    lab_sample=('R' + random_sample_to_copy.lab_sample),
-                                    is_qc_sample = True, 
-                                    asb_type = random_sample_to_copy.asb_type,
-                                    homo_area= random_sample_to_copy.homo_area,
-                                    layer= random_sample_to_copy.layer,
-                                    description= random_sample_to_copy.description,
-                                    location= random_sample_to_copy.location,
-                                    method= random_sample_to_copy.method,
-                                    color= random_sample_to_copy.color,
-                                    analysis_temperature= random_sample_to_copy.analysis_temperature,
-                                    texture= random_sample_to_copy.texture,
-                                    morphology= random_sample_to_copy.morphology,
-                                    ri_alpha_oil= random_sample_to_copy.ri_alpha_oil,
-                                    ri_delta_oil= random_sample_to_copy.ri_delta_oil,
-                                    sign_of_elongation= random_sample_to_copy.sign_of_elongation,
-                                    extinction_angle= random_sample_to_copy.extinction_angle,
-                                    pleochroism_color= random_sample_to_copy.pleochroism_color,
-                                    birefringence= random_sample_to_copy.birefringence,
-                                    other_fiber= random_sample_to_copy.other_fiber,
-                                    other_fiber_property= random_sample_to_copy.other_fiber_property,
-                                    other_fiber_percent= random_sample_to_copy.other_fiber_percent)
-        sample.full_clean()
-        sample.save()
+        sample = generate_qc_sample(inp_project=select_project, 
+                           copy_of_sample=random_sample_to_copy, 
+                           copy_of_weight=None, 
+                           max_row_number=max_row_number, 
+                           prefix='R', 
+                           is_nob_qb=True, 
+                           is_tem_qc=False)
+
         max_row_number += 1
 
     for _ in range(amount_dup_samples):
         random_sample_to_copy = random.choice(samples_to_copy)
-        sample = PlmSample(plm_project = select_project, 
-                                row_number = max_row_number,
-                                client_sample = ('D' + random_sample_to_copy.client_sample),
-                                lab_sample = ('D' + random_sample_to_copy.lab_sample),
-                                is_qc_sample = True, 
-                                asb_type = random_sample_to_copy.asb_type,
-                                homo_area = random_sample_to_copy.homo_area,
-                                layer = random_sample_to_copy.layer,
-                                description = random_sample_to_copy.description,
-                                location = random_sample_to_copy.location,
-                                method = random_sample_to_copy.method,
-                                color = random_sample_to_copy.color,
-                                analysis_temperature= random_sample_to_copy.analysis_temperature,
-                                texture= random_sample_to_copy.texture,
-                                morphology= random_sample_to_copy.morphology,
-                                ri_alpha_oil= random_sample_to_copy.ri_alpha_oil,
-                                ri_delta_oil= random_sample_to_copy.ri_delta_oil,
-                                sign_of_elongation= random_sample_to_copy.sign_of_elongation,
-                                extinction_angle= random_sample_to_copy.extinction_angle,
-                                pleochroism_color= random_sample_to_copy.pleochroism_color,
-                                birefringence= random_sample_to_copy.birefringence,
-                                other_fiber= random_sample_to_copy.other_fiber,
-                                other_fiber_property= random_sample_to_copy.other_fiber_property,
-                                other_fiber_percent= random_sample_to_copy.other_fiber_percent)
-        sample.full_clean()
-        sample.save()
+        sample = generate_qc_sample(inp_project=select_project, 
+                                   copy_of_sample=random_sample_to_copy, 
+                                   copy_of_weight=None, 
+                                   max_row_number=max_row_number, 
+                                   prefix='D', 
+                                   is_nob_qb=True, 
+                                   is_tem_qc=False)
         max_row_number += 1
 
-def generate_nob_qc_sample(samples, max_row_number, select_project):
+    return max_row_number
+
+def generate_nob_qc_sample(max_row_number, select_project):
     samples_to_copy = PlmSample.original_samples.filter(plm_project=select_project, 
                                                                 method=SampleMethod.Sample1986).exclude(asb_type=SampleASbestosType.NotAnayzed)
     amount_rep_samples = math.ceil(PlmSample.original_samples.filter(plm_project=select_project, method=SampleMethod.Sample1986).count() / 15)
@@ -304,54 +329,18 @@ def generate_nob_qc_sample(samples, max_row_number, select_project):
 
     for _ in range(amount_rep_samples):
         random_sample_to_copy = random.choice(samples_to_copy)
-        copied_weight_item = None
-        if samples_to_copy[0].weight is not None:
+        copied_weight_item = copy_weight_item(plm_project=select_project,
+                                              sample_to_copy=random_sample_to_copy,
+                                              prefix='R')
 
-            copied_weight_item = PlmSampleWeight(plm_project=select_project, 
-                                                client_sample=('R' + random_sample_to_copy.weight.client_sample),
-                                                w_crucible=random_sample_to_copy.weight.w_crucible,
-                                                w_crucible_with_sample=random_sample_to_copy.weight.w_crucible_with_sample,
-                                                w_sample=random_sample_to_copy.weight.w_sample,
-                                                w_sample_ashed=random_sample_to_copy.weight.w_sample_ashed,
-                                                org=random_sample_to_copy.weight.org, 
-                                                w_petri=random_sample_to_copy.weight.w_petri,
-                                                w_petri_with_sample=random_sample_to_copy.weight.w_petri_with_sample,
-                                                residue=random_sample_to_copy.weight.residue,
-                                                caco3=random_sample_to_copy.weight.caco3)
-            copied_weight_item.full_clean()
-            copied_weight_item.save()
-
-        sample = PlmSample(plm_project=select_project, 
-                                    row_number=max_row_number,
-                                    client_sample=('R' + random_sample_to_copy.client_sample),
-                                    lab_sample=('R' + random_sample_to_copy.lab_sample),
-                                    is_qc_sample = True, 
-                                    asb_type = random_sample_to_copy.asb_type,
-                                    homo_area= random_sample_to_copy.homo_area,
-                                    layer= random_sample_to_copy.layer,
-                                    description= random_sample_to_copy.description,
-                                    location= random_sample_to_copy.location,
-                                    method= random_sample_to_copy.method,
-                                    color= random_sample_to_copy.color,
-                                    weight=copied_weight_item,
-                                    analysis_temperature= random_sample_to_copy.analysis_temperature,
-                                    texture= random_sample_to_copy.texture,
-                                    morphology= random_sample_to_copy.morphology,
-                                    ri_alpha_oil= random_sample_to_copy.ri_alpha_oil,
-                                    ri_delta_oil= random_sample_to_copy.ri_delta_oil,
-                                    sign_of_elongation= random_sample_to_copy.sign_of_elongation,
-                                    extinction_angle= random_sample_to_copy.extinction_angle,
-                                    pleochroism_color= random_sample_to_copy.pleochroism_color,
-                                    birefringence= random_sample_to_copy.birefringence,
-                                    other_fiber= random_sample_to_copy.other_fiber,
-                                    other_fiber_property= random_sample_to_copy.other_fiber_property,
-                                    other_fiber_percent= random_sample_to_copy.other_fiber_percent, 
-                                    tem_microscope_alignment=random_sample_to_copy.tem_microscope_alignment, 
-                                    tem_eccentricity_adjusted=random_sample_to_copy.tem_eccentricity_adjusted, 
-                                    tem_grid_pre_acceptability=random_sample_to_copy.tem_grid_pre_acceptability, 
-                                    )
-        sample.full_clean()
-        sample.save()
+        sample = generate_qc_sample(inp_project=select_project, 
+                            copy_of_sample=random_sample_to_copy, 
+                            copy_of_weight=copied_weight_item, 
+                            max_row_number=max_row_number, 
+                            prefix='R', 
+                            is_nob_qb=True, 
+                            is_tem_qc=False)
+        
         max_row_number += 1
 
     for _ in range(amount_dup_samples):
@@ -368,40 +357,19 @@ def generate_nob_qc_sample(samples, max_row_number, select_project):
         copied_weight_item.full_clean()
         copied_weight_item.save()
 
-        sample = PlmSample(plm_project=select_project, 
-                                    row_number=max_row_number,
-                                    client_sample=('D' + random_sample_to_copy.client_sample),
-                                    lab_sample=('D' + random_sample_to_copy.lab_sample),
-                                    is_qc_sample = True, 
-                                    asb_type = random_sample_to_copy.asb_type,
-                                    homo_area= random_sample_to_copy.homo_area,
-                                    layer= random_sample_to_copy.layer,
-                                    description= random_sample_to_copy.description,
-                                    location= random_sample_to_copy.location,
-                                    method= random_sample_to_copy.method,
-                                    color= random_sample_to_copy.color,
-                                    weight=copied_weight_item,
-                                    analysis_temperature= random_sample_to_copy.analysis_temperature,
-                                    texture= random_sample_to_copy.texture,
-                                    morphology= random_sample_to_copy.morphology,
-                                    ri_alpha_oil= random_sample_to_copy.ri_alpha_oil,
-                                    ri_delta_oil= random_sample_to_copy.ri_delta_oil,
-                                    sign_of_elongation= random_sample_to_copy.sign_of_elongation,
-                                    extinction_angle= random_sample_to_copy.extinction_angle,
-                                    pleochroism_color= random_sample_to_copy.pleochroism_color,
-                                    birefringence= random_sample_to_copy.birefringence,
-                                    other_fiber= random_sample_to_copy.other_fiber,
-                                    other_fiber_property= random_sample_to_copy.other_fiber_property,
-                                    other_fiber_percent= random_sample_to_copy.other_fiber_percent, 
-                                    tem_microscope_alignment=random_sample_to_copy.tem_microscope_alignment, 
-                                    tem_eccentricity_adjusted=random_sample_to_copy.tem_eccentricity_adjusted, 
-                                    tem_grid_pre_acceptability=random_sample_to_copy.tem_grid_pre_acceptability)
-                                    
-        sample.full_clean()
-        sample.save()
+        sample = generate_qc_sample(inp_project=select_project, 
+                            copy_of_sample=random_sample_to_copy, 
+                            copy_of_weight=copied_weight_item, 
+                            max_row_number=max_row_number, 
+                            prefix='D', 
+                            is_nob_qb=True, 
+                            is_tem_qc=False)
+
         max_row_number += 1
 
-def generate_tem_qc_sample(samples, max_row_number, select_project):
+    return max_row_number
+
+def generate_tem_qc_sample(max_row_number, select_project):
     samples_to_copy = PlmSample.original_samples.filter(plm_project=select_project, method__in=[SampleMethod.Sample1984, 
                                                                                                 SampleMethod.Sample1986, 
                                                                                                 SampleMethod.Sample1994]).exclude(Q(asb_type=SampleASbestosType.NotAnayzed) | Q(tem_na_or_ps='PS'))
@@ -416,58 +384,18 @@ def generate_tem_qc_sample(samples, max_row_number, select_project):
 
     for _ in range(amount_rep_samples):
         random_sample_to_copy = random.choice(samples_to_copy)
-        copied_weight_item = None
-        if samples_to_copy[0].weight is not None:
+        copied_weight_item = copy_weight_item(plm_project=select_project, 
+                                              sample_to_copy=random_sample_to_copy,
+                                              prefix='R')
 
-            copied_weight_item = PlmSampleWeight(plm_project=select_project, 
-                                                client_sample=('R' + random_sample_to_copy.weight.client_sample),
-                                                w_crucible=random_sample_to_copy.weight.w_crucible,
-                                                w_crucible_with_sample=random_sample_to_copy.weight.w_crucible_with_sample,
-                                                w_sample=random_sample_to_copy.weight.w_sample,
-                                                w_sample_ashed=random_sample_to_copy.weight.w_sample_ashed,
-                                                org=random_sample_to_copy.weight.org, 
-                                                w_petri=random_sample_to_copy.weight.w_petri,
-                                                w_petri_with_sample=random_sample_to_copy.weight.w_petri_with_sample,
-                                                residue=random_sample_to_copy.weight.residue,
-                                                caco3=random_sample_to_copy.weight.caco3)
-            copied_weight_item.full_clean()
-            copied_weight_item.save()
+        sample = generate_qc_sample(inp_project=select_project, 
+                            copy_of_sample=random_sample_to_copy, 
+                            copy_of_weight=copied_weight_item, 
+                            max_row_number=max_row_number, 
+                            prefix='R', 
+                            is_nob_qb=False, 
+                            is_tem_qc=True)
 
-        sample = PlmSample(plm_project=select_project, 
-                                    row_number=max_row_number,
-                                    client_sample=('R' + random_sample_to_copy.client_sample),
-                                    lab_sample=('R' + random_sample_to_copy.lab_sample),
-                                    is_tem_qc_sample = True, 
-                                    asb_type = random_sample_to_copy.asb_type,
-                                    homo_area= random_sample_to_copy.homo_area,
-                                    layer= random_sample_to_copy.layer,
-                                    description= random_sample_to_copy.description,
-                                    location= random_sample_to_copy.location,
-                                    method= random_sample_to_copy.method,
-                                    color= random_sample_to_copy.color,
-                                    weight=copied_weight_item,
-                                    analysis_temperature= random_sample_to_copy.analysis_temperature,
-                                    texture= random_sample_to_copy.texture,
-                                    morphology= random_sample_to_copy.morphology,
-                                    ri_alpha_oil= random_sample_to_copy.ri_alpha_oil,
-                                    ri_delta_oil= random_sample_to_copy.ri_delta_oil,
-                                    sign_of_elongation= random_sample_to_copy.sign_of_elongation,
-                                    extinction_angle= random_sample_to_copy.extinction_angle,
-                                    pleochroism_color= random_sample_to_copy.pleochroism_color,
-                                    birefringence= random_sample_to_copy.birefringence,
-                                    other_fiber= random_sample_to_copy.other_fiber,
-                                    other_fiber_property= random_sample_to_copy.other_fiber_property,
-                                    other_fiber_percent= random_sample_to_copy.other_fiber_percent, 
-                                    tem_microscope_alignment=random_sample_to_copy.tem_microscope_alignment, 
-                                    tem_eccentricity_adjusted=random_sample_to_copy.tem_eccentricity_adjusted, 
-                                    tem_grid_pre_acceptability=random_sample_to_copy.tem_grid_pre_acceptability, 
-                                    tem_grid_box=random_sample_to_copy.tem_grid_box,
-                                    tem_grid_box_id_1=random_sample_to_copy.tem_grid_box_id_1,
-                                    tem_grid_box_id_2=random_sample_to_copy.tem_grid_box_id_2,
-                                    tem_na_or_ps=random_sample_to_copy.tem_na_or_ps,
-                                    is_blank=random_sample_to_copy.is_blank,)
-        sample.full_clean()
-        sample.save()
 
         tem_grid_book_record = TEMGridQCRecord.objects.filter(filled=False).order_by("position").first() #take the lowest non-filled record
 
@@ -485,34 +413,62 @@ def generate_tem_qc_sample(samples, max_row_number, select_project):
         
         max_row_number += 1
 
+    for _ in range(amount_dup_samples):
+        random_sample_to_copy = random.choice(samples_to_copy)
+        copied_weight_item = copy_weight_item(plm_project=select_project,
+                                              sample_to_copy=random_sample_to_copy,
+                                              prefix='D')
+
+        sample = generate_qc_sample(inp_project=select_project, 
+                            copy_of_sample=random_sample_to_copy, 
+                            copy_of_weight=copied_weight_item, 
+                            max_row_number=max_row_number, 
+                            prefix='D', 
+                            is_nob_qb=False, 
+                            is_tem_qc=True)
+
+        tem_grid_book_record = TEMGridQCRecord.objects.filter(filled=False).order_by("position").first() #take the lowest non-filled record
+
+        if tem_grid_book_record is not None:
+            tem_grid_book_record.plm_tem_project = select_project
+            tem_grid_book_record.plm_tem_sample = sample
+            tem_grid_book_record.filled = True
+            tem_grid_book_record.save(update_fields=["plm_tem_project", "plm_tem_sample", "filled"])
+
+        sample.tem_grid_box = tem_grid_book_record.grid_box
+        sample.tem_grid_box_id_1 = tem_grid_book_record.grid_id_1
+        sample.tem_grid_box_id_2 = tem_grid_book_record.grid_id_2
+        sample.full_clean()
+        sample.save(update_fields=["tem_grid_box", "tem_grid_box_id_1", "tem_grid_box_id_2"])
         
+        max_row_number += 1
+
+    return max_row_number
     
 
-def generate_qc_sample(input_project_id):
+def generate_qc_entry_process(input_project_id):
     max_row_number = PlmSample.objects.aggregate(Max('row_number'))['row_number__max']
     select_project = PlmProject.objects.get(pk=input_project_id)
     created_plm_qc_amount = 0
     created_nob_qc_amount = 0
     created_tem_qc_amount = 0
 
-    samples = []
-
     if max_row_number < 1000:
         max_row_number = 1000
     else:
         max_row_number += 1
+
+    max_row_number_before = max_row_number
     
     if PlmSample.original_samples.filter(plm_project=select_project, method=SampleMethod.Sample1981).exists():
-        generate_plm_qc_sample(samples, max_row_number, select_project)
+        max_row_number = generate_plm_qc_sample(max_row_number, select_project)
     
     if PlmSample.original_samples.filter(plm_project=select_project, method=SampleMethod.Sample1986).exists():
-        generate_nob_qc_sample(samples, max_row_number, select_project)
+        max_row_number = generate_nob_qc_sample(max_row_number, select_project)
 
     if PlmSample.original_samples.filter(plm_project=select_project, method__in=[SampleMethod.Sample1984, 
                                                                                  SampleMethod.Sample1986, 
                                                                                  SampleMethod.Sample1994]).exclude(tem_na_or_ps='PS').exists():
-        generate_tem_qc_sample(samples, max_row_number, select_project)
+        max_row_number = generate_tem_qc_sample(max_row_number, select_project)
     
-        
-
-    return len(samples)
+    return max_row_number_before - max_row_number

@@ -11,7 +11,7 @@ from openpyxl import load_workbook
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 import json
-from plm.plm_table_logic import PLMSamplesDataEntryManager, PLMSamplesWeightManager, generate_qc_sample
+from plm.plm_table_logic import PLMSamplesDataEntryManager, PLMSamplesWeightManager, generate_qc_entry_process
 import django.utils
 from datetime import datetime
 from users.models import User
@@ -335,5 +335,5 @@ def get_test_function(request, id):
 
 def api_generate_qc_samples(request, id):
     with transaction.atomic():
-        created_samples = generate_qc_sample(id)
+        created_samples = generate_qc_entry_process(id)
     return JsonResponse({'status': 'ok', 'created':created_samples})
