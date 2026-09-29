@@ -449,9 +449,6 @@ def generate_tem_qc_sample(max_row_number, select_project):
 def generate_qc_entry_process(input_project_id):
     max_row_number = PlmSample.objects.aggregate(Max('row_number'))['row_number__max']
     select_project = PlmProject.objects.get(pk=input_project_id)
-    created_plm_qc_amount = 0
-    created_nob_qc_amount = 0
-    created_tem_qc_amount = 0
 
     if max_row_number < 1000:
         max_row_number = 1000

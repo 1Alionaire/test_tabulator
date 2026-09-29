@@ -14,6 +14,8 @@ from .forms import ProjectCOCUpload
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from plm.models import PlmProject
+from django.views.decorators.http import require_GET, require_POST
+
 
 def _serialize(obj):
     return {
@@ -26,7 +28,7 @@ class MainTableView(LoginRequiredMixin, TemplateView):
         }
     template_name = 'main/index.html'
 
-
+@require_GET
 def api_get_table_options(request):
     return JsonResponse({
         'status': [
@@ -47,6 +49,7 @@ def api_get_table_options(request):
         ],
     })
 
+@require_GET
 def api_get_main_projects_table(request):
     main_projects = MainProject.active_objects.all().order_by('lab_id_sort').values(
                                                      'id',

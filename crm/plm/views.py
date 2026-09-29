@@ -6,7 +6,7 @@ from main.models import MainProject
 from django.views.generic import UpdateView
 from .forms import UpdatePlmProject
 from django.shortcuts import  redirect, get_object_or_404
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from openpyxl import load_workbook
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
@@ -17,6 +17,7 @@ from datetime import datetime
 from users.models import User
 from django.db.models import Max
 from tem.models import TEMGridQCRecord, TEMGridRecord
+
 
 
 from .models import (
@@ -38,7 +39,7 @@ from .models import (
 
 # =============== utility functions ===============
 def return_int_value_sample_method(input_str):
-    methods = {label:value for value, label in PlmSample.SampleMethod.choices}
+    methods = {label:value for value, label in SampleMethod.choices}
     return methods[input_str]
 
 # =============== render PLM main page ===============
@@ -49,6 +50,7 @@ class PLMTableView(LoginRequiredMixin, TemplateView):
     template_name = 'plm/plm_main.html'
 
 # =============== getting all PLM projects ===============
+@require_GET
 def api_get_plm_projects_table(request):
     plm_projects = MainProject.active_objects.filter(sample_type_id__in=[2,3,4]).order_by('lab_id_sort').values(
                                                      'id',
@@ -122,6 +124,7 @@ class UpdateProjectView(LoginRequiredMixin, UpdateView):
         return get_object_or_404(PlmProject, id=self.kwargs['id'])
 
 # =============== getting all options ===============
+@require_GET
 def api_get_table_options(request):
     return JsonResponse({
         'sampleMethod': [{'value': v, 'label': l} for v, l in SampleMethod.choices],
@@ -137,12 +140,14 @@ def api_get_table_options(request):
     })
 
 # =============== getting all data for data entry ===============
+@require_GET
 def api_get_data_entry_table(request, id):
     all_samples = PlmSample.original_samples.filter(plm_project=id).order_by('row_number').values('id', 'homo_area', 'client_sample', 'lab_sample',
                                                                   'description', 'layer', 'location', 'method', 'row_number')
     return JsonResponse(list(all_samples), safe=False)
 
 # =============== render PLM project ===============
+@require_POST
 def api_update_data_entry_table(request, id):
     plm_project = PlmProject.objects.get(pk=id)
     try:
@@ -166,6 +171,7 @@ def api_update_data_entry_table(request, id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
+@require_POST
 def api_replace_all_data_entry_table(request, id):
     plm_project = PlmProject.objects.get(pk=id)
     try:
@@ -190,6 +196,7 @@ def api_replace_all_data_entry_table(request, id):
         return JsonResponse({'error': str(e)}, status=400)
 
 # =============== getting all data for weight ===============
+@require_GET
 def api_get_weight_table(request, id):
     all_weights = PlmSampleWeight.objects.filter(plm_project=id).order_by('sample__row_number').values('id', 'sample__row_number', 'sample__lab_sample', 'client_sample', 'w_crucible', 
                                                                                                        'w_crucible_with_sample', 'w_sample', 'w_sample_ashed', 
@@ -199,6 +206,7 @@ def api_get_weight_table(request, id):
     return JsonResponse(list(all_weights), safe=False)
 
 # =============== updating weight table ===============
+@require_POST
 def api_update_weight_table(request, id):
     plm_project = PlmProject.objects.get(pk=id)
     payload_json = json.loads(request.body)
@@ -217,6 +225,7 @@ def api_update_weight_table(request, id):
     return JsonResponse(operation_result)
 
 # =============== getting all data for NOB analysis ===============
+@require_GET
 def api_get_nob_analysis_table(request, id):
     all_samples = PlmSample.objects.filter(plm_project=id, is_tem_qc_sample=False).order_by('row_number').values('row_number', 'id', 'homo_area', 
                                                                                                                 'client_sample', 'lab_sample', 'layer', 'method', 
@@ -230,11 +239,11 @@ def api_get_nob_analysis_table(request, id):
                                                                                                                 'asb_percent', 'is_blank', 'is_qc_sample', 'tem_na_or_ps')
     return JsonResponse(list(all_samples), safe=False)
 
+@require_POST
 def api_update_analysis_table(request, id):
     selected_plm_project = PlmProject.objects.get(pk=id)
     payload_json = json.loads(request.body)
     touched_fields = set()
-    print(payload_json)
     with transaction.atomic():
         samples_to_update = {sample.id : sample for sample in 
                                         PlmSample.objects.select_for_update().filter(plm_project=selected_plm_project)}
@@ -245,14 +254,15 @@ def api_update_analysis_table(request, id):
                 if name_field not in ['id', 'weight__residue']:
                     setattr(sample, name_field, value)
                     touched_fields.add(name_field)
-            
-            TEMGridRecord.objects.filter(grid_box=record_row['tem_grid_box'], 
-                                         grid_id_1=record_row['tem_grid_box_id_1'], 
-                                         grid_id_2=record_row['tem_grid_box_id_2']).update(
-                                             plm_tem_project=selected_plm_project,
-                                             plm_tem_sample=sample,
-                                             filled=True
-                                         )
+
+            if 'tem_grid_box' in record_row and 'tem_grid_box_id_1' in record_row and 'tem_grid_box_id_2' in record_row :
+                TEMGridRecord.objects.filter(grid_box=record_row['tem_grid_box'], 
+                                            grid_id_1=record_row['tem_grid_box_id_1'], 
+                                            grid_id_2=record_row['tem_grid_box_id_2']).update(
+                                                plm_tem_project=selected_plm_project,
+                                                plm_tem_sample=sample,
+                                                filled=True
+                                            )
 
             setattr(sample, 'time_update', django.utils.timezone.now())
 
@@ -262,6 +272,7 @@ def api_update_analysis_table(request, id):
 
 
 # =============== getting all data for NOB analysis ===============
+@require_GET
 def api_get_tem_analysis_table(request, id):
     all_samples = PlmSample.objects.filter(plm_project=id, 
                                            method__in=[2, 3, 4], 
@@ -272,6 +283,7 @@ def api_get_tem_analysis_table(request, id):
                                                                                             'tem_grid_box_id_1', 'tem_grid_box_id_2', 'tem_na_or_ps', 'is_tem_qc_sample', 'is_blank')
     return JsonResponse(list(all_samples), safe=False)
 
+@require_GET
 def api_get_temperature(request, id):
     try:
         temperature = PlmSample.objects.filter(plm_project=id)[0].analysis_temperature
@@ -279,6 +291,7 @@ def api_get_temperature(request, id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
+@require_GET
 def api_get_projects_date(request, id):
     try:
         dates = PlmProject.objects.filter(pk=id).values('date_collect', 'date_analyze', 'date_report', 'date_review')[0]
@@ -286,12 +299,14 @@ def api_get_projects_date(request, id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
+@require_POST
 def api_update_projects_date(request, id):
     with transaction.atomic():
         payload_json = json.loads(request.body)
         PlmProject.objects.filter(pk=id).update(**payload_json)
         return JsonResponse({'status':'ok'})
 
+@require_GET
 def api_get_projects_analyst(request, id):
     try:
         if PlmProject.objects.get(pk=id).analyst:
@@ -302,6 +317,7 @@ def api_get_projects_analyst(request, id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
+@require_POST
 def api_update_projects_analyst(request, id):
     with transaction.atomic():
         project = get_object_or_404(PlmProject, id=id)
@@ -309,6 +325,7 @@ def api_update_projects_analyst(request, id):
         project.save()
         return JsonResponse({'status': 'ok'})
 
+@require_GET
 def api_get_projects_reviewer(request, id):
     current_reviewer = PlmProject.objects.get(pk=id).reviewed_by
     result = {}
@@ -318,11 +335,11 @@ def api_get_projects_reviewer(request, id):
         else:
             result[user.id] = user.username
     try:
-        print(result)
         return JsonResponse(result, safe=False)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
+@require_POST
 def api_update_project_reviewer(request, id):
     with transaction.atomic():
         payload = json.loads(request.body)
@@ -333,6 +350,7 @@ def get_test_function(request, id):
     max_rownumber = PlmSample.objects.aggregate(Max('row_number'))
     return JsonResponse(max_rownumber)
 
+@require_POST
 def api_generate_qc_samples(request, id):
     with transaction.atomic():
         created_samples = generate_qc_entry_process(id)

@@ -1,6 +1,8 @@
 from .models import MainProject
 from django.db import transaction
 from plm.models import PlmProject, PlmSample, PlmSampleWeight
+from tem.models import TEMGridRecord
+from django.db.models import Q
 import django.utils
 from utils.utils import generate_rand_string_4
 import math
@@ -123,6 +125,18 @@ class MainProjectTableManager():
             setattr(project, 'deleted', True)
             setattr(project, 'time_update', django.utils.timezone.now())
 
+        # release TEM grid slots held by deleted projects (bulk_update doesn't fire save signals)
+        deleted_ids = list(projects_to_update)
+        PlmSample.objects.filter(plm_project__project_id__in=deleted_ids).update(
+            tem_grid_box=None,
+            tem_grid_box_id_1=None,
+            tem_grid_box_id_2=None,
+        )
+        TEMGridRecord.objects.filter(
+            Q(plm_tem_project__project_id__in=deleted_ids)
+            | Q(plm_tem_sample__plm_project__project_id__in=deleted_ids)
+        ).update(plm_tem_project=None, plm_tem_sample=None, filled=False)
+
         return MainProject.active_objects.bulk_update(
             projects_to_update.values(), sorted({'lab_id', 'lab_id_sort', 'deleted', 'time_update'})
         )
@@ -160,7 +174,10 @@ class ProjectCreateSignal:
                                                                 row_number=(i+1000),
                                                                 method = 3,
                                                                 is_blank = True,
-                                                                client_sample = "BL" + str(i+1))
+                                                                description = "Blank",
+                                                                location = "Blank", 
+                                                                client_sample = "BL" + str(i+1),
+                                                                lab_sample = "BL" + str(i+1))
                 
                 weight_item = PlmSampleWeight.objects.create(plm_project = created_plm_project,
                                                              client_sample =  "BL" + str(i+1))
