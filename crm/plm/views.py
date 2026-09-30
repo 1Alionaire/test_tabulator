@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse
 from main.models import MainProject
 from django.views.generic import UpdateView
 from .forms import UpdatePlmProject
@@ -17,6 +17,7 @@ from datetime import datetime
 from users.models import User
 from django.db.models import Max
 from tem.models import TEMGridQCRecord, TEMGridRecord
+from report_generator.plm.plm_report_generator import BulkSampleReportGenerator
 
 
 
@@ -356,3 +357,12 @@ def api_generate_qc_samples(request, id):
     with transaction.atomic():
         created_samples = generate_qc_entry_process(id)
     return JsonResponse({'status': 'ok', 'created':created_samples})
+
+# =============== PDF report ===============
+@require_GET
+def generate_plm_report(request, id):
+    plm_project = get_object_or_404(PlmProject.objects.select_related('project__company'), pk=id)
+    pdf_buffer = BulkSampleReportGenerator(plm_project).build()
+    return FileResponse(pdf_buffer, as_attachment=True,
+                        filename=f'PLM_report_{plm_project.lab_id}.pdf',
+                        content_type='application/pdf')
