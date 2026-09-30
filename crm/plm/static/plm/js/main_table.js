@@ -18,6 +18,13 @@ function getLabId(cell) {
   return cell.getRow().getData().lab_id;
 }
 
+// ================ date "YYYY-MM-DD" → "MM-DD-YYYY" ==============
+function formatDateMDY(cell) {
+  const value = cell.getValue();
+  if (!value) return "";
+  const [year, month, day] = value.split("-");
+  return `${month}-${day}-${year}`;
+}
 
 let table;
 
@@ -61,7 +68,7 @@ let table;
             {
               title:"Lab ID", 
               field: "plm_project__id", 
-              width: 80, 
+              width: 100, 
               headerSort: false,
               formatter: "link",
               formatterParams: {
@@ -73,8 +80,8 @@ let table;
             {
               title:"Date", 
               field:"date_registered", 
-              formatter:"date", 
-              width:80, 
+              formatter:formatDateMDY, 
+              width:90, 
               headerSort: false,
               
             },

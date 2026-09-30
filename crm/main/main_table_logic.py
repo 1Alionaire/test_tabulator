@@ -147,7 +147,6 @@ class ProjectCreateSignal:
         self.main_project = main_project
 
     def create_project(self):
-        print(self.main_project.sample_type)
         if self.main_project.sample_type_id in [2, 3, 4]:
             self.create_plm_project()
 

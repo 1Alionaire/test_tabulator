@@ -257,17 +257,15 @@ async function temSaveChanges() {
         body: JSON.stringify(temTable.getData()),
       });
 
-      if (response.status === 422) {
-        showErrors((await response.json()).errors);
+      if (!response.ok) {
+        await showResponseError(response);
         return;                                   // флаги не снимаем — правки живы
       }
-      if (!response.ok) {
-        console.error("STATUS:", response.status, "BODY:", await response.text());
-        return;
-      }
+
+      showToast(`Table Saved `, "success");
     }
     catch (e) {
-      console.log(e);
+      showToast(`Error: ${e.message}`, "error");
     } finally {
       // entryDeletedIds.clear();
     };

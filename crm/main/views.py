@@ -51,7 +51,7 @@ def api_get_table_options(request):
 
 @require_GET
 def api_get_main_projects_table(request):
-    main_projects = MainProject.active_objects.all().order_by('lab_id_sort').values(
+    main_projects = MainProject.active_objects.all().order_by('-lab_id_sort').values(
                                                      'id',
                                                      'lab_id',
                                                      'lab_id_sort',
@@ -74,7 +74,6 @@ def api_get_main_projects_table(request):
 def api_update_main_projects_table(request):
     try:
         payload_json = json.loads(request.body)
-        print(f'payload_json : {payload_json}')
         table_manager = MainProjectTableManager(payload_json)
         checking_error_code = table_manager.validate_whole_object()
 
@@ -91,9 +90,6 @@ def api_update_main_projects_table(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
-def project_redirect(request, id):
-    print(id)
-    return render(request, 'main/test.html')
 
 class UploadCOCView(UpdateView):
     model = MainProject

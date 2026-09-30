@@ -485,17 +485,15 @@ async function nobSaveChanges() {
         body: JSON.stringify(nobTable.getData()),
       });
 
-      if (response.status === 422) {
-        showErrors((await response.json()).errors);
+      if (!response.ok) {
+        await showResponseError(response);
         return;                                   // флаги не снимаем — правки живы
       }
-      if (!response.ok) {
-        console.error("STATUS:", response.status, "BODY:", await response.text());
-        return;
-      }
+
+      showToast(`Table Saved `, "success");
     }
     catch (e) {
-      console.log(e);
+      showToast(`Error: ${e.message}`, "error");
     } finally {
       entryDeletedIds.clear();
     };
@@ -560,9 +558,9 @@ async function plmProjectDateUpdate(selectTypeDate) {
     .then(r => r.json())
     .then(result => {
         if (result.status === "ok") {
-            console.log('Success! ')
+            showToast(`Dates saved`, "success");
         } else {
-            console.log('No Success')
+            showToast(`Error saving. Try again`, "error");
         }
     })
     .catch(console.log('No Success'));
@@ -614,9 +612,9 @@ async function analystTakeProject(selectTypeDate) {
     })
     checkProjectAnalyst();
     //nob-analyst-username
-    // showToast("Проект взят в работу", "success");
+    showToast("The project has been picked up for work", "success");
   } catch {
-    // showToast("Нет связи с сервером", "error");
+    showToast("Error", "error");
   } 
 };
 
@@ -673,12 +671,12 @@ async function updateProjectReviewer() {
     .then(r => r.json())
     .then(result => {
         if (result.status === "ok") {
-            console.log('Success! ')
+          showToast(`Reviewer updated`, "success");
         } else {
-            console.log('No Success')
+          showToast(`Error. Try again later`, "error");
         }
     })
-    .catch(console.log('No Success'));
+    .catch(showToast(`Error. Try again later`, "error"));
 };
 
 
@@ -693,10 +691,10 @@ document.getElementById("nob-qc-generate-toggle").addEventListener("click", asyn
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
 
     nobTable.replaceData();          // перезапросить таблицу с сервера
-    // showToast("Готово", "success");
+    showToast("QC Samples generated", "success");
   } catch (err) {
     console.error(err);
-    // showToast(err.message, "error");
+    showToast(err.message, "error");
   } finally {
     e.target.disabled = false;
   }

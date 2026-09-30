@@ -137,11 +137,11 @@ class PlmSample(BaseModel):
     row_number = models.PositiveIntegerField(null=True, blank=True, default=1)
     layer = models.PositiveIntegerField(null=True, blank=True, default=1)
     client_sample = models.CharField(max_length=20)
-    lab_sample = models.CharField(max_length=25, default='', blank=True, null=True)
-    description = models.CharField(max_length=100, default='')
-    location = models.CharField(max_length=100, default='')
+    lab_sample = models.CharField(max_length=25, blank=True, null=True)
+    description = models.CharField(max_length=100, blank=True, null=True)
+    location = models.CharField(max_length=100,blank=True, null=True)
     method = models.IntegerField(choices=SampleMethod.choices,default=SampleMethod.Sample1981)
-    color = models.CharField(max_length=25, default='', blank=True)
+    color = models.CharField(max_length=25, null=True, blank=True)
     is_qc_sample = models.BooleanField(default=False)
 
     #analyze data

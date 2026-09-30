@@ -20,6 +20,14 @@ function isEmpty(inputString) {
   }
 };
 
+// ================ date "YYYY-MM-DD" → "MM-DD-YYYY" ==============
+function formatDateMDY(cell) {
+  const value = cell.getValue();
+  if (!value) return "";
+  const [year, month, day] = value.split("-");
+  return `${month}-${day}-${year}`;
+}
+
 // ==================== Open Filter Tab ====================
 const filterPanel = document.getElementById("main-section-filter");
 
@@ -100,7 +108,7 @@ function checkCOCFile(cell) {
               title:"Date", 
               field:"date_registered", 
               editor: "date", 
-              formatter:"date", 
+              formatter: formatDateMDY,  
               width:120, 
               headerSort: false,
               
@@ -328,13 +336,9 @@ async function saveChanges() {
       body: JSON.stringify(changes),
     });
 
-    if (res.status === 422) {
-      showErrors((await res.json()).errors);
-      return;                                   // флаги не снимаем — правки живы
-    }
     if (!res.ok) {
-      console.error("STATUS:", res.status, "BODY:", await res.text());
-      return;
+      await showResponseError(res);
+      return;                                   // флаги не снимаем — правки живы
     }
 
     table.getEditedCells().forEach(cell => {
@@ -353,7 +357,7 @@ async function saveChanges() {
 
 
   } catch (e) {
-    showToast(`Error: ${res.error}`, "error");
+    showToast(`Error: ${e.message}`, "error");
     console.log(e)
   } finally {
     deletedIds.clear();
@@ -473,27 +477,4 @@ document.getElementById("main-menu-test-toggle").addEventListener("click", funct
   checkNOBType();
 });
 
-// ================ show notification ==============
-function showToast(message, type = "info", duration = 3000) {
-    const container = document.getElementById("toast-container");
-
-    const toast = document.createElement("div");
-    toast.className = `toast ${type}`;
-    toast.textContent = message;   // textContent, а не innerHTML —
-                                   // сообщения с сервера могут содержать HTML/XSS
-
-    container.appendChild(toast);
-
-    // Элемент только что вставлен со стилями opacity:0.
-    // Если сразу навесить .show, браузер объединит оба состояния в один пересчёт
-    // и transition не сработает. requestAnimationFrame даёт браузеру
-    // отрисовать начальное состояние, и только потом меняем классы.
-    requestAnimationFrame(() => toast.classList.add("show"));
-
-    setTimeout(() => {
-        toast.classList.remove("show");
-        // ждём окончания transition, потом удаляем узел из DOM
-        toast.addEventListener("transitionend", () => toast.remove(), { once: true });
-    }, duration);
-}
 

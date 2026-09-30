@@ -229,11 +229,14 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
 
 // =================== Refresh table ===================
 document.getElementById("data-entry-refresh-toggle").addEventListener("click", function() {
-  const hasChanges = dirtyRows.length || entryDeletedIds.length //put all possible changes in const
+  const hasChanges = dirtyRows.size || entryDeletedIds.length //put all possible changes in const
   if (hasChanges && !confirm("Unsaved changes will be lost. Continue?")) { //asking user for continue if we have changes
         return;
     }
   dataEntryTable.setData(URLS.dataEntryGetURL);
+  dirtyRows.length = 0;
+  entryDeletedIds.clear();
+  showToast("Refreshed", "success");
 });
 
 // ===================== Checking fresh rows in middle of table for replacing whole table
@@ -311,7 +314,7 @@ function entryCollectChanges() {
 // ============================ Save changes ===========================
 async function entrySaveChanges() {
 // Save scenario 1: we have changes affects whole dataEntryTable(insert rows in middle, deleting existing rows)
-  if ((entryDeletedIds.length || checkNewRows()) && (confirm("All previous samples results will be deleted, continue?"))) {
+  if ((entryDeletedIds.size || checkNewRows()) && (confirm("All previous samples results will be deleted, continue?"))) {
     try {
       const response = await fetch(URLS.dataEntryReplaceAllURL, {
         method: "POST",
@@ -319,13 +322,9 @@ async function entrySaveChanges() {
         body: JSON.stringify(dataEntryTable.getData()),
       });
 
-      if (response.status === 422) {
-        showErrors((await response.json()).errors);
-        return;                                   // флаги не снимаем — правки живы
-      }
       if (!response.ok) {
-        console.error("STATUS:", response.status, "BODY:", await response.text());
-        return;
+        await showResponseError(response);
+        return;                                   // флаги не снимаем — правки живы
       }
 
       dataEntryTable.getEditedCells().forEach(cell => {
@@ -333,9 +332,11 @@ async function entrySaveChanges() {
         cell.getElement().classList.remove("dirty");
       });
 
+      showToast(`Table Saved`, "success");
+      dirtyRows.size = 0;
     }
     catch (e) {
-      console.log(e)
+      showToast(`Error: ${e}`, "error");
     } finally {
       entryDeletedIds.clear();
     }
@@ -357,13 +358,9 @@ async function entrySaveChanges() {
         body: JSON.stringify(payload),
       });
 
-      if (response.status === 422) {
-        showErrors((await response.json()).errors);
-        return;                                   // флаги не снимаем — правки живы
-      }
       if (!response.ok) {
-        console.error("STATUS:", response.status, "BODY:", await response.text());
-        return;
+        await showResponseError(response);
+        return;                                   // флаги не снимаем — правки живы
       }
 
       dataEntryTable.getEditedCells().forEach(cell => {
@@ -376,13 +373,18 @@ async function entrySaveChanges() {
       if (resultJSON.updated) {resultMessage += `Updated: ${resultJSON.updated}`};
       if (resultJSON.created) {resultMessage += `Created: ${resultJSON.created}`};
 
-      dirtyRows = []
+      let dirtyRows = []
       dataEntryTable.setData(URLS.dataEntryGetURL);
+      dirtyRows.length = 0;
+      entryDeletedIds.clear();
+      showToast("Refreshed", "success");
       nobTable.setData(URLS.nobGetURL);
       temTable.setData(URLS.temGetURL);
+
+      showToast(`Table Saved ${resultMessage}`, "success");
     }
     catch (e) {
-      console.log(e)
+      showToast(`Error: ${e}`, "error");
     } finally {
       entryDeletedIds.clear();
     }

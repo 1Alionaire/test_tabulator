@@ -52,7 +52,7 @@ class PLMTableView(LoginRequiredMixin, TemplateView):
 # =============== getting all PLM projects ===============
 @require_GET
 def api_get_plm_projects_table(request):
-    plm_projects = MainProject.active_objects.filter(sample_type_id__in=[2,3,4]).order_by('lab_id_sort').values(
+    plm_projects = MainProject.active_objects.filter(sample_type_id__in=[2,3,4]).order_by('-lab_id_sort').values(
                                                      'id',
                                                      'lab_id',
                                                      'lab_id_sort',
@@ -152,7 +152,6 @@ def api_update_data_entry_table(request, id):
     plm_project = PlmProject.objects.get(pk=id)
     try:
         payload_json = json.loads(request.body)
-        print(f'payload_json : {payload_json}')
         data_entry_manager = PLMSamplesDataEntryManager(input_data=payload_json, 
                                                         plm_project=plm_project, 
                                                         type='update')
@@ -210,7 +209,6 @@ def api_get_weight_table(request, id):
 def api_update_weight_table(request, id):
     plm_project = PlmProject.objects.get(pk=id)
     payload_json = json.loads(request.body)
-    print(f'payload_json : {payload_json}')
 
     weight_manager = PLMSamplesWeightManager(plm_project=plm_project,input_data=payload_json)
     checking_error_code = weight_manager.validate_whole_object()
@@ -252,6 +250,9 @@ def api_update_analysis_table(request, id):
             sample = samples_to_update[int(record_row.get('id'))]
             for name_field, value in record_row.items():
                 if name_field not in ['id', 'weight__residue']:
+                    # Tabulator sends null for cleared cells; NOT NULL columns fall back to their model default
+                    if value is None and not PlmSample._meta.get_field(name_field).null:
+                        value = PlmSample._meta.get_field(name_field).get_default()
                     setattr(sample, name_field, value)
                     touched_fields.add(name_field)
 
@@ -275,7 +276,7 @@ def api_update_analysis_table(request, id):
 @require_GET
 def api_get_tem_analysis_table(request, id):
     all_samples = PlmSample.objects.filter(plm_project=id, 
-                                           method__in=[2, 3, 4], 
+                                           method__in=[SampleMethod.Sample1984, SampleMethod.Sample1986, SampleMethod.Sample1994],
                                            is_qc_sample=False).order_by('row_number').values('id', 'row_number', 'client_sample', 'method', 
                                                                                             'lab_sample', 'layer', 'homo_area', 'weight__residue', 
                                                                                             'tem_asb_type', 'tem_asb_point', 'tem_asb_percent', 'tem_microscope_alignment',

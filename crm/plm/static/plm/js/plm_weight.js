@@ -23,6 +23,15 @@ function weightEnterDownEditor(cell, onRendered, success, cancel, editorParams) 
         input.select();
     });
 
+    // Позволяем мышкой переставлять курсор внутри текста
+    input.addEventListener("mousedown", (event) => {
+        event.stopPropagation();
+    });
+
+    input.addEventListener("click", (event) => {
+        event.stopPropagation();
+    });
+
     input.addEventListener("keydown", function (e) {
 
         if (e.key === "Enter") {
@@ -288,13 +297,9 @@ async function weightSaveChanges() {
         body: JSON.stringify(changes),
       });
 
-      if (response.status === 422) {
-        showErrors((await response.json()).errors);
-        return;                                   // флаги не снимаем — правки живы
-      }
       if (!response.ok) {
-        console.error("STATUS:", response.status, "BODY:", await response.text());
-        return;
+        await showResponseError(response);
+        return;                                   // флаги не снимаем — правки живы
       }
 
       weightTable.getEditedCells().forEach(cell => {
@@ -302,9 +307,10 @@ async function weightSaveChanges() {
         cell.getElement().classList.remove("dirty");
       });
 
+      showToast(`Table Saved`, "success");
     }
     catch (e) {
-      console.log(e)
+      showToast(`Error: ${e.message}`, "error");
     } finally {
       entryDeletedIds.clear();
     }
@@ -318,4 +324,5 @@ document.getElementById("weight-refresh-toggle").addEventListener("click", funct
         return;
     }
   weightTable.setData(URLS.weightGetURL);
+  showToast(`Refreshed`, "success");
 });
