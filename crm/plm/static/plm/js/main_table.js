@@ -81,7 +81,7 @@ let table;
               title:"Date", 
               field:"date_registered", 
               formatter:formatDateMDY, 
-              width:90, 
+              width:110, 
               headerSort: false,
               
             },
@@ -129,7 +129,7 @@ let table;
             {
               title:"Samples", 
               field:"number_samples", 
-              width: 65,  
+              width: 75,  
               headerSort: false,
               },
             {
@@ -145,8 +145,7 @@ let table;
             {
               title:"NOB<br>Samples", 
               field:"nob_number_samples", 
-              width:100, 
-              width:65, 
+              width:75, 
               headerSort: false,
             },
             {

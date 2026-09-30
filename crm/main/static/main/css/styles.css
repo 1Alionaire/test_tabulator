@@ -2,8 +2,39 @@
     box-sizing: border-box;
 }
 
+html,
+body {
+    height: 100%;
+}
+
+/* шапка сверху, контент страницы занимает всё оставшееся окно */
+body {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* страницы без обёртки (подтверждения смены пароля): отступ, который раньше давал margin у body */
+body > h1,
+body > p {
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+/* кнопки и поля по умолчанию не наследуют шрифт страницы */
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
 .main {
     display: flex;
+    flex: 1;
+    /* высота = окно минус шапка, таблицы внутри скроллятся сами (height: "100%") */
+    min-height: 0;
 }
 
 .navigation-main {
@@ -11,6 +42,7 @@
     min-width: 100px;
     min-height: 50px;
     display: flex;
+    flex: none;
     align-items: center;
     width: 100%;
     justify-content: space-between;
@@ -24,39 +56,32 @@
     gap: 8px;
 }
 
-.dropdown-toggle {
+.nav-tab,
+.dropdown-toggle,
+.analysis-nav-tab {
     background-color: transparent;
     color: white;
     display: block;
-    width: 80px;
-    height: 100%;
     font-size: 20px;
     border: none;
-    /* margin: 10px 1px; */
     text-decoration: none;
     text-align: center;
 }
 
 .nav-tab {
-    background-color: transparent;
-    color: white;
-    display: block;
     width: 4em;
-    height: 100%;
-    font-size: 20px;
-    border: none;
     margin: 10px 1px;
-    text-decoration: none;
-    text-align: center;
 }
 
-.nav-user-btn {
-    background-color: transparent;
-    color: white;
-    display: block;
-    width: 3em;
-    font-size: 20px;
-    padding: 1px 15px;
+.dropdown-toggle {
+    width: 80px;
+    /* растягивается на высоту .dropdown — текст на одной линии с остальными пунктами */
+    height: 100%;
+}
+
+.analysis-nav-tab {
+    width: 100%;
+    margin: 10px 1px;
 }
 
 .dropdown {
@@ -84,19 +109,6 @@
     display: block;
 }
 
-.analysis-nav-tab {
-    background-color: transparent;
-    color: white;
-    display: block;
-    width: 100%;
-    height: 100%;
-    font-size: 20px;
-    border: none;
-    margin: 10px 1px;
-    text-decoration: none;
-    text-align: center;
-}
-
 .invisible {
     display: none;
 }
@@ -106,16 +118,15 @@
 }
 
 .main-window {
-    min-height: 900px;
-    border-color: black;
-    width: 100vw;
+    flex: 1;
+    min-width: 0;
     display: flex;
 }
 
 .control-panel {
+    flex: none;
     margin: 20px 10px;
     min-width: 50px;
-    min-height: 900px;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -124,16 +135,14 @@
 .side-filter-panel {
     margin-top: 20px;
     margin-right: 10px;
+    margin-left: 8px;
     width: 25vw;
     min-width: 200px;
-    min-height: 900px;
     transition: width 0.3s ease;
     flex-direction: column;
     gap:10px;
-}
-
-#main-projects {
-    width: 100%;
+    /* на невысоком экране фильтры скроллятся внутри панели, а не всей страницей */
+    overflow-y: auto;
 }
 
 .panel-btn {
@@ -233,6 +242,16 @@
     height: 100%;
 }
 
+/* без этого длинный заголовок обрезается слева, а не многоточием */
+.tabulator .tabulator-col .tabulator-col-content .tabulator-col-title-holder {
+    min-width: 0;
+}
+
+/* серый фон Tabulator (#888) виден под короткими таблицами */
+.tabulator {
+    background-color: #fff;
+}
+
 .main-upload-window {
     min-width : 900px;
     width: 70%;
@@ -274,8 +293,6 @@
     color: white;
     font-size: 16px;
     font-family: inherit;
-
-    box-sizing: border-box;
 }
 
 .logout-form {

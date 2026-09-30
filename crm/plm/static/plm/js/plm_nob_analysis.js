@@ -76,7 +76,7 @@ nobTable = new Tabulator("#samples-nob-table", {
             cssClass: "range-header-col", editor: false
         },
         history:true,
-        height: '100vh', //"calc(100vh - 120px)",
+        height: '100%',
         
         width: "100%", 
         layout:"fitColumns",
@@ -133,7 +133,7 @@ nobTable = new Tabulator("#samples-nob-table", {
             {
               title:"Layer", 
               field:"layer", 
-              width: 40, 
+              width: 55, 
               editable: false,
               headerSort: false,
             },
@@ -165,7 +165,7 @@ nobTable = new Tabulator("#samples-nob-table", {
             {
               title:"Morphology", 
               field:"morphology", 
-              width: 80, 
+              width: 100, 
               formatter: "lookup",
               formatterParams: Object.fromEntries(tableOptions['sampleMorphology'].map(o => [o.value, o.label])),
               editor: "list",
@@ -212,7 +212,7 @@ nobTable = new Tabulator("#samples-nob-table", {
                         {
               title:"Pleochroism<br>Color", 
               field:"pleochroism_color", 
-              width: 80, 
+              width: 105, 
               formatter: "lookup",
               formatterParams: Object.fromEntries(tableOptions['samplePleochColor'].map(o => [o.value, o.label])),
               editor: "list",
@@ -223,7 +223,7 @@ nobTable = new Tabulator("#samples-nob-table", {
             {
               title:"Birefringence", 
               field:"birefringence", 
-              width: 80, 
+              width: 110, 
               formatter: "lookup",
               formatterParams: Object.fromEntries(tableOptions['sampleBirefringence'].map(o => [o.value, o.label])),
               editor: "list",
@@ -234,7 +234,7 @@ nobTable = new Tabulator("#samples-nob-table", {
             {
               title:"Other Fiber", 
               field:"other_fiber", 
-              width: 80, 
+              width: 95, 
               formatter: "lookup",
               formatterParams: Object.fromEntries(tableOptions['sampleOtherFiber'].map(o => [o.value, o.label])),
               editor: "list",
@@ -330,7 +330,7 @@ nobTable = new Tabulator("#samples-nob-table", {
             {
               title:"Asbestos %", 
               field:"asb_percent", 
-              width: 80, 
+              width: 100, 
             //   editor: weightEnterDownEditor, 
               editable: false,
               headerSort: false,

@@ -85,7 +85,7 @@ weightTable = new Tabulator("#samples-weight-table", {
             cssClass: "range-header-col", editor: false
         },
         history:true,
-        height: "calc(100vh - 120px)",
+        height: "100%",
         width: "100%", 
         layout:"fitColumns",
         editTriggerEvent: "dblclick",
@@ -133,7 +133,7 @@ weightTable = new Tabulator("#samples-weight-table", {
             {
               title:"Crucible with sample", 
               field:"w_crucible_with_sample", 
-              width: 130, 
+              width: 160, 
               editor: weightEnterDownEditor, 
               headerSort: false,
               

@@ -33,7 +33,7 @@ temTable = new Tabulator("#samples-tem-table", {
             cssClass: "range-header-col", editor: false
         },
         history:true,
-        height: "calc(100vh - 120px)",
+        height: "100%",
         width: "100%", 
         layout:"fitColumns",
         editTriggerEvent: "dblclick",
@@ -96,7 +96,7 @@ temTable = new Tabulator("#samples-tem-table", {
             {
               title:"Layer", 
               field:"layer", 
-              width: 40, 
+              width: 55, 
               editable: false,
               headerSort: false,
             },
@@ -128,7 +128,7 @@ temTable = new Tabulator("#samples-tem-table", {
             {
               title:"Visual<br>Estimation", 
               field:"tem_asb_point", 
-              width: 80, 
+              width: 90, 
               editor: weightEnterDownEditor, 
               headerSort: false,
               editable: checkTEMforPS,
@@ -136,7 +136,7 @@ temTable = new Tabulator("#samples-tem-table", {
             {
               title:"Asbestos %", 
               field:"tem_asb_percent", 
-              width: 80, 
+              width: 100, 
             //   editor: weightEnterDownEditor, 
               editable: false,
               headerSort: false,
@@ -155,21 +155,21 @@ temTable = new Tabulator("#samples-tem-table", {
             {
               title:"Microscope<br>Alignment", 
               field:"tem_microscope_alignment", 
-              width: 70, 
+              width: 95, 
               editor: entryEnterDownEditor, 
               headerSort: false,
             },
             {
               title:"Eccentricity<br>Adjusted", 
               field:"tem_eccentricity_adjusted", 
-              width: 70, 
+              width: 100, 
               editor: entryEnterDownEditor, 
               headerSort: false,
             },
             {
               title:"Grid Pre<br>Acceptability", 
               field:"tem_grid_pre_acceptability", 
-              width: 70, 
+              width: 110, 
               editor: entryEnterDownEditor, 
               headerSort: false,
             },

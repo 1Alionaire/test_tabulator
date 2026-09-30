@@ -126,7 +126,7 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
             cssClass: "range-header-col", editor: false
         },
         history:true,
-        height: "calc(100vh - 120px)",
+        height: "100%",
         width: "100%", 
         layout:"fitColumns",
         editTriggerEvent: "dblclick",
@@ -157,20 +157,20 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
             { 
               title:"Client ID", 
               field:"client_sample", 
-              width: 80, 
+              width: 100, 
               editor: entryEnterDownEditor, 
             },
             {
               title:"Homogenity", 
               field:"homo_area", 
-              width: 80, 
+              width: 125, 
               editor: entryEnterDownEditor, 
               
             },
             {
               title:"Layer", 
               field:"layer", 
-              width: 40, 
+              width: 55, 
               editor: entryEnterDownEditor, 
               headerSort: false,
             },

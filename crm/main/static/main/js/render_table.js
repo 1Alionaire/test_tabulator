@@ -99,7 +99,7 @@ function checkCOCFile(cell) {
             {
               title:"Lab ID", 
               field:"lab_id", 
-              width: 80, 
+              width: 100, 
               editor:"input", 
               headerSort: false,
               
@@ -170,7 +170,7 @@ function checkCOCFile(cell) {
             {
               title:"Samples", 
               field:"number_samples", 
-              width: 65, 
+              width: 75, 
               editor:"number", 
               headerSort: false,
               editorParams: {
@@ -194,9 +194,8 @@ function checkCOCFile(cell) {
             {
               title:"NOB<br>Samples", 
               field:"nob_number_samples", 
-              width:100, 
               editor: "number", 
-              width:65, 
+              width:75, 
               headerSort: false,
               editorParams: {
                 min: 0,

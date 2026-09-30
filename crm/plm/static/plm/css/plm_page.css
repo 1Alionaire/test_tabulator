@@ -1,37 +1,17 @@
-body { 
-    box-sizing:border-box;
-}
-
-.main-window {
-    min-height: 900px;
-    border-color: black;
-    width: 100vw;
-    display: flex;
-}
-
 .control-panel {
-    margin-inline: 0;
+    margin: 20px 0;
     min-width: 60px;
-    min-height: 900px;
-    display: flex;
-    flex-direction: column;
     gap: 0px;
-    /* padding-left: 0px; */
     padding: 0px;
 }
 
 .work-space {
     width: 100%;
+    min-width: 0;
 }
 
 .panel-btn {
-    min-width: 40px;
-    width:100%;
-    /* min-height: 40px; */
-    min-height: 0;
-    padding: 0.5px;
-    font-size: 14px;
-    background-color:white;
+    width: 100%;
     border: none;
 }
 
@@ -44,7 +24,6 @@ body {
     flex: 1;
     padding: 10px 10px;
     display: none;
-    border: 0.5px;
     height: 100%;
     flex-direction: column;
     gap: 10px;
@@ -54,21 +33,10 @@ body {
     display: flex;
 }
 
-.project-update-box {
-    width: 33%;
-    border: 0.5px solid black;
-}
-
-.coc-file-window {
-    width: 67%;
-    border: 0.5px solid black;
-}
-
 .section-control-panel {
     width: 100%;
     background-color: lightgray;
     min-height: 50px;
-    height: 10%;
     display: flex;
     flex-direction: row;
     justify-content: start;
@@ -77,38 +45,26 @@ body {
 .section-table {
     width: 100%;
     background-color: lightblue;
-    min-height: 700px;
+    /* таблица занимает всё место под панелью кнопок */
+    flex: 1;
+    min-height: 0;
     position: relative;
 }
 
-
-
-/* #data-entry-control-panel {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-} */
-
-/* #weight-control-panel {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-} */
-
-#nob-control-panel {
-    display: flex;
-    flex-direction: row;
-    justify-content: start;
-    
-} 
-
-.control-buttons {
-    min-width: 250px;
-    margin: 5px;
+.control-buttons,
+.tem-control-buttons {
     display: flex;
     flex-direction: row;
     margin: 20px 10px;
     gap: 20px;
+}
+
+.control-buttons {
+    min-width: 250px;
+}
+
+.tem-control-buttons {
+    min-width: 150px;
 }
 
 .data-entry-upload-excel-form{
@@ -118,36 +74,6 @@ body {
     display: flex;
     flex-direction: column;
     gap:5px
-}
-
-.panel-btn {
-    min-width: 40px;
-    min-height: 40px;
-    padding: 0.5px;
-    background-color: white;
-    font-size: 14px;
-}
-
-.tabulator .tabulator-cell {
-    font-size: 20px;
-}
-
-.tabulator .tabulator-cell input,
-.tabulator .tabulator-cell select,
-.tabulator .tabulator-cell textarea {
-    font-size: inherit;
-    font-family: inherit;
-    line-height: inherit;
-    color: inherit;
-}
-
-.tem-control-buttons {
-    min-width: 150px;
-    margin: 5px;
-    display: flex;
-    flex-direction: row;
-    margin: 20px 10px;
-    gap: 20px;
 }
 
 .temperature-control-panel {
@@ -169,8 +95,6 @@ body {
     margin: 5px 10px;
     gap:5px;
 }
-
-.table-wrap { position: relative; }
 
 .table-overlay {
   position: absolute;
