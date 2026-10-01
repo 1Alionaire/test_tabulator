@@ -23,6 +23,7 @@ urlpatterns = [
     path('plm/', include('plm.urls', namespace='plm')),
     path('pcm/', include('pcm.urls', namespace='pcm')),
     path('tem/', include('tem.urls', namespace='tem')),
+    path('finance/', include('finance.urls', namespace='finance')),
     path('users/', include('users.urls', namespace='users')),
     
 ]

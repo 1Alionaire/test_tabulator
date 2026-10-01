@@ -18,14 +18,6 @@ function getLabId(cell) {
   return cell.getRow().getData().lab_id;
 }
 
-// ================ date "YYYY-MM-DD" → "MM-DD-YYYY" ==============
-function formatDateMDY(cell) {
-  const value = cell.getValue();
-  if (!value) return "";
-  const [year, month, day] = value.split("-");
-  return `${month}-${day}-${year}`;
-}
-
 let table;
 
 (async () => { 

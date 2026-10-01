@@ -1,0 +1,10 @@
+{% extends 'base.html' %} {% load static %} {% block extra_css %}
+<link
+  type="text/css"
+  href="{% static 'tem/css/tem_main.css' %}"
+  rel="stylesheet"
+/>{% endblock %} {% block content%}
+<main class="center-menu">
+  <a href="{% url 'finance:company_main' %}" class="menu-btn">Companies</a>
+</main>
+{% endblock%} {% block extra_js %} {% endblock %}

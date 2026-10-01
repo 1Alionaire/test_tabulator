@@ -118,11 +118,15 @@ class UpdateProjectView(LoginRequiredMixin, UpdateView):
     model = PlmProject
     form_class = UpdatePlmProject
     template_name = 'plm/plm_page.html'
-    context = {'title': 'test'}
     context_object_name = 'work'
     
     def get_object(self):
         return get_object_or_404(PlmProject, id=self.kwargs['id'])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f'{self.object}'
+        return context
 
 # =============== getting all options ===============
 @require_GET

@@ -39,82 +39,6 @@ const entryDeletedIds = new Set();
 
 const dirtyRows = [];
 
-// ================= custom function for input tabulator ================
-function entryEnterDownEditor(cell, onRendered, success, cancel, editorParams) {
-    const input = document.createElement("input");
-
-    input.type = "text";
-    input.value = cell.getValue() ?? "";
-
-    input.style.width = "100%";
-    input.style.height = "100%";
-    input.style.boxSizing = "border-box";
-    input.style.padding = "4px";
-
-    let finished = false;
-
-    onRendered(function () {
-        requestAnimationFrame(() => {
-            input.focus();
-
-            const end = input.value.length;
-            input.setSelectionRange(end, end);
-        });
-    });
-
-    // Позволяем мышкой переставлять курсор внутри текста
-    input.addEventListener("mousedown", (event) => {
-        event.stopPropagation();
-    });
-
-    input.addEventListener("click", (event) => {
-        event.stopPropagation();
-    });
-
-    input.addEventListener("keydown", function (e) {
-
-        if (e.key === "Enter") {
-            e.preventDefault();
-            e.stopPropagation();
-
-            finished = true;
-
-            // сохраняем значение в Tabulator
-            const accepted = success(input.value);
-
-            // например, validation не прошла
-            if (accepted === false) {
-                finished = false;
-                return;
-            }
-
-            // переходим в ячейку ниже
-            setTimeout(function () {
-                cell.navigateDown();
-            }, 0);
-        }
-
-        if (e.key === "Escape") {
-            e.preventDefault();
-            e.stopPropagation();
-
-            finished = true;
-            cancel();
-        }
-    });
-
-    // если пользователь кликнул мышкой вне ячейки —
-    // тоже сохраняем значение
-    input.addEventListener("blur", function () {
-        if (!finished) {
-            finished = true;
-            success(input.value);
-        }
-    });
-
-    return input;
-}
-
 (async () => { 
 const response = await fetch(URLS.tableOptionsGetURL);
 const tableOptions = await response.json();
@@ -158,34 +82,34 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
               title:"Client ID", 
               field:"client_sample", 
               width: 100, 
-              editor: entryEnterDownEditor, 
+              editor: tabulatorTextEditor, 
             },
             {
               title:"Homogenity", 
               field:"homo_area", 
               width: 125, 
-              editor: entryEnterDownEditor, 
+              editor: tabulatorTextEditor, 
               
             },
             {
               title:"Layer", 
               field:"layer", 
               width: 55, 
-              editor: entryEnterDownEditor, 
+              editor: tabulatorTextEditor, 
               headerSort: false,
             },
             {
               title:"Description", 
               field:"description", 
               width: 500, 
-              editor: entryEnterDownEditor, 
+              editor: tabulatorTextEditor, 
               headerSort: false,
             },
             {
               title:"Location", 
               field:"location", 
               width: 500, 
-              editor: entryEnterDownEditor, 
+              editor: tabulatorTextEditor, 
               headerSort: false,
             },
             {

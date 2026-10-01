@@ -8,26 +8,6 @@ const csrftoken = getCookie('csrftoken');
 
 const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
-function isEmpty(inputString) {
-  if (inputString == undefined || inputString == 'undefined' || 
-    inputString == null || inputString == 'null' || 
-    inputString == NaN ||  inputString == 'NaN'
-  ) {
-    return true
-  } 
-  else {
-    return false
-  }
-};
-
-// ================ date "YYYY-MM-DD" → "MM-DD-YYYY" ==============
-function formatDateMDY(cell) {
-  const value = cell.getValue();
-  if (!value) return "";
-  const [year, month, day] = value.split("-");
-  return `${month}-${day}-${year}`;
-}
-
 // ==================== Open Filter Tab ====================
 const filterPanel = document.getElementById("main-section-filter");
 
@@ -143,7 +123,7 @@ function checkCOCFile(cell) {
               title:"Project Name",  
               field:"project_name", 
               width:400, 
-              editor:"input", 
+              editor: tabulatorTextEditor, 
               headerSort: false,
               
             },
@@ -151,7 +131,7 @@ function checkCOCFile(cell) {
               title:"Project Address",  
               field:"project_address", 
               hozAlign:"center", width:400, 
-              editor:"input", 
+              editor: tabulatorTextEditor, 
               headerSort: false,
               
             },
@@ -326,7 +306,6 @@ async function saveChanges() {
   }
 
   if (changes.deleted.length && !confirm("Projects will be deleted. Continue?")) return
-
 
   try {
     const res = await fetch(URLS.mainProjectUpdateURL, {

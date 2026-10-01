@@ -4,78 +4,6 @@ const weightDeletedIds = new Set();
 // ==================== Making whole table ====================
 let weightTable;
 
-// ================= custom function for input tabulator ================
-function weightEnterDownEditor(cell, onRendered, success, cancel, editorParams) {
-    const input = document.createElement("input");
-
-    input.type = "number";
-    input.value = cell.getValue() ?? "";
-
-    input.style.width = "100%";
-    input.style.height = "100%";
-    input.style.boxSizing = "border-box";
-    input.style.padding = "4px";
-
-    let finished = false;
-
-    onRendered(function () {
-        input.focus();
-        input.select();
-    });
-
-    // Позволяем мышкой переставлять курсор внутри текста
-    input.addEventListener("mousedown", (event) => {
-        event.stopPropagation();
-    });
-
-    input.addEventListener("click", (event) => {
-        event.stopPropagation();
-    });
-
-    input.addEventListener("keydown", function (e) {
-
-        if (e.key === "Enter") {
-            e.preventDefault();
-            e.stopPropagation();
-
-            finished = true;
-
-            // сохраняем значение в Tabulator
-            const accepted = success(input.value);
-
-            // например, validation не прошла
-            if (accepted === false) {
-                finished = false;
-                return;
-            }
-
-            // переходим в ячейку ниже
-            setTimeout(function () {
-                cell.navigateDown();
-            }, 0);
-        }
-
-        if (e.key === "Escape") {
-            e.preventDefault();
-            e.stopPropagation();
-
-            finished = true;
-            cancel();
-        }
-    });
-
-    // если пользователь кликнул мышкой вне ячейки —
-    // тоже сохраняем значение
-    input.addEventListener("blur", function () {
-        if (!finished) {
-            finished = true;
-            success(input.value);
-        }
-    });
-
-    return input;
-}
-
 (async () => { 
 
 weightTable = new Tabulator("#samples-weight-table", {
@@ -119,14 +47,14 @@ weightTable = new Tabulator("#samples-weight-table", {
               title:"Client ID", 
               field:"client_sample", 
               width: 160, 
-              editor: entryEnterDownEditor, 
+              editor: tabulatorTextEditor, 
               headerSort: false,
             },
             {
               title:"Crucible", 
               field:"w_crucible", 
               width: 130, 
-              editor: weightEnterDownEditor, 
+              editor: tabulatorNumberEditor, 
               headerSort: false,
             },
 
@@ -134,7 +62,7 @@ weightTable = new Tabulator("#samples-weight-table", {
               title:"Crucible with sample", 
               field:"w_crucible_with_sample", 
               width: 160, 
-              editor: weightEnterDownEditor, 
+              editor: tabulatorNumberEditor, 
               headerSort: false,
               
             },
@@ -149,7 +77,7 @@ weightTable = new Tabulator("#samples-weight-table", {
               title:"Sample Ashed", 
               field:"w_sample_ashed", 
               width: 130, 
-              editor: weightEnterDownEditor, 
+              editor: tabulatorNumberEditor, 
               headerSort: false,
             },
             {
@@ -163,21 +91,21 @@ weightTable = new Tabulator("#samples-weight-table", {
               title:"Petri", 
               field:"w_petri", 
               width: 130, 
-              editor: weightEnterDownEditor, 
+              editor: tabulatorNumberEditor, 
               headerSort: false,
             },
             {
               title:"Petri with Sample", 
               field:"w_petri_with_sample", 
               width: 130, 
-              editor: weightEnterDownEditor, 
+              editor: tabulatorNumberEditor, 
               headerSort: false,
             },
             {
               title:"Residue", 
               field:"residue", 
               width: 130, 
-              editor: weightEnterDownEditor, 
+              editor: tabulatorNumberEditor, 
               headerSort: false,
             },
             {
