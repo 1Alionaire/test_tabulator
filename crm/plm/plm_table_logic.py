@@ -291,7 +291,7 @@ def generate_qc_sample(inp_project, copy_of_sample, copy_of_weight, max_row_numb
 
 def generate_plm_qc_sample(max_row_number, select_project):
     samples_to_copy = PlmSample.original_samples.filter(plm_project=select_project, 
-                                                            method=SampleMethod.Sample1981).exclude(asb_type=SampleASbestosType.NotAnayzed)
+                                                            method=SampleMethod.Sample1981).exclude(asb_type=SampleASbestosType.NotAnalyzed)
         
     amount_rep_samples = math.ceil(PlmSample.original_samples.filter(plm_project=select_project, method=SampleMethod.Sample1981).count() / 15)
     amount_dup_samples = math.ceil(PlmSample.original_samples.filter(plm_project=select_project, method=SampleMethod.Sample1981).count() / 50)
@@ -323,7 +323,7 @@ def generate_plm_qc_sample(max_row_number, select_project):
 
 def generate_nob_qc_sample(max_row_number, select_project):
     samples_to_copy = PlmSample.original_samples.filter(plm_project=select_project, 
-                                                                method=SampleMethod.Sample1986).exclude(asb_type=SampleASbestosType.NotAnayzed)
+                                                                method=SampleMethod.Sample1986).exclude(asb_type=SampleASbestosType.NotAnalyzed)
     amount_rep_samples = math.ceil(PlmSample.original_samples.filter(plm_project=select_project, method=SampleMethod.Sample1986).count() / 15)
     amount_dup_samples = math.ceil(PlmSample.original_samples.filter(plm_project=select_project, method=SampleMethod.Sample1986).count() / 50)
 
@@ -372,15 +372,15 @@ def generate_nob_qc_sample(max_row_number, select_project):
 def generate_tem_qc_sample(max_row_number, select_project):
     samples_to_copy = PlmSample.original_samples.filter(plm_project=select_project, method__in=[SampleMethod.Sample1984, 
                                                                                                 SampleMethod.Sample1986, 
-                                                                                                SampleMethod.Sample1994]).exclude(Q(asb_type=SampleASbestosType.NotAnayzed) | Q(tem_na_or_ps='PS'))
+                                                                                                SampleMethod.Sample1994]).exclude(Q(asb_type=SampleASbestosType.NotAnalyzed) | Q(tem_na_or_ps='PS'))
                 
     amount_rep_samples = math.ceil(PlmSample.original_samples.filter(plm_project=select_project, method__in=[SampleMethod.Sample1984, 
                                                                                                             SampleMethod.Sample1986, 
-                                                                                                            SampleMethod.Sample1994]).exclude(Q(asb_type=SampleASbestosType.NotAnayzed) | Q(tem_na_or_ps='PS')).count() / 15)
+                                                                                                            SampleMethod.Sample1994]).exclude(Q(asb_type=SampleASbestosType.NotAnalyzed) | Q(tem_na_or_ps='PS')).count() / 15)
     
     amount_dup_samples = math.ceil(PlmSample.original_samples.filter(plm_project=select_project, method__in=[SampleMethod.Sample1984, 
                                                                                                             SampleMethod.Sample1986, 
-                                                                                                            SampleMethod.Sample1994]).exclude(Q(asb_type=SampleASbestosType.NotAnayzed) | Q(tem_na_or_ps='PS')).count() / 50)
+                                                                                                            SampleMethod.Sample1994]).exclude(Q(asb_type=SampleASbestosType.NotAnalyzed) | Q(tem_na_or_ps='PS')).count() / 50)
 
     for _ in range(amount_rep_samples):
         random_sample_to_copy = random.choice(samples_to_copy)

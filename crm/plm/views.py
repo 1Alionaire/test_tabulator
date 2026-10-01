@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
-from django.http import JsonResponse, FileResponse
+from django.http import JsonResponse, FileResponse, Http404
 from main.models import MainProject
 from django.views.generic import UpdateView
 from .forms import UpdatePlmProject
@@ -18,8 +18,8 @@ from users.models import User
 from django.db.models import Max
 from tem.models import TEMGridQCRecord, TEMGridRecord
 from report_generator.plm.plm_report_generator import BulkSampleReportGenerator
-
-
+from invoice_generator.invoice_generator_start import InvoiceGenerator, DataForInvoiceGenerator
+from finance.models import Company
 
 from .models import (
     PlmProject,
@@ -349,8 +349,14 @@ def api_update_project_reviewer(request, id):
         return JsonResponse({'status': 'ok'})
 
 def get_test_function(request, id):
-    max_rownumber = PlmSample.objects.aggregate(Max('row_number'))
-    return JsonResponse(max_rownumber)
+    main_project = MainProject.active_objects.filter(plm_project__id=id)
+    if not main_project.exists():  # удалённый или несуществующий проект
+        raise Http404('Project not found')
+    pdf_buffer = InvoiceGenerator(main_project).build()
+    return FileResponse(pdf_buffer, as_attachment=True,
+                            filename=f'Invoice.pdf',
+                            content_type='application/pdf')
+    # return JsonResponse({'status': 'ok', 'data':data})
 
 @require_POST
 def api_generate_qc_samples(request, id):

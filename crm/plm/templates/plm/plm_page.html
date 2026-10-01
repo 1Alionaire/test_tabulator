@@ -176,6 +176,9 @@
               class="panel-btn"
               >Report</a
             >
+            <button type="button" id="tem-test-toggle" class="panel-btn">
+              Test
+            </button>
           </div>
         </section>
         <section class="section-table">
@@ -221,6 +224,8 @@
       "{% url 'plm:api_update_project_reviewer' work.id %}", //api_generate_qc_samples
 
     qcGenerateSamplesURL: "{% url 'plm:api_generate_qc_samples' work.id %}",
+
+    qcTest: "{% url 'plm:get_test_function' work.id %}",
   };
 </script>
 

@@ -30,7 +30,7 @@ pdfmetrics.registerFontFamily(
 )
 
 class VerticalText(Flowable):
-    """Текст, повёрнутый на 90°. Поддерживает многострочность через '\\n'."""
+    """Text, повёрнутый на 90°. Поддерживает многострочность через '\\n'."""
 
     def __init__(self, text, font_name='TimesNR-Bold', font_size=7,
                  padding=2, leading=None):
@@ -135,7 +135,7 @@ def weight_value(s, field):
     return getattr(s.weight, field) if s.weight else None
 
 def asb_status(asb_type, asb_percent):
-    if asb_type == SampleASbestosType.NotAnayzed:
+    if asb_type == SampleASbestosType.NotAnalyzed:
         return NOT_ANALYZED
     if asb_type not in asbestos_names_dict:     # None или NAD
         return NAD
@@ -232,61 +232,54 @@ def fit_column_widths(columns, available_width):
     scale = available_width / total
     return [w * scale for w in raw_widths]
 
-class BulkSampleReportGenerator:
-    """
-    Генерирует PDF-отчёт Bulk Sample Analysis Report для одного PlmProject.
-
-    Использование:
-        pdf_bytes = BulkSampleReportGenerator(plm_project).build()
-    """
-
+class BulkSampleReportGenerator: # initialize class 
+    # Init base class BaseDocTemplate from reportlab.platypus
     def __init__(self, project):
-        self.project = project
-        # только оригинальные сэмплы (без QC / TEM QC / blank),
-        # порядок как в таблицах PLM
-        self.samples = list(
+        self.project = project  # input project 
+        # parsing all samples 
+        self.samples = list( 
             PlmSample.original_samples.filter(plm_project=project)
             .select_related('weight')
             .order_by('row_number', 'id')
         )
-        self.buffer = BytesIO()
-        self.styles = self._build_styles()
+        self.buffer = BytesIO() #init binary buffer (it needs for return file)
+        self.styles = self._build_styles() #setting fonts and other decorations
 
-    # ---------- Публичный метод ----------
-
+    # ---------- Public method. Start building document process ----------
     def build(self):
-        """Собирает PDF и возвращает BytesIO, готовый к отдаче."""
-        doc = BaseDocTemplate(
-            self.buffer,
-            pagesize=PAGE_SIZE,
-            leftMargin=LEFT_MARGIN,
+         # Init base class BaseDocTemplate from reportlab.platypus
+        doc = BaseDocTemplate( # init BaseDocTemplate
+            self.buffer, # BytesIO, binary buffer, we will fill with document
+            pagesize=PAGE_SIZE, #page size - landscape(letter)
+            leftMargin=LEFT_MARGIN, #sizes 
             rightMargin=RIGHT_MARGIN,
             topMargin=TOP_MARGIN,
             bottomMargin=BOTTOM_MARGIN,
             title=f'Bulk Sample Report {self.project.lab_id}',
         )
 
-        # Frame — прямоугольник, куда льётся flowable-контент (таблицы)
+        # Frame — rectangle, where put content (tables, text)
         content_frame = Frame(
-            doc.leftMargin, doc.bottomMargin,
+            doc.leftMargin, doc.bottomMargin, #frame margins from doc object
             doc.width, doc.height,
-            id='content',
+            id='content', #frame id
             showBoundary=0,
         )
 
-        # PageTemplate связывает Frame и callback отрисовки страницы
+        # PageTemplate contain logic of rendering all elements excluding main info (logos, signs etc)
         page_template = PageTemplate(
             id='main',
-            frames=[content_frame],
-            onPage=self._draw_page_frame,   # рисуется НА КАЖДОЙ странице
+            frames=[content_frame], # Frame 
+            onPage=self._draw_page_fram , # render on every page
         )
-        doc.addPageTemplates([page_template])
+        doc.addPageTemplates([page_template]) # adding template to basedocument
 
-        story = self._build_story()
-        # номер страницы рисует NumberedCanvas — ему нужно общее число страниц
+        story = self._build_story()  #filling document with main info
+
+        #  NumberedCanvas renders page numbers, he needs total amount of samples
         doc.build(story, canvasmaker=NumberedCanvas)
 
-        self.buffer.seek(0)
+        self.buffer.seek(0) #taking binary document
         return self.buffer
 
     def _build_styles(self):
@@ -379,9 +372,9 @@ class BulkSampleReportGenerator:
         canvas_obj.restoreState()
 
     def _build_story(self):
-        """Собирает flowable-элементы: таблицы по 20 сэмплов + футер."""
-        story = []
-        chunks = [
+        """Gather flowable-элементы: tables by 20 samples + footer"""
+        story = [] # init array
+        chunks = [ #fraction all samples into 20 portion samples(matrix of samples, where row amount = total//20, column amount = 20)
             self.samples[i:i + SAMPLES_PER_PAGE]
             for i in range(0, len(self.samples), SAMPLES_PER_PAGE)
         ]
@@ -389,43 +382,43 @@ class BulkSampleReportGenerator:
         if not chunks:
             chunks = [[]]
 
-        for idx, chunk in enumerate(chunks):
-            story.append(self._build_samples_table(chunk))
-            is_last = (idx == len(chunks) - 1)
-            if not is_last:
-                story.append(PageBreak())
+        for idx, chunk in enumerate(chunks): #going through matrix
+            story.append(self._build_samples_table(chunk)) #build table for 20 samples
+            is_last = (idx == len(chunks) - 1) # checking is last chunk or no
+            if not is_last: 
+                story.append(PageBreak()) # adding a page break 
 
-        # блок под последней таблицей (даты, подпись, примечания)
+        # build for last piece of table 
         story.append(Spacer(1, 0.15 * inch))
-        story.extend(self._build_footer_block())
+        story.extend(self._build_footer_block()) # build footer block
         return story
 
-    def _build_samples_table(self, samples_chunk):
-        # --- Шапка таблицы ---
+    def _build_samples_table(self, samples_chunk): #we put array of samples 
+        # --- Table header  ---
         header_row = []
-        for title, _, _, is_vertical in COLUMNS:
-            if is_vertical:
-                header_row.append(VerticalText(title))
+        for title, _, _, is_vertical in COLUMNS: # we going through static array COLUMNS
+            if is_vertical: #if vertical option for column element? 
+                header_row.append(VerticalText(title)) #call special function for vertical text 
             else:
-                header_row.append(
+                header_row.append( #add title to header
                     Paragraph(title.replace('\n', '<br/>'), self.styles['header'])
                 )
         data = [header_row]
 
         # (col_from, col_to, row) — ячейки с жёлтым фоном
-        yellow_cells = []
-        # --- Тело ---
-        for row_idx, sample in enumerate(samples_chunk, start=1):
-            row = []
-            for title, width, extractor, is_vertical in COLUMNS:
-                value = extractor(sample) or ''
+        yellow_cells = [] # init array of yellow cells
+        # --- Table body ---
+        for row_idx, sample in enumerate(samples_chunk, start=1): # go through every sample 
+            row = [] # init row   
+            for title, width, extractor, is_vertical in COLUMNS: # we going through static array COLUMNS
+                value = extractor(sample) or '' #extractor - function that get value from sample
                 row.append(Paragraph(
-                    str(value).replace('\n', '<br/>'),
-                    self.styles['cell'],
+                    str(value).replace('\n', '<br/>'), # replace tag to special tab
+                    self.styles['cell'], #attach style for cell 
                 ))
-            data.append(row)
+            data.append(row) # append row 
 
-            # статус асбеста по каждой колонке результата, которая есть у метода
+            # collecting all asbestos result. key = column, value = asb result
             statuses = {}
             if sample.method == SampleMethod.Sample1981:
                 statuses[PLM_COL] = plm_asb_status(sample)
@@ -434,24 +427,26 @@ class BulkSampleReportGenerator:
             if sample.method in TEM_METHODS:
                 statuses[TEM_COL] = tem_asb_status(sample)
 
-            # Trace / позитив / Not Analyzed — подсвечиваем ячейку результата
+            # Trace / Positive / Not Analyzed — append in yellow cells array
             for col, status in statuses.items():
                 if status != NAD:
                     yellow_cells.append((col, col, row_idx))
 
-            # позитив или Not Analyzed — подсвечиваем ещё и инфо о сэмпле
+            # positive or Not Analyzed — mark also info about sample
             if any(status in (POSITIVE, NOT_ANALYZED) for status in statuses.values()):
                 yellow_cells.append((*SAMPLE_INFO_COLS, row_idx))
 
+        # make column fit
         available = PAGE_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
         col_widths = fit_column_widths(COLUMNS, available)
 
-        # фиксируем высоту шапки — иначе вертикальный текст обрежется
-        header_height = 0.75 * inch   # подбери под самый длинный заголовок
-        row_heights = [header_height] + [0.28 * inch] * (len(data) - 1)
+        # fix header height — or vertical text will be cut
+        header_height = 0.75 * inch   # fit to longest header
+        row_heights = [header_height] + [0.28 * inch] * (len(data) - 1)  #adjust row height
 
-        table = Table(data, colWidths=col_widths, rowHeights=row_heights, repeatRows=1)
-        base_set_style = [
+        table = Table(data, colWidths=col_widths, rowHeights=row_heights, repeatRows=1) #make table
+        # making base style
+        base_set_style = [ 
             ('GRID',           (0, 0), (-1, -1), 0.5, colors.black),
             ('BACKGROUND',     (0, 0), (-1, 0),  colors.lightgrey),
             ('VALIGN',         (0, 0), (-1, 0),  'MIDDLE'),  # шапка — по нижнему краю
@@ -463,9 +458,11 @@ class BulkSampleReportGenerator:
             ('BOTTOMPADDING',  (0, 0), (-1, -1), 2),
         ]
 
+        # coloring yellow color positive cells 
         for col_from, col_to, row in yellow_cells:
             base_set_style.append(('BACKGROUND', (col_from, row), (col_to, row), colors.yellow))
 
+        # setting table style
         table.setStyle(TableStyle(base_set_style))
 
         return table

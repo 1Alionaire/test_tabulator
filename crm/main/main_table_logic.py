@@ -109,8 +109,7 @@ class MainProjectTableManager():
         for project in objects:
             project.full_clean()
             project.save()
-            creating_signal_manager = ProjectCreateSignal(project)
-            creating_signal_manager.create_project()
+            ProjectCreateSignal(project).create_project()
 
         return len(objects)
         

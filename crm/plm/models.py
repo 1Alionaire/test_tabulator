@@ -88,7 +88,7 @@ class SampleASbestosType(models.IntegerChoices):
     Anth = 5, 'Anthophillite'
     Trem = 6, 'Tremolite'
     Act = 7, 'Actinolite'
-    NotAnayzed = 8, 'Not analyzed'
+    NotAnalyzed = 8, 'Not analyzed'
 
 class SampleTexture(models.IntegerChoices):
     NonFibs = 1, 'Non-Fibs'
