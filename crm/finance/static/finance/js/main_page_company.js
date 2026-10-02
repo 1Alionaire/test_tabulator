@@ -5,10 +5,6 @@ function getCookie(name) {
 }
 const csrftoken = getCookie("csrftoken");
 
-function getLabId(cell) {
-  return cell.getRow().getData().lab_id;
-}
-
 const deletedIds = new Set();
 let table;
 const ORIGINALS = new Map();
@@ -172,7 +168,7 @@ function collectChanges() {
         createdData[companyName].fields[cell.getField()] = cell.getValue();
         }
       else {
-        entry = {lab_id: companyName, fields: {}, version: ORIGINALS.get(companyName)};
+        entry = {name: companyName, fields: {}, version: ORIGINALS.get(companyName)};
         createdData[companyName] = entry;
         createdData[companyName].fields[cell.getField()] = cell.getValue();
       }
@@ -241,3 +237,24 @@ async function saveChanges() {
     table.setData();
   }
 };
+
+// ================== deleting rows =============
+
+document.getElementById("main-menu-delete-toggle").addEventListener("click", function () {
+  const rows = table.getSelectedRows();
+  for (const row of rows ) {
+
+    table.deleteRow(row.getIndex());
+    deletedIds.add(row.getData().id);
+    
+  }
+});
+
+document.getElementById("main-menu-undo-toggle").addEventListener("click", function() {
+  table.undo();
+  deletedIds.clear();
+    });
+
+document.getElementById("main-menu-redo-toggle").addEventListener("click", function() {
+  table.redo();
+    });

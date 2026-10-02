@@ -15,7 +15,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from plm.models import PlmProject
 from django.views.decorators.http import require_GET, require_POST
+import logging
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 
+logger = logging.getLogger(__name__)
 
 def _serialize(obj):
     return {
@@ -75,20 +79,23 @@ def api_update_main_projects_table(request):
     try:
         payload_json = json.loads(request.body)
         table_manager = MainProjectTableManager(payload_json)
-        checking_error_code = table_manager.validate_whole_object()
+        error = table_manager.validate_whole_object()
 
         # validating whole object
-        if checking_error_code is not None:
-            return JsonResponse({'status' : '!ok' , **checking_error_code}, status=400)
+        if error is not None:
+            return JsonResponse({'status' : '!ok' , **error}, status=400)
 
         # updating 
-        operation_result = table_manager.table_update_processing()
-        if operation_result['status'] == '!ok':
-            return JsonResponse(**operation_result, status=400)
-
-        return JsonResponse(operation_result)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        return JsonResponse(table_manager.table_update_processing())
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'invalid JSON'}, status=400)
+    except ValidationError as e:
+        return JsonResponse({'error': '; '.join(e.messages)}, status=400)
+    except IntegrityError as e:
+        return JsonResponse({'error': f'database constraint failed: {e}'}, status=400)
+    except Exception:
+        logger.exception('main table update failed')
+        return JsonResponse({'error': 'internal server error'}, status=500)
 
 
 class UploadCOCView(UpdateView):

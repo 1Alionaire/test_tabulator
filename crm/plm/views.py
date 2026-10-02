@@ -20,6 +20,12 @@ from tem.models import TEMGridQCRecord, TEMGridRecord
 from report_generator.plm.plm_report_generator import BulkSampleReportGenerator
 from invoice_generator.invoice_generator_start import InvoiceGenerator, DataForInvoiceGenerator
 from finance.models import Company
+import logging
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
+
+logger = logging.getLogger(__name__)
+
 
 from .models import (
     PlmProject,
@@ -167,13 +173,17 @@ def api_update_data_entry_table(request, id):
         if checking_error_code is not None:
             return JsonResponse({'status' : '!ok' , **checking_error_code}, status=400)
 
-        operation_result = data_entry_manager.table_update_processing()
-        if operation_result['status'] == '!ok':
-            return JsonResponse(**operation_result, status=400)
-        
-        return JsonResponse(operation_result)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        return JsonResponse(data_entry_manager.table_update_processing())
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'invalid JSON'}, status=400)
+    except ValidationError as e:
+        return JsonResponse({'error': '; '.join(e.messages)}, status=400)
+    except IntegrityError as e:
+        return JsonResponse({'error': f'database constraint failed: {e}'}, status=400)
+    except Exception:
+        logger.exception('data entry table update failed')
+        return JsonResponse({'error': 'internal server error'}, status=500)
 
 @require_POST
 def api_replace_all_data_entry_table(request, id):
@@ -189,15 +199,18 @@ def api_replace_all_data_entry_table(request, id):
 
         if checking_error_code is not None:
             return JsonResponse({'status' : '!ok' , **checking_error_code}, status=400)
+      
+        return JsonResponse(data_entry_manager.table_update_processing())
 
-        operation_result = data_entry_manager.table_update_processing()
-        if operation_result['status'] == '!ok':
-            return JsonResponse(**operation_result, status=400)
-        
-        return JsonResponse(operation_result)
-
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'invalid JSON'}, status=400)
+    except ValidationError as e:
+        return JsonResponse({'error': '; '.join(e.messages)}, status=400)
+    except IntegrityError as e:
+        return JsonResponse({'error': f'database constraint failed: {e}'}, status=400)
+    except Exception:
+        logger.exception('data entry table update failed')
+        return JsonResponse({'error': 'internal server error'}, status=500)
 
 # =============== getting all data for weight ===============
 @require_GET
@@ -212,20 +225,26 @@ def api_get_weight_table(request, id):
 # =============== updating weight table ===============
 @require_POST
 def api_update_weight_table(request, id):
-    plm_project = PlmProject.objects.get(pk=id)
-    payload_json = json.loads(request.body)
+    try:
+        plm_project = PlmProject.objects.get(pk=id)
+        payload_json = json.loads(request.body)
 
-    weight_manager = PLMSamplesWeightManager(plm_project=plm_project,input_data=payload_json)
-    checking_error_code = weight_manager.validate_whole_object()
+        weight_manager = PLMSamplesWeightManager(plm_project=plm_project,input_data=payload_json)
+        checking_error_code = weight_manager.validate_whole_object()
 
-    if checking_error_code is not None:
-        return JsonResponse({'status' : '!ok' , **checking_error_code}, status=400)
+        if checking_error_code is not None:
+            return JsonResponse({'status' : '!ok' , **checking_error_code}, status=400)
 
-    operation_result = weight_manager.table_update_processing()
-    if operation_result['status'] == '!ok':
-        return JsonResponse(**operation_result, status=400)
-    
-    return JsonResponse(operation_result)
+        return JsonResponse(weight_manager.table_update_processing())
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'invalid JSON'}, status=400)
+    except ValidationError as e:
+        return JsonResponse({'error': '; '.join(e.messages)}, status=400)
+    except IntegrityError as e:
+        return JsonResponse({'error': f'database constraint failed: {e}'}, status=400)
+    except Exception:
+        logger.exception('weight update failed')
+        return JsonResponse({'error': 'internal server error'}, status=500)
 
 # =============== getting all data for NOB analysis ===============
 @require_GET
@@ -247,34 +266,45 @@ def api_update_analysis_table(request, id):
     selected_plm_project = PlmProject.objects.get(pk=id)
     payload_json = json.loads(request.body)
     touched_fields = set()
-    with transaction.atomic():
-        samples_to_update = {sample.id : sample for sample in 
-                                        PlmSample.objects.select_for_update().filter(plm_project=selected_plm_project)}
+    try:
+        with transaction.atomic():
+            samples_to_update = {sample.id : sample for sample in 
+                                            PlmSample.objects.select_for_update().filter(plm_project=selected_plm_project)}
 
-        for record_row in payload_json:
-            sample = samples_to_update[int(record_row.get('id'))]
-            for name_field, value in record_row.items():
-                if name_field not in ['id', 'weight__residue']:
-                    # Tabulator sends null for cleared cells; NOT NULL columns fall back to their model default
-                    if value is None and not PlmSample._meta.get_field(name_field).null:
-                        value = PlmSample._meta.get_field(name_field).get_default()
-                    setattr(sample, name_field, value)
-                    touched_fields.add(name_field)
+            for record_row in payload_json:
+                sample = samples_to_update[int(record_row.get('id'))]
+                for name_field, value in record_row.items():
+                    if name_field not in ['id', 'weight__residue']:
+                        # Tabulator sends null for cleared cells; NOT NULL columns fall back to their model default
+                        if value is None and not PlmSample._meta.get_field(name_field).null:
+                            value = PlmSample._meta.get_field(name_field).get_default()
+                        setattr(sample, name_field, value)
+                        touched_fields.add(name_field)
 
-            if 'tem_grid_box' in record_row and 'tem_grid_box_id_1' in record_row and 'tem_grid_box_id_2' in record_row :
-                TEMGridRecord.objects.filter(grid_box=record_row['tem_grid_box'], 
-                                            grid_id_1=record_row['tem_grid_box_id_1'], 
-                                            grid_id_2=record_row['tem_grid_box_id_2']).update(
-                                                plm_tem_project=selected_plm_project,
-                                                plm_tem_sample=sample,
-                                                filled=True
-                                            )
+                if 'tem_grid_box' in record_row and 'tem_grid_box_id_1' in record_row and 'tem_grid_box_id_2' in record_row :
+                    TEMGridRecord.objects.filter(grid_box=record_row['tem_grid_box'], 
+                                                grid_id_1=record_row['tem_grid_box_id_1'], 
+                                                grid_id_2=record_row['tem_grid_box_id_2']).update(
+                                                    plm_tem_project=selected_plm_project,
+                                                    plm_tem_sample=sample,
+                                                    filled=True
+                                                )
 
-            setattr(sample, 'time_update', django.utils.timezone.now())
+                setattr(sample, 'time_update', django.utils.timezone.now())
 
-        PlmSample.objects.bulk_update(samples_to_update.values(), sorted(touched_fields | {'time_update'}))
-                    
-        return JsonResponse({'status':'ok'})
+            PlmSample.objects.bulk_update(samples_to_update.values(), sorted(touched_fields | {'time_update'}))
+                        
+            return JsonResponse({'status':'ok'})
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'invalid JSON'}, status=400)
+    except ValidationError as e:
+        return JsonResponse({'error': '; '.join(e.messages)}, status=400)
+    except IntegrityError as e:
+        return JsonResponse({'error': f'database constraint failed: {e}'}, status=400)
+    except Exception:
+        logger.exception('main table update failed')
+        return JsonResponse({'error': 'internal server error'}, status=500)
 
 
 # =============== getting all data for NOB analysis ===============
@@ -364,9 +394,12 @@ def get_test_function(request, id):
 
 @require_POST
 def api_generate_qc_samples(request, id):
-    with transaction.atomic():
-        created_samples = generate_qc_entry_process(id)
-    return JsonResponse({'status': 'ok', 'created':created_samples})
+    try:
+        with transaction.atomic():
+            created_samples = generate_qc_entry_process(id)
+        return JsonResponse({'status': 'ok', 'created':created_samples})
+    except Exception as e:
+        logger.exception(f'data entry table update failed {e}')
 
 # =============== PDF report ===============
 @require_GET

@@ -4,7 +4,7 @@ from django.utils.text import slugify
 
 # Create your models here.
 class Company(BaseModel):
-    name = models.CharField(max_length=80)
+    name = models.CharField(max_length=80, unique=True)
     slug = models.SlugField(max_length=80, unique=True, editable=False)
     representative = models.CharField(max_length=100, blank=True, null=True)
     #Prices

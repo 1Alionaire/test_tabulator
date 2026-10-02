@@ -36,6 +36,26 @@ class MainProjectTableManager():
             return error
 
     def validate_updated_data(self):
+        if not self.data_to_update:
+            return None
+
+        ids = {
+            int(record['id'])
+            for record in self.data_to_update
+        }
+
+        found = set(
+            MainProject.active_objects
+            .filter(id__in=ids)
+            .values_list('id', flat=True)
+        )
+
+        missing = ids - found
+
+        if missing:
+            return {
+                'error': f'records dont exist: {sorted(missing)}'
+            }
         if self.data_to_update:
             for record in self.data_to_update:
                 for field_name, value in record.get('fields').items():
@@ -62,8 +82,12 @@ class MainProjectTableManager():
 
     def validate_deleted_data(self):
         if self.data_to_delete:
-            if MainProject.active_objects.filter(id__in=self.data_to_delete).exists() == False:
-                return {'error': 'records dont exist'} 
+            ids = {int(i) for i in self.data_to_delete}
+            found = set(MainProject.active_objects.filter(id__in=ids).values_list('id', flat=True))
+            missing = ids - found
+            if missing:
+                return {'error': f'records dont exist: {sorted(missing)}'}
+
 
     def table_update_processing(self) -> dict:
         result = {'status': 'ok'}

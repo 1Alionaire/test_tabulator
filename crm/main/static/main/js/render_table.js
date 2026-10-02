@@ -257,7 +257,6 @@ document.getElementById("main-menu-create-toggle").addEventListener("click", fun
 function collectChanges() {
   const updatedData = {};
   const createdData = {};
-
   
   for (const cell of table.getEditedCells()) {  // going through all edited cells
     const data = cell.getRow()?.getData();  //parse data from whole row?
