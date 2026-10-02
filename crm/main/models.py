@@ -41,7 +41,7 @@ class MainProject(BaseModel):
     lab_id_sort = models.CharField(max_length=128, db_index=True, blank=True)
     date_registered = models.DateField(auto_now_add=False, default=timezone.now)  # date when project was registered
     time_registered = models.TimeField(auto_now_add=False, default=timezone.now) # time when project was registered
-    company = models.ForeignKey('finance.Company', on_delete=models.CASCADE, related_name='companies') # client company
+    company = models.ForeignKey('finance.Company', on_delete=models.PROTECT, related_name='companies') # client company
     project_name = models.CharField(max_length=100) # name of the project
     project_address = models.CharField(max_length=200) # address of the project
     sample_type = models.ForeignKey('main.TypeAnalysis', on_delete=models.CASCADE, related_name='project_sample_type')

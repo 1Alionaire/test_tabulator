@@ -1,23 +1,13 @@
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
-from django.http import JsonResponse, FileResponse, Http404
-from main.models import MainProject
-from django.views.generic import UpdateView
+from django.http import JsonResponse
 from django.shortcuts import  redirect, get_object_or_404
 from django.views.decorators.http import require_GET, require_POST
-from openpyxl import load_workbook
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 import json
-from plm.plm_table_logic import PLMSamplesDataEntryManager, PLMSamplesWeightManager, generate_qc_entry_process
-import django.utils
-from datetime import datetime
-from users.models import User
 from django.db.models import Max
-from tem.models import TEMGridQCRecord, TEMGridRecord
-from report_generator.plm.plm_report_generator import BulkSampleReportGenerator
-from invoice_generator.invoice_generator_start import InvoiceGenerator, DataForInvoiceGenerator
 from finance.models import Company
 from finance.company_price_table_logic import CompanyPriceTableManager
 import logging

@@ -18,7 +18,7 @@ from users.models import User
 from django.db.models import Max
 from tem.models import TEMGridQCRecord, TEMGridRecord
 from report_generator.plm.plm_report_generator import BulkSampleReportGenerator
-from invoice_generator.invoice_generator_start import InvoiceGenerator, DataForInvoiceGenerator
+from invoice_generator.invoice_generator import InvoiceGenerator, DataForInvoiceGenerator
 from finance.models import Company
 import logging
 from django.core.exceptions import ValidationError

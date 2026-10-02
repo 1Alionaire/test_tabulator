@@ -10,10 +10,6 @@ class TypeSamplingPCM(models.IntegerChoices):
     Post = 4, 'Post'
     DuringAsFinals = 5, 'During-as-Finals'
 
-class WorkArea(models.IntegerChoices):
-    IWA = 1, 'IWA'
-    OWA = 2, 'OWA'
-
 class PcmProject(BaseModel):
     project = models.OneToOneField('main.MainProject', on_delete=models.CASCADE, related_name='pcm_project') #check
     date_collect = models.DateField(auto_now_add=False, default=timezone.now, blank=True) #check
@@ -43,11 +39,19 @@ class PcmProject(BaseModel):
     def __str__(self):
         return self.pcm_lab_id.lab_id
 
+
+class SampleWorkArea(models.IntegerChoices):
+    IWA = 1, 'IWA'
+    OWA = 2, 'OWA'
+    __empty__ = '—'
+
+
 class PcmSample(BaseModel):
     pcm_project = models.ForeignKey('pcm.PcmProject', on_delete=models.CASCADE, related_name='pcm_samples')
-    client_sample_id = models.CharField(max_length=20, default='', null=True, blank=True)
-    lab_sample_id = models.CharField(max_length=25, default='', null=True, blank=True)
-    iwa_owa = models.CharField(max_length=4, default='', null=True, blank=True) #models.IntegerField(choices=WorkArea.choices, default=WorkArea.NoArea)
+    client_sample = models.CharField(max_length=20, default='', null=True, blank=True)
+    row_number = models.PositiveIntegerField(null=True, blank=True, default=1)
+    lab_sample = models.CharField(max_length=25, default='', null=True, blank=True)
+    iwa_owa = models.PositiveSmallIntegerField(choices=SampleWorkArea.choices, null=True, blank=True) 
     location = models.CharField(max_length=100, default='', null=True, blank=True)
     time_in = models.TimeField(auto_now_add=False, null=True, blank=True)
     time_out = models.TimeField(auto_now_add=False, null=True, blank=True)
@@ -55,6 +59,10 @@ class PcmSample(BaseModel):
     flow_rate_after = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
     sample_volume = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
     amount_fibers = models.DecimalField(max_digits=6, decimal_places=1, blank=True, null=True)
-    fields = models.IntegerField(default=100)
-    fiber_per_cub_centimeter = models.DecimalField(max_digits=6, decimal_places=3, blank=True, null=True)
+    fields = models.PositiveIntegerField(default=100)
+    fiber_per_cub_cm = models.DecimalField(max_digits=6, decimal_places=3, blank=True, null=True)
     fiber_per_mm = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
+    qc_amount_fibers = models.DecimalField(max_digits=6, decimal_places=1, blank=True, null=True)
+    qc_fields = models.PositiveIntegerField(default=100)
+    qc_fiber_per_cub_cm = models.DecimalField(max_digits=6, decimal_places=3, blank=True, null=True)
+    qc_fiber_per_mm = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
