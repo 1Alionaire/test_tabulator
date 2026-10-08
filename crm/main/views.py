@@ -14,6 +14,7 @@ from .forms import ProjectCOCUpload
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from plm.models import PlmProject
+from pcm.models import PcmProject
 from django.views.decorators.http import require_GET, require_POST
 import logging
 from django.core.exceptions import ValidationError
@@ -113,6 +114,9 @@ class UploadCOCView(UpdateView):
 
 def route_work(request, id):
     main_project = MainProject.objects.get(pk=id)
+    if main_project.sample_type_id == 1:
+        pcm_project = get_object_or_404(PcmProject, project=main_project)
+        return redirect('pcm:pcm_detail', pcm_project.id)
     if main_project.sample_type_id in (2, 3, 4):
-        plm_project = PlmProject.objects.get(project=main_project)
+        plm_project = get_object_or_404(PlmProject, project=main_project) 
         return redirect('plm:plm_detail', plm_project.id)

@@ -1,0 +1,52 @@
+{% extends 'base.html' %} {% load static %} {% block extra_css %}
+<link
+  type="text/css"
+  href="{% static 'pcm/css/pcm_page.css' %}"
+  rel="stylesheet"
+/>{% endblock %} {% block content %}
+<div class="pcm-time-table-main-page-actions">
+  <div class="pcm-time-table-main-actions-box">
+    {% for day in days %}
+    {% if day == selected_day %}
+    <a
+      class="pcm-time-table-main-action-btn" disabled
+    >
+    {% else %}
+    <a
+      href="{% url 'pcm:time_table_by_day' year=year month=month day=day%}"
+      class="pcm-time-table-main-action-btn"
+    >
+    {% endif %}
+      {{ day }}
+    </a>
+    {% endfor %}
+  </div>
+  <section class="section-control-panel" id="data-entry-control-panel">
+    <div class="control-buttons">
+      <button type="button" id="time-table-save-toggle" class="panel-btn">
+        Save
+      </button>
+      <button type="button" id="time-table-refresh-toggle" class="panel-btn">
+        Refresh
+      </button>
+      <button type="button" id="time-table-insert-row-toggle" class="panel-btn">
+        Insert
+      </button>
+    </div>
+  </section>
+  <section class="section-table">
+    <section id="pcm-time-table"></section>
+  </section>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  const URLS = {
+    PCMTimeTableGetURL:
+      "{% url 'pcm:api_get_time_table' year=year month=month day=day %}",
+    PCMTimeTableUpdateURL:
+      "{% url 'pcm:api_update_time_table' year=year month=month day=day %}",
+  };
+</script>
+
+<script src="{% static 'pcm/js/pcm_time_table.js' %}"></script>
+{% endblock %}

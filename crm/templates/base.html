@@ -28,7 +28,7 @@
           <button type="button" class="dropdown-toggle">Analysis</button>
           <ul class="dropdown-menu">
             <li>
-              <a href="" class="analysis-nav-tab">PCM</a>
+              <a href="{%url 'pcm:main' %}" class="analysis-nav-tab">PCM</a>
             </li>
             <li>
               <a href="{%url 'plm:main' %}" class="analysis-nav-tab">PLM</a>
@@ -42,6 +42,13 @@
             <li>
               <a href="{%url 'tem:tem_main_menu' %}" class="analysis-nav-tab"
                 >TEM</a
+              >
+            </li>
+            <li>
+              <a
+                href="{%url 'pcm:time_table_by_year' %}"
+                class="analysis-nav-tab"
+                >PCM</br>Time</br>Table</a
               >
             </li>
           </ul>

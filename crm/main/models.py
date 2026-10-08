@@ -20,7 +20,7 @@ class TypeAnalysis(BaseModel):
         return self.analysis_name
 
 class TurnAroundTime(BaseModel):
-    hour = models.PositiveIntegerField()
+    hour = models.PositiveSmallIntegerField()
     label = models.CharField(max_length=10)
 
     def __str__(self):
@@ -45,9 +45,9 @@ class MainProject(BaseModel):
     project_name = models.CharField(max_length=100) # name of the project
     project_address = models.CharField(max_length=200) # address of the project
     sample_type = models.ForeignKey('main.TypeAnalysis', on_delete=models.CASCADE, related_name='project_sample_type')
-    number_samples = models.PositiveIntegerField()
+    number_samples = models.PositiveSmallIntegerField()
     turn_around_time = models.ForeignKey('main.TurnAroundTime', on_delete=models.CASCADE, related_name='project_turn_time')
-    nob_number_samples = models.PositiveIntegerField(null=True, blank=True, default=0)
+    nob_number_samples = models.PositiveSmallIntegerField(null=True, blank=True, default=0)
     technician = models.CharField(max_length=100, null=True, blank=True)
     status = models.ForeignKey('main.ProjectStatus', on_delete=models.CASCADE, related_name='project_status')
     comment = models.CharField(max_length=200, null=True, blank=True) # additional comments

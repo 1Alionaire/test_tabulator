@@ -67,6 +67,7 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
         clipboardCopyRowRange: "range",
         clipboardPasteParser: "range",
         clipboardPasteAction: "range",
+        editorEmptyValue: null,
         columns:[
             {
               title:"ID", 
@@ -222,19 +223,6 @@ document.getElementById("data-entry-delete-toggle").addEventListener("click", fu
 
 document.getElementById("data-entry-save-toggle").addEventListener("click", entrySaveChanges);
 
-// ===================== Save =================
-
-function entryCollectChanges() {
-  const updatedData = {}; // initialize update dict 
-  const createdData = {};  // initialize create dict 
-
-    const result = {
-      updated: Object.values(updatedData),
-      created: Object.values(createdData),
-    };
-  return result;
-}
-
 // ============================ Save changes ===========================
 async function entrySaveChanges() {
 // Save scenario 1: we have changes affects whole dataEntryTable(insert rows in middle, deleting existing rows)
@@ -315,47 +303,5 @@ async function entrySaveChanges() {
   }
 };
 
-// =================== function for start typing in cell without doubleclick ===================
-function bindTypeToEdit(table) {
-  const holder = table.element.querySelector(".tabulator-tableholder");
-  if (!holder) {
-    console.error("tableholder не найден — вызов слишком рано");
-    return;
-  }
-
-  holder.addEventListener("keydown", (e) => {
-    if (e.target.closest("input, textarea, select")) return;
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
-    if (e.key.length !== 1) return;
-
-    const ranges = table.getRanges();
-    if (!ranges.length) return;
-
-    const cells = ranges[0].getCells();
-    const cell = cells[0]?.[0] ?? cells[0];
-    if (!cell) return;
-
-    if (e.key === "Enter") {
-        e.preventDefault();
-        cell.navigateDown();
-        return;
-    }
-
-      if (e.key === "F2") {
-        e.preventDefault();
-        cell.edit();               // правка без стирания
-        return;
-    }
-
-    e.preventDefault();
-    cell.edit();
-
-    requestAnimationFrame(() => {
-      const input = cell.getElement().querySelector("input, textarea");
-      if (!input) return;
-      input.value = e.key;
-    });
-  });
-}
 
 

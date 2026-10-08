@@ -60,10 +60,10 @@ class PlmProject(BaseModel):
     coc_file = models.FileField(upload_to='plm_files/coc', blank=True, null=True)
     project_file = models.FileField(upload_to='plm_files/scan', blank=True, null=True)
     report_file = models.FileField(upload_to='plm_files/report', blank=True, null=True)
-    plm_sample_count = models.PositiveIntegerField(default=0)
-    nob_count = models.PositiveIntegerField(default=0)
-    prep_nob_count = models.PositiveIntegerField(default=0)
-    tem_count = models.PositiveIntegerField(default=0)
+    plm_sample_count = models.PositiveSmallIntegerField(default=0)
+    nob_count = models.PositiveSmallIntegerField(default=0)
+    prep_nob_count = models.PositiveSmallIntegerField(default=0)
+    tem_count = models.PositiveSmallIntegerField(default=0)
     qc_completed = models.BooleanField(default=False)
 
     @property
@@ -134,8 +134,8 @@ class PlmSample(BaseModel):
     #general data
     plm_project = models.ForeignKey('plm.PlmProject', on_delete=models.CASCADE, related_name='plm_samples')
     homo_area = models.CharField(max_length=7, default='', blank=True)
-    row_number = models.PositiveIntegerField(null=True, blank=True, default=1)
-    layer = models.PositiveIntegerField(null=True, blank=True, default=1)
+    row_number = models.PositiveSmallIntegerField(null=True, blank=True, default=1)
+    layer = models.PositiveSmallIntegerField(null=True, blank=True, default=1)
     client_sample = models.CharField(max_length=20)
     lab_sample = models.CharField(max_length=25, blank=True, null=True)
     description = models.CharField(max_length=100, blank=True, null=True)
@@ -168,20 +168,20 @@ class PlmSample(BaseModel):
 
     # asb info
     asb_type = models.IntegerField(choices=SampleASbestosType, default = SampleASbestosType.NAD , null=True, blank=True)
-    asb_point_1 = models.PositiveIntegerField(default=50)
-    asb_point_2 = models.PositiveIntegerField(default=50)
-    asb_point_3 = models.PositiveIntegerField(default=50)
-    asb_point_4 = models.PositiveIntegerField(default=50)
-    asb_point_5 = models.PositiveIntegerField(default=50)
-    asb_point_6 = models.PositiveIntegerField(default=50)
-    asb_point_7 = models.PositiveIntegerField(default=50)
-    asb_point_8 = models.PositiveIntegerField(default=50)
+    asb_point_1 = models.PositiveSmallIntegerField(default=50)
+    asb_point_2 = models.PositiveSmallIntegerField(default=50)
+    asb_point_3 = models.PositiveSmallIntegerField(default=50)
+    asb_point_4 = models.PositiveSmallIntegerField(default=50)
+    asb_point_5 = models.PositiveSmallIntegerField(default=50)
+    asb_point_6 = models.PositiveSmallIntegerField(default=50)
+    asb_point_7 = models.PositiveSmallIntegerField(default=50)
+    asb_point_8 = models.PositiveSmallIntegerField(default=50)
     asb_percent = models.DecimalField(max_digits=4, decimal_places=2, default=0, blank=True, null=True)
 
     rest_percent = models.DecimalField(max_digits=5, decimal_places=2, default=100, blank=True, null=True)
 
     tem_asb_type = models.IntegerField(choices=SampleASbestosType, default = SampleASbestosType.NAD, null=True, blank=True)
-    tem_asb_point = models.PositiveIntegerField(default=0)
+    tem_asb_point = models.PositiveSmallIntegerField(default=0)
     tem_asb_percent = models.DecimalField(max_digits=4, decimal_places=2, default=0, blank=True, null=True)
 
     tem_microscope_alignment = models.CharField(max_length=7, default = 'Y', blank=True, null=True)

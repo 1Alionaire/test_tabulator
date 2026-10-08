@@ -1,0 +1,133 @@
+{% extends 'base.html' %} {% load static %} {% block extra_css %}
+<link
+  type="text/css"
+  href="{% static 'pcm/css/pcm_page.css' %}"
+  rel="stylesheet"
+/>{% endblock %} {% block content%}
+<main class="main">
+  <section class="main-window">
+    <section class="control-panel">
+      <button type="button" id="tab-entry" class="panel-btn active">
+        Entry
+      </button>
+      <button type="button" id="tab-analysis" class="panel-btn">
+        Analysis
+      </button>
+      {% comment %}
+      <button type="button" id="tab-project" class="panel-btn">Project</button>
+      {% endcomment %}
+    </section>
+    <section class="work-space">
+      <div class="tab-content active" id="tab-0">
+        <section class="section-control-panel" id="data-entry-control-panel">
+          <div class="project-info">
+            <form
+              id="project-info-form"
+              class="project-info-form"
+              action="{% url 'pcm:api_update_project_info' work.id %}"
+              method="POST"
+            >
+              {% csrf_token %} {% for field in form %}
+              <div class="project-info-field">
+                {{ field.label_tag }} {{ field }}
+              </div>
+              {% endfor %}
+              <div class="project-info-actions">
+                <button type="submit" class="panel-btn">Save</button>
+              </div>
+            </form>
+          </div>
+        </section>
+        <section class="section-control-panel" id="data-entry-control-panel">
+          <div class="control-buttons">
+            <button type="button" id="data-entry-save-toggle" class="panel-btn">
+              Save
+            </button>
+            <button
+              type="button"
+              id="data-entry-refresh-toggle"
+              class="panel-btn"
+            >
+              Refresh
+            </button>
+            <button
+              type="button"
+              id="data-entry-insert-toggle"
+              class="panel-btn"
+            >
+              Insert row
+            </button>
+            <button
+              type="button"
+              id="data-entry-delete-toggle"
+              class="panel-btn"
+            >
+              Delete row
+            </button>
+          </div>
+        </section>
+        <section class="section-table">
+          <section id="samples-data-entry-table"></section>
+        </section>
+      </div>
+      <div class="tab-content" id="tab-1">
+        <section class="section-control-panel" id="analysis-control-panel">
+          <div class="control-buttons">
+            <button type="button" id="analysis-save-toggle" class="panel-btn">
+              Save
+            </button>
+            <button
+              type="button"
+              id="analysis-refresh-toggle"
+              class="panel-btn"
+            >
+              Refresh
+            </button>
+            <a
+              href="{% url 'pcm:generate_pcm_report' work.id %}"
+              id="analysis-report-link"
+              class="panel-btn"
+              >Report</a
+            >
+          </div>
+          <div class="analyst-info-container">
+            <span>Analyst: </span>
+            <span id="analysis-analyst-username"></span>
+          </div>
+        </section>
+
+        <section class="section-table">
+          <section id="samples-analysis-table"></section>
+          <div class="table-overlay" id="take-analysis-overlay">
+            <div class="table-overlay__box">
+              <p>No analyst in project</p>
+              <button type="button" class="take-btn">Start working on</button>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div class="tab-content" id="tab-2"></div>
+    </section>
+  </section>
+</main>
+{% endblock%} {% block extra_js %}
+<script>
+  const URLS = {
+    tableOptionsGetURL: "{% url 'pcm:api_get_table_options' %}",
+    dataEntryGetURL: "{% url 'pcm:api_get_data_entry_table' work.id %}",
+    dataEntryUpdateURL: "{% url 'pcm:api_update_data_entry_table' work.id %}",
+
+    analysisGetURL: "{% url 'pcm:api_get_analysis_table' work.id %}",
+    analysisUpdateURL: "{% url 'pcm:api_update_analysis_table' work.id %}",
+
+    projectAnalystGetURL: "{% url 'pcm:api_get_projects_analyst' work.id %}",
+    projectAnalystUpdateURL:
+      "{% url 'pcm:api_update_projects_analyst' work.id %}",
+  };
+  const PROJECT_LAB_ID = "{{ work.lab_id|escapejs }}";
+</script>
+
+<script src="{% static 'pcm/js/pcm_entry.js' %}"></script>
+<script src="{% static 'pcm/js/pcm_analysis.js' %}"></script>
+<script src="{% static 'pcm/js/pcm_project.js' %}"></script>
+{% endblock %}

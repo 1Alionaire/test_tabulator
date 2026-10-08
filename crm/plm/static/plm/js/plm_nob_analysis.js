@@ -354,7 +354,7 @@ nobTable = new Tabulator("#samples-nob-table", {
           ],
       });
 
-    nobTable.on("tableBuilt", () => bindTypeToEdit(nobTable)); // bindTypeToEdit in plm_nob_analysis.js
+    nobTable.on("tableBuilt", () => bindTypeToEdit(nobTable)); 
 
     nobTable.on("cellEditing", function(cell) {
         let currentRow = cell.getRow();

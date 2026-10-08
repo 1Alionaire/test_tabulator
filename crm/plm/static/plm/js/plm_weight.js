@@ -117,7 +117,7 @@ weightTable = new Tabulator("#samples-weight-table", {
             },
           ],
       });
-      weightTable.on("tableBuilt", () => bindTypeToEdit(weightTable)); // bindTypeToEdit in plm_entry.js
+      weightTable.on("tableBuilt", () => bindTypeToEdit(weightTable)); 
 
       weightTable.on("cellEdited", () => calculateWeights());
 })();

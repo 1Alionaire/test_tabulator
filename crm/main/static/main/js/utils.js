@@ -210,3 +210,54 @@ function formatDateMDY(cell) {
   const [year, month, day] = value.split("-");
   return `${month}-${day}-${year}`;
 }
+
+// ================ time "HH:MM:SS" → "HH:MM" ==============
+function formatTimeHM(cell) {
+  const value = cell.getValue();
+  if (!value) return "";
+  return String(value).slice(0, 5);
+}
+
+
+// =================== function for start typing in cell without doubleclick ===================
+function bindTypeToEdit(table) {
+  const holder = table.element.querySelector(".tabulator-tableholder");
+  if (!holder) {
+    console.error("tableholder не найден — вызов слишком рано");
+    return;
+  }
+
+  holder.addEventListener("keydown", (e) => {
+    if (e.target.closest("input, textarea, select")) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key.length !== 1) return;
+
+    const ranges = table.getRanges();
+    if (!ranges.length) return;
+
+    const cells = ranges[0].getCells();
+    const cell = cells[0]?.[0] ?? cells[0];
+    if (!cell) return;
+
+    if (e.key === "Enter") {
+        e.preventDefault();
+        cell.navigateDown();
+        return;
+    }
+
+      if (e.key === "F2") {
+        e.preventDefault();
+        cell.edit();               // правка без стирания
+        return;
+    }
+
+    e.preventDefault();
+    cell.edit();
+
+    requestAnimationFrame(() => {
+      const input = cell.getElement().querySelector("input, textarea");
+      if (!input) return;
+      input.value = e.key;
+    });
+  });
+}

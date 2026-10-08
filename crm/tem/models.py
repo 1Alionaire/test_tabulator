@@ -4,7 +4,7 @@ from main.models import BaseModel
 # Create your models here.
 class TEMGridRecord(BaseModel):
     position = models.PositiveIntegerField(default=1)
-    year = models.PositiveIntegerField()
+    year = models.PositiveSmallIntegerField()
     grid_box = models.PositiveIntegerField()
     grid_id_1 = models.CharField(max_length=5)
     grid_id_2 = models.CharField(max_length=5)

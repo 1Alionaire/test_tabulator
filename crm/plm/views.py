@@ -59,7 +59,7 @@ class PLMTableView(LoginRequiredMixin, TemplateView):
 # =============== getting all PLM projects ===============
 @require_GET
 def api_get_plm_projects_table(request):
-    plm_projects = MainProject.active_objects.filter(sample_type_id__in=[2,3,4]).order_by('-lab_id_sort').values(
+    plm_projects = MainProject.active_objects.filter(sample_type_id__in=[2,3,4], plm_project__isnull=False).order_by('-lab_id_sort').values(
                                                      'id',
                                                      'lab_id',
                                                      'lab_id_sort',

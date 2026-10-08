@@ -1,0 +1,293 @@
+// ==================== Switching tabs ====================
+
+const tabNav = document.querySelector('.control-panel');
+tabNav.addEventListener('click', function(e) {
+    const btn = e.target.closest('.panel-btn');
+    if (!btn) return;
+    const index = [...tabNav.children].indexOf(btn);
+    tabNav.querySelectorAll('.panel-btn').forEach((b, j) => b.classList.toggle('active', j === index));
+    document.querySelectorAll('.tab-content').forEach((p, j) => p.classList.toggle('active', j === index));
+
+    // a table built inside a hidden tab has to recalculate its size when shown
+    if (index === 0) dataEntryTable?.redraw(true);
+    if (index === 1) analysisTable?.redraw(true);   // analysisTable in pcm_analysis.js
+});
+
+
+// ==================== CSRF token ====================
+function getCookie(name) {
+    let value = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return value ? value.pop() : '';
+}
+const csrftoken = getCookie('csrftoken');
+
+
+// ==================== PCM calculations (NIOSH 7400) ====================
+// live preview only: the server recalculates the same values on save (pcm_table_logic.py)
+const FIELD_AREA_MM2 = 0.00785;             // Walton-Beckett graticule field area, mm²
+const FILTER_COLLECTION_AREA_MM2 = 385;     // effective collection area of 25-mm filter, mm²
+
+function roundTo(value, places) {
+  const factor = 10 ** places;
+  return Math.round(value * factor) / factor;
+}
+
+function toMinutes(timeValue) {    // "HH:MM" or "HH:MM:SS"
+  if (isEmpty(timeValue)) return null;
+  const [hours, minutes] = String(timeValue).split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+// liters = average flow rate (L/min) * sampling time (min)
+function calculateSampleVolume(data) {
+  const minutesIn = toMinutes(data.time_in);
+  const minutesOut = toMinutes(data.time_out);
+  if (minutesIn === null || minutesOut === null || isEmpty(data.flow_rate_before) || isEmpty(data.flow_rate_after)) {
+    return null;
+  }
+  const duration = ((minutesOut - minutesIn) % 1440 + 1440) % 1440;   // sampling past midnight
+  const averageFlow = (Number(data.flow_rate_before) + Number(data.flow_rate_after)) / 2;
+  return roundTo(averageFlow * duration, 2);
+}
+
+// returns [fibers/mm², fibers/cc], without blank correction
+function calculateFiberResults(amountFibers, fields, sampleVolume) {
+  if (isEmpty(amountFibers) || !Number(fields)) return [null, null];
+  const fiberDensity = Number(amountFibers) / (Number(fields) * FIELD_AREA_MM2);
+  if (!Number(sampleVolume)) return [roundTo(fiberDensity, 2), null];
+  const fiberConcentration = fiberDensity * FILTER_COLLECTION_AREA_MM2 / (Number(sampleVolume) * 1000);
+  return [roundTo(fiberDensity, 2), roundTo(fiberConcentration, 3)];
+}
+
+
+// ==================== Data entry table ====================
+const VOLUME_INPUT_FIELDS = ["time_in", "time_out", "flow_rate_before", "flow_rate_after"];
+
+const entryDeletedIds = new Set();
+let entryHasChanges = false;
+let dataEntryTable;
+
+// volume typed by hand stays until time in/out and both flow rates are filled
+function updateSampleVolume(row) {
+  const volume = calculateSampleVolume(row.getData());
+  if (volume !== null) row.update({sample_volume: volume});
+}
+
+(async () => {
+const response = await fetch(URLS.tableOptionsGetURL);
+const tableOptions = await response.json();
+
+const workAreaLabels = Object.fromEntries(tableOptions['sampleWorkArea'].map(o => [o.value, o.label]));
+const workAreaValues = Object.fromEntries(tableOptions['sampleWorkArea'].map(o => [o.label, o.value]));
+
+dataEntryTable = new Tabulator("#samples-data-entry-table", {
+        rowHeader: {
+            resizable: false, frozen: true, width: 40,
+            hozAlign: "center", formatter: "rownum",
+            cssClass: "range-header-col", editor: false, headerSort: false
+        },
+        history:true,
+        height: "100%",
+        layout:"fitColumns",
+        editTriggerEvent: "dblclick",
+        ajaxURL: URLS.dataEntryGetURL,
+        selectableRange: true,
+        selectableRangeColumns: true,
+        selectableRangeRows: true,
+        selectableRangeClearCells: true,
+        selectableRangeClearCellsValue: null,   // Delete/Backspace on a range
+        editorEmptyValue: null,
+        columnDefaults: {
+          headerHozAlign: "center",
+          hozAlign: "center",
+          vertAlign: "middle",
+          headerSort: false,   // sorting would break row order and range selection
+        },
+        clipboard: true,
+        clipboardCopyStyled: false,
+        clipboardCopyConfig: { rowHeaders: false, columnHeaders: false },
+        clipboardCopyRowRange: "range",
+        clipboardPasteParser: "range",
+        clipboardPasteAction: "range",
+        columns:[
+            {
+              title:"ID",
+              field:"id",
+              visible: false
+            },
+            {
+              title:"Row Number",
+              field:"row_number",
+              visible: false
+            },
+            {
+              title:"Lab Sample",
+              field:"lab_sample",
+              width: 140,
+            },
+            {
+              title:"Client ID",
+              field:"client_sample",
+              width: 120,
+              editor: tabulatorTextEditor,
+            },
+            {
+              title:"IWA / OWA",
+              field:"iwa_owa",
+              width: 90,
+              formatter: (cell) => workAreaLabels[cell.getValue()] ?? "",
+              editor: "list",
+              editorParams: { values: tableOptions['sampleWorkArea'] },
+              mutatorClipboard: (value) => workAreaValues[String(value).trim().toUpperCase()] ?? value,  // "IWA" pasted from Excel
+            },
+            {
+              title:"Location",
+              field:"location",
+              minWidth: 300,
+              editor: tabulatorTextEditor,
+            },
+            {
+              title:"Time In",
+              field:"time_in",
+              width: 100,
+              formatter: formatTimeHM,
+              editor: "time",
+            },
+            {
+              title:"Time Out",
+              field:"time_out",
+              width: 100,
+              formatter: formatTimeHM,
+              editor: "time",
+            },
+            {
+              title:"Flow Before<br>L/min",
+              field:"flow_rate_before",
+              width: 110,
+              editor: tabulatorNumberEditor,
+            },
+            {
+              title:"Flow After<br>L/min",
+              field:"flow_rate_after",
+              width: 110,
+              editor: tabulatorNumberEditor,
+            },
+            {
+              title:"Volume<br>L",
+              field:"sample_volume",
+              width: 110,
+              editor: tabulatorNumberEditor,
+            },
+          ],
+      });
+      dataEntryTable.on("tableBuilt", () => bindTypeToEdit(dataEntryTable));
+
+      dataEntryTable.on("cellEdited", (cell) => {
+        entryHasChanges = true;
+        if (VOLUME_INPUT_FIELDS.includes(cell.getField())) updateSampleVolume(cell.getRow());
+      });
+
+      // range paste passes internal rows, not row components
+      dataEntryTable.on("clipboardPasted", (clipboard, rowData, rows) => {
+        entryHasChanges = true;
+        rows.forEach(row => updateSampleVolume(row.getComponent()));
+      });
+})();
+
+// =================== Refresh table ===================
+document.getElementById("data-entry-refresh-toggle").addEventListener("click", function() {
+  if ((entryHasChanges || entryDeletedIds.size) && !confirm("Unsaved changes will be lost. Continue?")) {
+    return;
+  }
+  dataEntryTable.setData(URLS.dataEntryGetURL);
+  entryDeletedIds.clear();
+  entryHasChanges = false;
+  showToast("Refreshed", "success");
+});
+
+// =================== Row numbers and lab sample ids follow table order (server does the same on save) ===================
+function rewriteLabIds() {
+  dataEntryTable.getRows().forEach((row, index) => {
+    row.update({row_number: index + 1, lab_sample: `${PROJECT_LAB_ID}-${index + 1}`});
+  });
+}
+
+// =================== Create new row ===================
+document.getElementById("data-entry-insert-toggle").addEventListener("click", async function() {
+  const ranges = dataEntryTable.getRanges();
+  const cells = ranges.length ? ranges[0].getCells() : [];
+  const cell = cells[0]?.[0] ?? cells[0];
+
+  // below the selected row, or at the end when nothing is selected (empty table)
+  if (cell) {
+    await dataEntryTable.addRow({}, false, cell.getRow());
+  } else {
+    await dataEntryTable.addRow({}, false);
+  }
+  rewriteLabIds();
+  entryHasChanges = true;
+});
+
+// ================== Deleting rows =============
+document.getElementById("data-entry-delete-toggle").addEventListener("click", async function () {
+  const ranges = dataEntryTable.getRanges();
+  if (!ranges.length) return;
+
+  const rows = ranges[0].getRows();
+  for (const row of rows) {
+    if (row.getData().id) {   // row already saved in database
+      entryDeletedIds.add(row.getData().id);
+    }
+  }
+  await Promise.all(rows.map(row => row.delete()));
+  rewriteLabIds();
+  entryHasChanges = true;
+});
+
+// ============================ Save changes ===========================
+document.getElementById("data-entry-save-toggle").addEventListener("click", entrySaveChanges);
+
+async function entrySaveChanges() {
+  if (entryDeletedIds.size && !confirm("Deleted samples will lose their analysis results. Continue?")) {
+    return;
+  }
+
+  const payload = {
+    rows: dataEntryTable.getData("active").map(row => ({
+      id: row.id,
+      client_sample: row.client_sample,
+      iwa_owa: row.iwa_owa,
+      location: row.location,
+      time_in: row.time_in,
+      time_out: row.time_out,
+      flow_rate_before: row.flow_rate_before,
+      flow_rate_after: row.flow_rate_after,
+      sample_volume: row.sample_volume,
+    })),
+    deleted: [...entryDeletedIds],
+  };
+
+  try {
+    const response = await fetch(URLS.dataEntryUpdateURL, {
+      method: "POST",
+      headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      await showResponseError(response);
+      return;                                   // keep edits and deleted ids, user can fix and save again
+    }
+
+    const resultJSON = await response.json();
+    entryDeletedIds.clear();
+    entryHasChanges = false;
+    dataEntryTable.setData(URLS.dataEntryGetURL);
+    if (!analysisHasChanges) analysisTable.setData(URLS.analysisGetURL);   // volumes changed
+
+    showToast(`Table Saved: Updated: ${resultJSON.updated} Created: ${resultJSON.created} Deleted: ${resultJSON.deleted}`, "success");
+  }
+  catch (e) {
+    showToast(`Error: ${e.message}`, "error");
+  }
+};

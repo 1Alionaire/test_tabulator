@@ -2,7 +2,7 @@ from django.db import models
 from main.models import BaseModel
 from django.utils import timezone
 from django.conf import settings
-
+from qc.models import Month 
 class TypeSamplingPCM(models.IntegerChoices):
     Background = 1, 'Background / Pre-Abatement'
     During = 2, 'During'
@@ -20,7 +20,7 @@ class PcmProject(BaseModel):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='analyst',
+        related_name='pcm_analyst',
         verbose_name='Analyst',
     ) #check
     technician = models.CharField(max_length=50, null=True, blank=True)
@@ -36,8 +36,12 @@ class PcmProject(BaseModel):
     project_file = models.FileField(upload_to='pcm_files/scan', blank=True, null=True) #check
     report_file = models.FileField(upload_to='pcm_files/report', blank=True, null=True) #check
 
+    @property
+    def lab_id(self):
+        return self.project.lab_id
+
     def __str__(self):
-        return self.pcm_lab_id.lab_id
+        return self.project.lab_id
 
 
 class SampleWorkArea(models.IntegerChoices):
@@ -49,7 +53,7 @@ class SampleWorkArea(models.IntegerChoices):
 class PcmSample(BaseModel):
     pcm_project = models.ForeignKey('pcm.PcmProject', on_delete=models.CASCADE, related_name='pcm_samples')
     client_sample = models.CharField(max_length=20, default='', null=True, blank=True)
-    row_number = models.PositiveIntegerField(null=True, blank=True, default=1)
+    row_number = models.PositiveSmallIntegerField(null=True, blank=True, default=1)
     lab_sample = models.CharField(max_length=25, default='', null=True, blank=True)
     iwa_owa = models.PositiveSmallIntegerField(choices=SampleWorkArea.choices, null=True, blank=True) 
     location = models.CharField(max_length=100, default='', null=True, blank=True)
@@ -59,10 +63,30 @@ class PcmSample(BaseModel):
     flow_rate_after = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
     sample_volume = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
     amount_fibers = models.DecimalField(max_digits=6, decimal_places=1, blank=True, null=True)
-    fields = models.PositiveIntegerField(default=100)
+    fields = models.PositiveSmallIntegerField(default=100)
     fiber_per_cub_cm = models.DecimalField(max_digits=6, decimal_places=3, blank=True, null=True)
     fiber_per_mm = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
     qc_amount_fibers = models.DecimalField(max_digits=6, decimal_places=1, blank=True, null=True)
-    qc_fields = models.PositiveIntegerField(default=100)
+    qc_fields = models.PositiveSmallIntegerField(default=100)
     qc_fiber_per_cub_cm = models.DecimalField(max_digits=6, decimal_places=3, blank=True, null=True)
     qc_fiber_per_mm = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
+
+
+
+class PcmSampleTimeTableRecord(BaseModel):
+    analyst = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='time_table_analyst',
+        verbose_name='Analyst',
+    ) #check
+    year = models.PositiveSmallIntegerField(null=True, blank=True)
+    month = models.PositiveSmallIntegerField(choices=Month.choices, null=True, blank=True)
+    day = models.PositiveSmallIntegerField(null=True, blank=True)
+    row_number = models.PositiveSmallIntegerField(null=True, blank=True)
+    project = models.CharField(max_length=40, null=True, blank=True)
+    start_time = models.CharField(max_length=7, null=True, blank=True)
+    end_time = models.CharField(max_length=7, null=True, blank=True)
+

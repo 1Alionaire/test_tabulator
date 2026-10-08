@@ -210,7 +210,7 @@ temTable = new Tabulator("#samples-tem-table", {
           ],
       });
 
-    temTable.on("tableBuilt", () => bindTypeToEdit(temTable)); // bindTypeToEdit in plm_tem_analysis.js
+    temTable.on("tableBuilt", () => bindTypeToEdit(temTable)); 
 
 
     temTable.on("cellEdited", function(cell) {

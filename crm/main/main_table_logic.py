@@ -1,6 +1,7 @@
 from .models import MainProject
 from django.db import transaction
 from plm.models import PlmProject, PlmSample, PlmSampleWeight
+from pcm.models import PcmProject, PcmSample
 from tem.models import TEMGridRecord
 from django.db.models import Q
 import django.utils
@@ -170,8 +171,20 @@ class ProjectCreateSignal:
         self.main_project = main_project
 
     def create_project(self):
+        if self.main_project.sample_type_id == 1:
+            self.create_pcm_project()
         if self.main_project.sample_type_id in [2, 3, 4]:
             self.create_plm_project()
+
+    def create_pcm_project(self):
+        created_pcm_project = PcmProject.objects.create(project=self.main_project) # Create PCM project entity
+        # bulk create PCM samples
+        PcmSample.objects.bulk_create([ 
+            PcmSample(pcm_project=created_pcm_project,
+                      row_number=(i+1),
+                      lab_sample=str(self.main_project.lab_id) + '-' + str(i+1))
+            for i in range(self.main_project.number_samples)
+        ])
 
     def create_plm_project(self):
         created_plm_project=PlmProject.objects.create(project=self.main_project)

@@ -1,0 +1,63 @@
+{% extends 'base.html' %} {% load static %} {% block content%}
+<main class="main">
+  <section id="main-section-filter" class="side-filter-panel invisible">
+    <div class="date-filter-input-box">
+      <span>Date Range</span>
+      <div class="date-filter">
+        <label>Start</label>
+        <input id="filter-input-date-start" type="date"></input>
+      </div>
+      <div class="date-filter">
+        <label>End</label>
+        <input id="filter-input-date-end" type="date"></input>
+      </div>
+      <div class="option-filter">
+        <label>Company</label>
+        <select id="filter-input-company" size="10">
+        </select>
+      </div>
+      <div class="option-filter">
+        <label>Status</label>
+        <select id="filter-input-status" multiple>
+        </select>
+      </div>
+      <div class="option-filter">
+        <label>Turn Time</label>
+        <select id="filter-input-turn-around-time" multiple>
+        </select>
+      </div>
+      <div class="input-filter-field">
+        <label>Project Name</label>
+        <input class = "input-filter-text" id="filter-input-project-name" type="input"></input>
+      </div>
+      <div class="input-filter-field">
+        <label>Project Address</label>
+        <input class = "input-filter-text" id="filter-input-project-address" type="input"></input>
+      </div>
+
+    </div>
+    <button id="filter-panel-apply-button">Apply</button>
+    <button id="filter-panel-reset-filter-button">Reset</button>
+  </section>
+  <section class="main-window">
+    <section class="control-panel">
+      <button type="button" id="main-menu-filter-toggle" class="panel-btn">
+        Filter
+      </button>
+      <button type="button" id="main-menu-refresh-toggle" class="panel-btn">
+        Refresh
+      </button>
+    </section>
+    <section id="main-info"></section>
+  </section>
+</main>
+{% endblock%} {% block extra_js %}
+<script>
+  const URLS = {
+    tableOptionsGetURL: "{% url 'main:api_get_table_options' %}",
+    PCMProjectGetURL: "{% url 'pcm:api_get_pcm_projects_table' %}",
+  };
+</script>
+
+<script src="{% static 'pcm/js/main_table.js' %}"></script>
+{% endblock %}

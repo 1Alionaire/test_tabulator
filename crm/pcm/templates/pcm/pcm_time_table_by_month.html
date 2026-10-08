@@ -1,0 +1,31 @@
+{% extends 'base.html' %} {% load static %} {% block extra_css %}
+<link
+  type="text/css"
+  href="{% static 'pcm/css/pcm_page.css' %}"
+  rel="stylesheet"
+/>{% endblock %} {% block content %}
+<div class="pcm-time-table-month-page">
+  <div class="pcm-time-table-main-actions-box">
+    {% for month in months %}
+    <a
+      href="{% url 'pcm:time_table_by_day' year=year month=month day=1%}"
+      class="pcm-time-table-main-action-btn"
+    >
+      {% if month == 1 %} January 
+      {% elif month == 2 %} February 
+      {% elif month == 3 %} March 
+      {% elif month == 4 %} April 
+      {% elif month == 5 %} May 
+      {% elif month == 6 %} June 
+      {% elif month == 7 %} July 
+      {% elif month == 8 %} August 
+      {% elif month == 9 %} September 
+      {% elif month == 10 %} October 
+      {% elif month == 11 %} November 
+      {% elif month == 12 %} December 
+       {% endif%}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
