@@ -26,7 +26,7 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-only-for-local")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG =  True#os.environ.get("DJANGO_DEBUG", "0") == "1"
+DEBUG =  os.environ.get("DJANGO_DEBUG", "0") == "1"
 ALLOWED_HOSTS =  []#os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
 render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 if render_host:
@@ -85,12 +85,37 @@ WSGI_APPLICATION = 'crm.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if os.environ.get("POSTGRES_DB"):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("POSTGRES_DB"),
+            "USER": os.environ.get("POSTGRES_USER"),
+            "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
+            "HOST": os.environ.get("POSTGRES_HOST", "db"),
+            "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+            "CONN_MAX_AGE": 60,
+            "CONN_HEALTH_CHECKS": True,
+        }
     }
-}
+elif DEBUG:
+    # Только для локальной разработки
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+else:
+    # На сервере без Postgres лучше упасть сразу, чем молча писать в SQLite и терять данные
+    raise ValueError("POSTGRES_DB не задан, а DEBUG=False")
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 
 # Password validation
