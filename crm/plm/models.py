@@ -164,7 +164,7 @@ class PlmSample(BaseModel):
     birefringence = models.IntegerField(choices=SampleBirefringence, null=True, blank=True)
     other_fiber = models.IntegerField(choices=SampleOtherFiber, null=True, blank=True)
     other_fiber_property = models.IntegerField(choices=SampleOtherFiberProperty, null=True, blank=True)
-    other_fiber_percent = models.DecimalField(max_digits=4, decimal_places=2, blank=True, default=0)
+    other_fiber_percent = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, default=0)
 
     # asb info
     asb_type = models.IntegerField(choices=SampleASbestosType, default = SampleASbestosType.NAD , null=True, blank=True)
@@ -176,13 +176,13 @@ class PlmSample(BaseModel):
     asb_point_6 = models.PositiveSmallIntegerField(default=50)
     asb_point_7 = models.PositiveSmallIntegerField(default=50)
     asb_point_8 = models.PositiveSmallIntegerField(default=50)
-    asb_percent = models.DecimalField(max_digits=4, decimal_places=2, default=0, blank=True, null=True)
+    asb_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True, null=True)
 
     rest_percent = models.DecimalField(max_digits=5, decimal_places=2, default=100, blank=True, null=True)
 
     tem_asb_type = models.IntegerField(choices=SampleASbestosType, default = SampleASbestosType.NAD, null=True, blank=True)
     tem_asb_point = models.PositiveSmallIntegerField(default=0)
-    tem_asb_percent = models.DecimalField(max_digits=4, decimal_places=2, default=0, blank=True, null=True)
+    tem_asb_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True, null=True)
 
     tem_microscope_alignment = models.CharField(max_length=7, default = 'Y', blank=True, null=True)
     tem_eccentricity_adjusted = models.CharField(max_length=7, default = 'Y', blank=True, null=True)
