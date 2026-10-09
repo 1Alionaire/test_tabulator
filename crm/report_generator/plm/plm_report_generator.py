@@ -270,7 +270,7 @@ class BulkSampleReportGenerator: # initialize class
         page_template = PageTemplate(
             id='main',
             frames=[content_frame], # Frame 
-            onPage=self._draw_page_fram , # render on every page
+            onPage=self._draw_page_frame , # render on every page
         )
         doc.addPageTemplates([page_template]) # adding template to basedocument
 
