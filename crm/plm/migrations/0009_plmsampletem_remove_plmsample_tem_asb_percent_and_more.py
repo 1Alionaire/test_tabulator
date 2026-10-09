@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('time_update', models.DateTimeField(auto_now=True, verbose_name='Time update')),
                 ('asb_type', models.IntegerField(blank=True, choices=[(1, 'Chrysotile'), (2, 'Amosite'), (3, 'Crocidolite'), (4, 'Anthophillite'), (5, 'Tremolite'), (6, 'Actinolite'), (7, 'Not analyzed')], null=True)),
                 ('asb_point', models.PositiveIntegerField(default=0)),
-                ('asb_percent', models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=4, null=True)),
+                ('asb_percent', models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=5, null=True)),
                 ('microscope_alignment', models.CharField(blank=True, default='Y', max_length=7, null=True)),
                 ('eccentricity_adjusted', models.CharField(blank=True, default='Y', max_length=7, null=True)),
                 ('grid_pre_acceptability', models.CharField(blank=True, default='Y', max_length=7, null=True)),
@@ -47,7 +47,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='plmsample',
             name='rest_percent',
-            field=models.DecimalField(blank=True, decimal_places=2, default=100, max_digits=4, null=True),
+            field=models.DecimalField(blank=True, decimal_places=2, default=100, max_digits=5, null=True),
         ),
         migrations.AlterField(
             model_name='plmsample',

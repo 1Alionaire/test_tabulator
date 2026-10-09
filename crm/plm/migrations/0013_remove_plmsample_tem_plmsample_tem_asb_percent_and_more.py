@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='plmsample',
             name='tem_asb_percent',
-            field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=4, null=True),
+            field=models.DecimalField(blank=True, decimal_places=2, default=0, , null=True),
         ),
         migrations.AddField(
             model_name='plmsample',
