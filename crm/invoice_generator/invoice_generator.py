@@ -25,6 +25,7 @@ from plm.models import (
 )
 from reportlab.lib.colors import HexColor
 from decimal import Decimal, ROUND_HALF_UP
+from main.models import MainTypeAnalysis
 
 payment_text = '''Make all checks payable to: ALLAB Analytical Labs
 Total due in <30> days. Overdue accounts subject to a service charge of <1.5>% per month.'''
@@ -73,7 +74,7 @@ class DataForInvoiceGenerator:
     def build_total_info(self):
         result_array = []
         for project in self.projects:
-            if project.sample_type_id in [2,3,4]:
+            if project.project_type in [MainTypeAnalysis.Bulk, MainTypeAnalysis.BulkTEM, MainTypeAnalysis.TEM]:
                 result_array.extend(self.parse_info_from_plm_project(project))
                 # for sample in self.parse_info_from_plm_project(project):
                 #     result_array.append(sample)

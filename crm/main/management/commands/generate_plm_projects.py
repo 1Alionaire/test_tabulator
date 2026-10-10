@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
-from main.models import MainProject, TypeAnalysis, TurnAroundTime, ProjectStatus
+from main.models import MainProject, MainTypeAnalysis, MainTurnAroundTime, MainProjectStatus
 from finance.models import Company
 from plm.models import PlmProject, PlmSample, PlmSampleWeight, SampleMethod
 from utils.utils import generate_weight_item
@@ -33,18 +33,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         companies = list(Company.objects.all())
-        turn_around_times = list(TurnAroundTime.objects.all())
-        sample_type = TypeAnalysis.objects.get(analysis_name='BULK')
-        status_new = ProjectStatus.objects.get(status_name='New')
         today = timezone.localdate()
 
         for _ in range(options['count']):
             with transaction.atomic():
-                main_project, plm_count, nob_count = self.create_project(today, companies, turn_around_times,
-                                                                         sample_type, status_new)
+                main_project, plm_count, nob_count = self.create_project(today, companies)
             self.stdout.write(f'{main_project.lab_id}: {plm_count} x 198.1, {nob_count} x 198.6')
 
-    def create_project(self, project_date, companies, turn_around_times, sample_type, status):
+    def create_project(self, project_date, companies):
         plm_count = random.randint(*SAMPLES_RANGE)
         nob_count = random.randint(*SAMPLES_RANGE)
 
@@ -54,12 +50,12 @@ class Command(BaseCommand):
                                                   company=random.choice(companies),
                                                   project_name=generate_random_string(10),
                                                   project_address=generate_random_string(15),
-                                                  sample_type=sample_type,
+                                                  project_type=MainTypeAnalysis.TEM,
                                                   number_samples=plm_count,
-                                                  turn_around_time=random.choice(turn_around_times),
+                                                  turn_around_time=MainTurnAroundTime.Hour24,
                                                   nob_number_samples=nob_count,
                                                   technician='Alibek',
-                                                  status=status,
+                                                  status=MainProjectStatus.New,
                                                   deleted=False)
 
         plm_project = PlmProject.objects.create(project=main_project, date_collect=project_date)

@@ -23,6 +23,7 @@ from finance.models import Company
 import logging
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+from main.models import MainTypeAnalysis
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,7 @@ class PLMTableView(LoginRequiredMixin, TemplateView):
 # =============== getting all PLM projects ===============
 @require_GET
 def api_get_plm_projects_table(request):
-    plm_projects = MainProject.active_objects.filter(sample_type_id__in=[2,3,4], plm_project__isnull=False).order_by('-lab_id_sort').values(
+    plm_projects = MainProject.active_objects.filter(project_type__in=[MainTypeAnalysis.Bulk, MainTypeAnalysis.BulkTEM, MainTypeAnalysis.TEM], plm_project__isnull=False).order_by('-lab_id_sort').values(
                                                      'id',
                                                      'lab_id',
                                                      'lab_id_sort',
@@ -68,12 +69,12 @@ def api_get_plm_projects_table(request):
                                                      'company_id',
                                                      'project_name',
                                                      'project_address',
-                                                     'sample_type_id',
+                                                     'project_type',
                                                      'number_samples',
-                                                     'turn_around_time_id',
+                                                     'turn_around_time',
                                                      'nob_number_samples', 
                                                      'technician', 
-                                                     'status_id', 
+                                                     'status', 
                                                      'comment', 
                                                      'plm_project__id')
     return JsonResponse(list(plm_projects), safe=False)

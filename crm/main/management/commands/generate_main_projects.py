@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from main.models import MainProject, TypeAnalysis, TurnAroundTime, ProjectStatus
+from main.models import MainProject, MainProjectStatus
 from finance.models import Company
 import datetime
 import random
@@ -16,9 +16,8 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         year = '26' # тут можно 
         companies = Company.objects.all() #
-        turn_around_times = TurnAroundTime.objects.all()
-        type_analysis = TypeAnalysis.objects.all()
-        project_status = ProjectStatus.objects.all()
+        turn_around_times = [1, 3, 6, 24]
+        type_analysis = [1, 2, 3, 4]
         amount_works_every_day = 4
         help = "Create test projects with related PLM data" 
 
@@ -41,11 +40,11 @@ class Command(BaseCommand):
                                                             company = random.choice(companies),
                                                             project_name = generate_random_string(10), 
                                                             project_address = generate_random_string(15),
-                                                            sample_type = random.choice(type_analysis),
+                                                            project_type = random.choice(type_analysis),
                                                             number_samples = random.randint(15, 100), 
                                                             turn_around_time = random.choice(turn_around_times),
                                                             nob_number_samples = random.randint(15, 100),
                                                             technician = 'Alibek', 
-                                                            status = random.choice(project_status),
+                                                            status = MainProjectStatus.New,
                                                             deleted=False)            
 

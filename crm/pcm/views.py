@@ -8,7 +8,7 @@ from django.db import IntegrityError
 from decimal import Decimal
 import json
 import logging
-from main.models import MainProject
+from main.models import MainProject, MainTypeAnalysis, MainTurnAroundTime, MainProjectStatus
 from .forms import UpdatePcmProject
 from .models import PcmProject, PcmSample, SampleWorkArea, PcmSampleTimeTableRecord
 from .pcm_table_logic import PCMSamplesDataEntryManager, PCMSamplesAnalysisManager, PCMTimeTableManager
@@ -60,7 +60,7 @@ class PCMTableView(LoginRequiredMixin, TemplateView):
 # =============== getting all PCM projects ===============
 @require_GET
 def api_get_pcm_projects_table(request):
-    pcm_projects = MainProject.active_objects.filter(sample_type_id=1, pcm_project__isnull=False).order_by('-lab_id_sort').values(
+    pcm_projects = MainProject.active_objects.filter(project_type=MainTypeAnalysis.PCM, pcm_project__isnull=False).order_by('-lab_id_sort').values(
                                                      'id',
                                                      'lab_id',
                                                      'lab_id_sort',
@@ -70,9 +70,9 @@ def api_get_pcm_projects_table(request):
                                                      'project_name',
                                                      'project_address',
                                                      'number_samples',
-                                                     'turn_around_time_id',
+                                                     'turn_around_time',
                                                      'technician',
-                                                     'status_id',
+                                                     'status',
                                                      'comment',
                                                      'pcm_project__id')
     return JsonResponse(list(pcm_projects), safe=False)

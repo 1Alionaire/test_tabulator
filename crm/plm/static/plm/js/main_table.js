@@ -111,10 +111,10 @@ let table;
             },
             {
               title: "Type<br>Analysis",
-              field: "sample_type_id",
+              field: "project_type",
               formatter: "lookup",
-              formatterParams: Object.fromEntries(statusOptions['sample_type'].map(o => [o.value, o.label])),
-              editorParams: { values: statusOptions['sample_type']},
+              formatterParams: Object.fromEntries(statusOptions['project_type'].map(o => [o.value, o.label])),
+              editorParams: { values: statusOptions['project_type']},
               width : 100,
               headerSort: false, 
             },
@@ -126,7 +126,7 @@ let table;
               },
             {
               title: "TurnAround<br>Time",
-              field: "turn_around_time_id",
+              field: "turn_around_time",
               formatter: "lookup",
               formatterParams: Object.fromEntries(statusOptions['turn_around_time'].map(o => [o.value, o.label])),
               editorParams: { values: statusOptions['turn_around_time'] },
@@ -142,7 +142,7 @@ let table;
             },
             {
               title: "Status",
-              field: "status_id",
+              field: "status",
               formatter: "lookup",
               formatterParams: Object.fromEntries(statusOptions['status'].map(o => [o.value, o.label])),
               width: 80,
@@ -196,7 +196,7 @@ async function initFilterPanel() {
   companies = result['company'];
   statuses = result['status'];
   turnAroundTime = result['turn_around_time'];
-  sampleType = result['sample_type'];
+  sampleType = result['project_type'];
   fillSelect("#filter-input-company", companies);
   fillSelect("#filter-input-status", statuses);
   fillSelect("#filter-input-turn-around-time", turnAroundTime);
@@ -223,7 +223,7 @@ function applyFilters() {
     .map((option) => parseInt(option.value, 10));
 
   if (filterStatusSelectedValues.length) {
-    filters.push({ field: "status_id", type: "in", value: filterStatusSelectedValues });
+    filters.push({ field: "status", type: "in", value: filterStatusSelectedValues });
   }
 
   // Turn around time
@@ -232,7 +232,7 @@ function applyFilters() {
     .map((option) => parseInt(option.value, 10));
 
   if (filterTurnAroundTimeSelectedValues.length) {
-    filters.push({ field: "turn_around_time_id", type: "in", value: filterTurnAroundTimeSelectedValues });
+    filters.push({ field: "turn_around_time", type: "in", value: filterTurnAroundTimeSelectedValues });
   }
 
   const filterProjectName = document.querySelector("#filter-input-project-name").value;

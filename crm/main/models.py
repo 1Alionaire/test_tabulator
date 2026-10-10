@@ -13,24 +13,36 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
 
-class TypeAnalysis(BaseModel):
-    analysis_name = models.CharField(max_length=15)
+class MainTypeAnalysis(models.IntegerChoices):
+    PCM = 1, 'PCM'
+    Bulk = 2, 'Bulk'
+    BulkTEM = 3, 'Bulk-TEM'
+    TEM = 4, 'TEM'
+    AirTEM = 5, 'Air-TEM'
+    LeadWipe = 6, 'Lead-Wipe'
+    LeadWater = 7, 'Lead-Water'
+    LeadPaint = 8, 'Lead-Paint'
+    LeadAir = 9, 'Lead-Air'
+    MoldTape = 10, 'Mold-Tape'
+    MoldAir = 11, 'Mold-Air'
+    MoldSwab = 12, 'Mold-Swab'
+    Vermiculite = 13, 'Vermiculite'
 
-    def __str__(self):
-        return self.analysis_name
+class MainTurnAroundTime(models.IntegerChoices):
+    Hour1 = 1, 'Rush'
+    Hour3 = 3, '3 Hours'
+    Hour6 = 6, '6 Hours'
+    Hour12 = 12, '12 Hours'
+    Hour24 = 24, '24 Hours'
+    Hour48 = 48, '48 Hours'
+    Hour72 = 72, '72 Hours'
 
-class TurnAroundTime(BaseModel):
-    hour = models.PositiveSmallIntegerField()
-    label = models.CharField(max_length=10)
+class MainProjectStatus(models.IntegerChoices):
+    New = 1, 'New'
+    InProcess = 2, 'In Process'
+    Overdue = 3, 'Overdue'
+    Done = 4, 'Done'
 
-    def __str__(self):
-        return self.label
-
-class ProjectStatus(BaseModel):
-    status_name = models.CharField(max_length=15)
-
-    def __str__(self):
-        return self.status_name
 
 class ActiveProject(models.Manager):
     def get_queryset(self):
@@ -44,12 +56,12 @@ class MainProject(BaseModel):
     company = models.ForeignKey('finance.Company', on_delete=models.PROTECT, related_name='companies') # client company
     project_name = models.CharField(max_length=100) # name of the project
     project_address = models.CharField(max_length=200) # address of the project
-    sample_type = models.ForeignKey('main.TypeAnalysis', on_delete=models.CASCADE, related_name='project_sample_type')
+    project_type = models.PositiveSmallIntegerField(choices=MainTypeAnalysis.choices, blank=False, null=False)
     number_samples = models.PositiveSmallIntegerField()
-    turn_around_time = models.ForeignKey('main.TurnAroundTime', on_delete=models.CASCADE, related_name='project_turn_time')
+    turn_around_time = models.PositiveSmallIntegerField(choices=MainTurnAroundTime.choices, blank=False, null=False)
     nob_number_samples = models.PositiveSmallIntegerField(null=True, blank=True, default=0)
     technician = models.CharField(max_length=100, null=True, blank=True)
-    status = models.ForeignKey('main.ProjectStatus', on_delete=models.CASCADE, related_name='project_status')
+    status = models.PositiveSmallIntegerField(choices=MainProjectStatus.choices, blank=False, null=False)
     comment = models.CharField(max_length=200, null=True, blank=True) # additional comments
     is_overdue = models.BooleanField(default=False)
     coc_file = models.FileField(upload_to='coc_files/', blank=True, null=True)

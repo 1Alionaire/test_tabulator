@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import MainProject, TypeAnalysis, TurnAroundTime, ProjectStatus
+from .models import MainProject, MainTypeAnalysis, MainTurnAroundTime, MainProjectStatus
 from django.http import JsonResponse, FileResponse
 from finance.models import Company
 from django.views.decorators.csrf import csrf_exempt
@@ -36,18 +36,9 @@ class MainTableView(LoginRequiredMixin, TemplateView):
 @require_GET
 def api_get_table_options(request):
     return JsonResponse({
-        'status': [
-            {'value': o.pk, 'label': o.status_name}
-            for o in ProjectStatus.objects.all()
-        ],
-        'sample_type': [
-            {'value': o.pk, 'label': o.analysis_name}
-            for o in TypeAnalysis.objects.all()
-        ],
-        'turn_around_time': [
-            {'value': o.pk, 'label': o.label}
-            for o in TurnAroundTime.objects.order_by('hour')
-        ],
+        'status': [{'value': v, 'label': l} for v, l in MainProjectStatus.choices],
+        'project_type': [{'value': v, 'label': l} for v, l in MainTypeAnalysis.choices],
+        'turn_around_time': [{'value': v, 'label': l} for v, l in MainTurnAroundTime.choices],
         'company': [
             {'value': o.pk, 'label': o.name}
             for o in Company.objects.order_by('name')
@@ -65,12 +56,12 @@ def api_get_main_projects_table(request):
                                                      'company_id',
                                                      'project_name',
                                                      'project_address',
-                                                     'sample_type_id',
+                                                     'project_type',
                                                      'number_samples',
-                                                     'turn_around_time_id',
+                                                     'turn_around_time',
                                                      'nob_number_samples', 
                                                      'technician', 
-                                                     'status_id', 
+                                                     'status', 
                                                      'comment')
     return JsonResponse(list(main_projects), safe=False)
 
@@ -114,9 +105,9 @@ class UploadCOCView(UpdateView):
 
 def route_work(request, id):
     main_project = MainProject.objects.get(pk=id)
-    if main_project.sample_type_id == 1:
+    if main_project.project_type == MainTypeAnalysis.PCM:
         pcm_project = get_object_or_404(PcmProject, project=main_project)
         return redirect('pcm:pcm_detail', pcm_project.id)
-    if main_project.sample_type_id in (2, 3, 4):
+    if main_project.project_type in [MainTypeAnalysis.Bulk, MainTypeAnalysis.BulkTEM, MainTypeAnalysis.TEM]:
         plm_project = get_object_or_404(PlmProject, project=main_project) 
         return redirect('plm:plm_detail', plm_project.id)

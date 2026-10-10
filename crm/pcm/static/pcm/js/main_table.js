@@ -101,7 +101,7 @@ let table;
             },
             {
               title: "TurnAround<br>Time",
-              field: "turn_around_time_id",
+              field: "turn_around_time",
               formatter: "lookup",
               formatterParams: Object.fromEntries(statusOptions['turn_around_time'].map(o => [o.value, o.label])),
               width: 90,
@@ -109,7 +109,7 @@ let table;
             },
             {
               title: "Status",
-              field: "status_id",
+              field: "status",
               formatter: "lookup",
               formatterParams: Object.fromEntries(statusOptions['status'].map(o => [o.value, o.label])),
               width: 80,
@@ -179,7 +179,7 @@ function applyFilters() {
     .map((option) => parseInt(option.value, 10));
 
   if (filterStatusSelectedValues.length) {
-    filters.push({ field: "status_id", type: "in", value: filterStatusSelectedValues });
+    filters.push({ field: "status", type: "in", value: filterStatusSelectedValues });
   }
 
   // Turn around time
@@ -189,7 +189,7 @@ function applyFilters() {
     .map((option) => parseInt(option.value, 10));
 
   if (filterTurnAroundTimeSelectedValues.length) {
-    filters.push({ field: "turn_around_time_id", type: "in", value: filterTurnAroundTimeSelectedValues });
+    filters.push({ field: "turn_around_time", type: "in", value: filterTurnAroundTimeSelectedValues });
   }
 
   const filterProjectName = document.querySelector("#filter-input-project-name").value;

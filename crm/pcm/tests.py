@@ -13,6 +13,7 @@ from report_generator.pcm.pcm_report_generator import COLUMNS, PcmReportGenerato
 from .models import PcmProject, PcmSample
 from .pcm_table_logic import average_flow_rate, calculate_fiber_results, calculate_sample_volume, sampling_minutes
 
+from main.models import MainTypeAnalysis
 
 def page_count(pdf_bytes):
     return len(re.findall(rb'/Type /Page[^s]', pdf_bytes))
@@ -83,7 +84,7 @@ class PcmReportTests(TestCase):
         main_project = MainProject.objects.create(
             lab_id='26-0001', project_name='School', project_address='1 Main St',
             company=Company.objects.create(name='ACME'),
-            sample_type=TypeAnalysis.objects.create(analysis_name='PCM'),
+            project_type=MainTypeAnalysis.PCM,
             turn_around_time=TurnAroundTime.objects.create(hour=24, label='24h'),
             status=ProjectStatus.objects.create(status_name='New'),
             number_samples=2,

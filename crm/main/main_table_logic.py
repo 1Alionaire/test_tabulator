@@ -1,4 +1,4 @@
-from .models import MainProject
+from .models import MainProject, MainTypeAnalysis, MainProjectStatus, MainTurnAroundTime
 from django.db import transaction
 from plm.models import PlmProject, PlmSample, PlmSampleWeight
 from pcm.models import PcmProject, PcmSample
@@ -11,7 +11,7 @@ import math
 
 REQUIRED_ON_CREATE = {
     'company_id', 'project_name', 'project_address', 'date_registered', 'time_registered',
-    'sample_type_id', 'number_samples', 'turn_around_time_id'
+    'project_type', 'number_samples', 'turn_around_time'
 }
 
 class MainProjectTableManager():
@@ -129,7 +129,7 @@ class MainProjectTableManager():
         objects = []
         for data in self.data_to_create:
             fields = data.get('fields')
-            objects.append(MainProject(status_id=1, deleted=False,  **fields))
+            objects.append(MainProject(status=MainProjectStatus.New, deleted=False,  **fields))
 
         for project in objects:
             project.full_clean()
@@ -171,9 +171,9 @@ class ProjectCreateSignal:
         self.main_project = main_project
 
     def create_project(self):
-        if self.main_project.sample_type_id == 1:
+        if self.main_project.project_type == MainTypeAnalysis.PCM:
             self.create_pcm_project()
-        if self.main_project.sample_type_id in [2, 3, 4]:
+        if self.main_project.project_type in [MainTypeAnalysis.Bulk, MainTypeAnalysis.BulkTEM, MainTypeAnalysis.TEM]:
             self.create_plm_project()
 
     def create_pcm_project(self):
