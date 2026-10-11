@@ -6,19 +6,17 @@
 />{% endblock %} {% block content%}
 <main class="main">
   <section class="main-window">
-    <section class="control-panel">
-      <button type="button" id="tab-entry" class="panel-btn active">
-        Entry
-      </button>
-      <button type="button" id="tab-weight" class="panel-btn">Weight</button>
-      <button type="button" id="tab-nob-analysis" class="panel-btn">NOB</button>
-      <button type="button" id="tab-tem-anaysis" class="panel-btn">TEM</button>
-      <button type="button" id="tab-result" class="panel-btn">Result</button>
-      <button type="button" id="tab-invoice" class="panel-btn">Invoice</button>
-    </section>
-    <section class="work-space">
-      <div class="tab-content active" id="tab-0">
-        <section class="section-control-panel" id="data-entry-control-panel">
+    <section class="toolbar">
+      <nav class="tabs">
+        <button type="button" id="tab-entry" class="tab active">Entry</button>
+        <button type="button" id="tab-weight" class="tab">Weight</button>
+        <button type="button" id="tab-nob-analysis" class="tab">NOB</button>
+        <button type="button" id="tab-tem-anaysis" class="tab">TEM</button>
+        <button type="button" id="tab-result" class="tab">Result</button>
+      </nav>
+
+      <div class="plm-actions">
+        <div class="action-group active" id="panel-tab-0">
           <div class="control-buttons">
             <button type="button" id="data-entry-save-toggle" class="panel-btn">
               Save
@@ -30,27 +28,20 @@
             >
               Refresh
             </button>
-            <button
-              type="button"
-              id="data-entry-insert-toggle"
-              class="panel-btn"
-            >
-              Insert row
-            </button>
-            <button
-              type="button"
-              id="data-entry-delete-toggle"
-              class="panel-btn"
-            >
-              Delete row
-            </button>
           </div>
+
           <div class="data-entry-date-collected-container">
-            <label for="start">Date collected</label>
-            <input type="date" id="data-entry-date-collected" />
-            <button id="data-entry-date-collected-btn-confirm">Confirm</button>
+            <form
+              id="project-date-collect-form"
+              class="project-date-collect-form"
+              action="{% url 'plm:api_update_projects_date_collect' work.id %}"
+              method="post"
+            >
+              {% csrf_token %} {{ date_collect_form.as_p }}
+              <button type="submit" name="date_collect_form">Save</button>
+            </form>
           </div>
-          <div id="data-entry-upload-excel-form">
+          <div id="excel-upload-section">
             <form
               action="{% url 'plm:data_entry_upload_excel' work.id %}"
               class="data-entry-upload-excel-form"
@@ -72,39 +63,16 @@
               <button type="submit">Upload File</button>
             </form>
           </div>
-        </section>
-
-        <section class="section-table">
-          <section id="samples-data-entry-table"></section>
-        </section>
-      </div>
-      <div class="tab-content" id="tab-1">
-        <section class="section-control-panel" id="weight-control-panel">
-          <div class="control-buttons">
-            <button type="button" id="weight-save-toggle" class="panel-btn">
-              Save
-            </button>
-            <button type="button" id="weight-refresh-toggle" class="panel-btn">
-              Refresh
-            </button>
-            <button type="button" id="weight-insert-toggle" class="panel-btn">
-              Insert row
-            </button>
-            <button type="button" id="weight-delete-toggle" class="panel-btn">
-              Delete row
-            </button>
-            <button type="button" id="weight-test-toggle" class="panel-btn">
-              Test
-            </button>
-          </div>
-        </section>
-
-        <section class="section-table">
-          <section id="samples-weight-table"></section>
-        </section>
-      </div>
-      <div class="tab-content" id="tab-2">
-        <section class="section-control-panel" id="nob-control-panel">
+        </div>
+        <div class="action-group" id="panel-tab-1">
+          <button type="button" id="weight-save-toggle" class="panel-btn">
+            Save
+          </button>
+          <button type="button" id="weight-refresh-toggle" class="panel-btn">
+            Refresh
+          </button>
+        </div>
+        <div class="action-group" id="panel-tab-2">
           <div class="tem-control-buttons">
             <button type="button" id="nob-save-toggle" class="panel-btn">
               Save
@@ -113,6 +81,58 @@
               Refresh
             </button>
           </div>
+          <button
+            type="button"
+            id="info-toggle"
+            aria-expanded="false"
+            aria-controls="project-info"
+          >
+            <span class="arrow">▶</span>
+            Project Info
+          </button>
+
+          <div class="tem-control-buttons">
+            <button type="button" id="nob-qc-generate-toggle" class="panel-btn">
+              QC Generate samples
+            </button>
+            <button type="button" id="nob-qc-complete-toggle" class="panel-btn">
+              Complete QC
+            </button>
+          </div>
+        </div>
+        <div class="action-group" id="panel-tab-3">
+          <div class="tem-control-buttons">
+            <button type="button" id="tem-save-toggle" class="panel-btn">
+              Save
+            </button>
+            <button type="button" id="tem-refresh-toggle" class="panel-btn">
+              Refresh
+            </button>
+            <a
+              href="{% url 'plm:generate_plm_report' work.id %}"
+              class="panel-btn"
+              >Report</a
+            >
+            <button type="button" id="tem-test-toggle" class="panel-btn">
+              Test
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="work-space">
+      <div class="tab-content active" id="tab-0">
+        <section class="section-table">
+          <section id="samples-data-entry-table"></section>
+        </section>
+      </div>
+      <div class="tab-content" id="tab-1">
+        <section class="section-table">
+          <section id="samples-weight-table"></section>
+        </section>
+      </div>
+      <div class="tab-content" id="tab-2">
+        <div id="project-info" class="project-info-panel" hidden>
           <div class="temperature-control-panel">
             <div class="temperature-label"><span>Temperature</span></div>
             <select class="plm-analysis-temperature-select">
@@ -142,16 +162,7 @@
             <input type="date" id="nob-date-review" />
             <button id="nob-date-review-btn-confirm">Confirm</button>
           </div>
-          <div class="tem-control-buttons">
-            <button type="button" id="nob-qc-generate-toggle" class="panel-btn">
-              QC Generate samples
-            </button>
-            <button type="button" id="nob-qc-complete-toggle" class="panel-btn">
-              Complete QC
-            </button>
-          </div>
-        </section>
-
+        </div>
         <section class="section-table">
           <section id="samples-nob-table"></section>
           <div class="table-overlay" id="take-nob-overlay">
@@ -163,24 +174,6 @@
         </section>
       </div>
       <div class="tab-content" id="tab-3">
-        <section class="section-control-panel" id="tem-control-panel">
-          <div class="tem-control-buttons">
-            <button type="button" id="tem-save-toggle" class="panel-btn">
-              Save
-            </button>
-            <button type="button" id="tem-refresh-toggle" class="panel-btn">
-              Refresh
-            </button>
-            <a
-              href="{% url 'plm:generate_plm_report' work.id %}"
-              class="panel-btn"
-              >Report</a
-            >
-            <button type="button" id="tem-test-toggle" class="panel-btn">
-              Test
-            </button>
-          </div>
-        </section>
         <section class="section-table">
           <section id="samples-tem-table"></section>
           <div class="table-overlay" id="take-tem-overlay">

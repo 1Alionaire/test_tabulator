@@ -531,39 +531,40 @@ fetch(URLS.temperatureGetURL)
 })();
 
 // ========================== Update project dates ====================
-document.getElementById("data-entry-date-collected-btn-confirm").addEventListener('click', () => plmProjectDateUpdate('date_collect'));
-document.getElementById("nob-date-analysis-btn-confirm").addEventListener('click', () => plmProjectDateUpdate('date_analyze'));
-document.getElementById("nob-date-review-btn-confirm").addEventListener('click', () => plmProjectDateUpdate('date_review'));
+// document.getElementById("data-entry-date-collected-btn-confirm").addEventListener('click', () => plmProjectDateUpdate('date_collect'));
+// document.getElementById("data-entry-date-collected-btn-confirm").addEventListener('change', () => plmProjectDateUpdate('date_collect'));
+// document.getElementById("nob-date-analysis-btn-confirm").addEventListener('click', () => plmProjectDateUpdate('date_analyze'));
+// document.getElementById("nob-date-review-btn-confirm").addEventListener('click', () => plmProjectDateUpdate('date_review'));
 
-async function plmProjectDateUpdate(selectTypeDate) {
-  let payload;
-  if (selectTypeDate == 'date_collect') {
-    payload = JSON.stringify({'date_collect': document.getElementById("data-entry-date-collected").value})
-  }
-  else if (selectTypeDate == 'date_analyze') {
-    payload = JSON.stringify({'date_analyze': document.getElementById("nob-date-analysis").value})
-  }
-  else if (selectTypeDate == 'date_review') {
-    payload = JSON.stringify({'date_review': document.getElementById("nob-date-review").value})
-  }
-    return fetch(URLS.projectDateUpdateURL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrftoken,
-        },
-        body: payload,
-    })
-    .then(r => r.json())
-    .then(result => {
-        if (result.status === "ok") {
-            showToast(`Dates saved`, "success");
-        } else {
-            showToast(`Error saving. Try again`, "error");
-        }
-    })
-    .catch(console.log('No Success'));
-}
+// async function plmProjectDateUpdate(selectTypeDate) {
+//   let payload;
+//   // if (selectTypeDate == 'date_collect') {
+//     payload = JSON.stringify({'date_collect': document.getElementById("data-entry-date-collected").value})
+//   // }
+//   // else if (selectTypeDate == 'date_analyze') {
+//   //   payload = JSON.stringify({'date_analyze': document.getElementById("nob-date-analysis").value})
+//   // }
+//   // else if (selectTypeDate == 'date_review') {
+//   //   payload = JSON.stringify({'date_review': document.getElementById("nob-date-review").value})
+//   // }
+//     return fetch(URLS.projectDateUpdateURL, {
+//         method: "POST",
+//         headers: {
+//             "Content-Type": "application/json",
+//             "X-CSRFToken": csrftoken,
+//         },
+//         body: payload,
+//     })
+//     .then(r => r.json())
+//     .then(result => {
+//         if (result.status === "ok") {
+//             showToast(`Dates saved`, "success");
+//         } else {
+//             showToast(`Error saving. Try again`, "error");
+//         }
+//     })
+//     .catch(console.log('No Success'));
+// }
 
 
 function isEmpty(value) {

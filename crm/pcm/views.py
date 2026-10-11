@@ -13,6 +13,8 @@ from .forms import UpdatePcmProject
 from .models import PcmProject, PcmSample, SampleWorkArea, PcmSampleTimeTableRecord
 from .pcm_table_logic import PCMSamplesDataEntryManager, PCMSamplesAnalysisManager, PCMTimeTableManager
 from report_generator.pcm.pcm_report_generator import PcmReportGenerator
+from utils.utils import form_errors_to_text
+
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +24,6 @@ def get_active_pcm_project(id):
     return get_object_or_404(PcmProject.objects.select_related('project', 'analyst'),
                              pk=id, project__deleted=False)
 
-def form_errors_to_text(form):
-    return '; '.join(f'{form[name].label}: {" ".join(messages)}' if name in form.fields else ' '.join(messages)
-                     for name, messages in form.errors.items())
 
 def process_table_update(request, manager_class, pcm_project, log_message):
     try:

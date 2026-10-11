@@ -1,15 +1,18 @@
 // ==================== Переключение вкладок ====================
 
-const tabNav = document.querySelector('.control-panel');
+const tabNav = document.querySelector('.tabs');
 tabNav.addEventListener('click', function(e) {
-    const btn = e.target.closest('.panel-btn');
+    const btn = e.target.closest('.tab');
     if (!btn) return;
     const index = [...tabNav.children].indexOf(btn);
-    tabNav.querySelectorAll('.panel-btn').forEach((b, j) => b.classList.toggle('active', j === index));
+    tabNav.querySelectorAll('.tab').forEach((b, j) => b.classList.toggle('active', j === index));
     document.querySelectorAll('.tab-content').forEach((p, j) => p.classList.toggle('active', j === index));
+    document.querySelectorAll('.action-group').forEach((p, j) => p.classList.toggle('active', j === index));
 
     if (index === 1) dataEntryTable?.redraw(true);
     if (index === 2) weightTable?.redraw(true);
+    if (index === 3) nobTable?.redraw(true);
+    if (index === 4) temTable?.redraw(true);
 });
 
 
@@ -34,9 +37,7 @@ function isEmpty(inputString) {
 
 const entryORIGINALS = new Map();
 let dataEntryTable;
-
 const entryDeletedIds = new Set();
-
 const dirtyRows = [];
 
 (async () => { 
@@ -57,6 +58,7 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
         ajaxURL: URLS.dataEntryGetURL,
         selectableRange: true,
         columnDefaults: {
+          contextMenu: cellMenu,
           headerHozAlign: "center",
           hozAlign: "center",
           vertAlign: "middle",
@@ -190,37 +192,6 @@ function rewriteLabIds() {
   }
 }
 
-
-  // =================== Create new row ===================
-document.getElementById("data-entry-insert-toggle").addEventListener("click", function() {
-  const ranges = dataEntryTable.getRanges(); // parsing ranges from selectable range
-  if (!ranges.length) return; // in case no selected range
-  
-  const cells = ranges[0].getCells(); // parsing rows from selectable range
-  const cell = cells[0]?.[0] ?? cells[0]; 
-
-  dataEntryTable.addRow({}, false, cell.getRow());  // adding row in dataEntryTable
-  rewriteLabIds();
-});
-
-
-// ================== deleting rows =============
-document.getElementById("data-entry-delete-toggle").addEventListener("click", function () {
-  const ranges = dataEntryTable.getRanges(); // parsing total range
-  if (!ranges.length) return; // in case no selected range
-
-  const rows = ranges[0].getRows(); // parsing rows from selectable range
-  for (const row of rows) {
-    const data = row.getData(); //selecting data from tows
-    
-    if (data.id) {  // if deleted row has id(it means dataEntryTable has data)
-      entryDeletedIds.add(data.id);  // adding to set of deleted existing records  
-    }
-    row.delete(); // deleting row
-    rewriteLabIds();
-  }
-});
-
 document.getElementById("data-entry-save-toggle").addEventListener("click", entrySaveChanges);
 
 // ============================ Save changes ===========================
@@ -303,5 +274,92 @@ async function entrySaveChanges() {
   }
 };
 
+const cellMenu = [
+  {
+    label: "Copy",
+    action: function (e, cell) {
+      const table = cell.getTable();
+      const ranges = table.getRanges();
 
+      if (ranges.length) {
+        table.copyToClipboard("range");     // весь выделенный диапазон
+      } else {
+        navigator.clipboard.writeText(String(cell.getValue() ?? ""));
+      }
+    }
+  },
+  { separator: true },
+  {
+    label: "Insert Row under",
+    action: () => InsertRow(dataEntryTable, false)
+  },
+  {
+    label: "Insert Row below",
+    action: () => InsertRow(dataEntryTable, true)
+  },
+  { separator: true },
+  {
+    label: "Delete Row",
+    action: function () {
+      const ranges = dataEntryTable.getRanges(); // parsing total range
+      if (!ranges.length) return; // in case no selected range
 
+      const rows = ranges[0].getRows(); // parsing rows from selectable range
+      for (const row of rows) {
+        const data = row.getData(); //selecting data from tows
+        
+        if (data.id) {  // if deleted row has id(it means dataEntryTable has data)
+          entryDeletedIds.add(data.id);  // adding to set of deleted existing records  
+        }
+        row.delete(); // deleting row
+        rewriteLabIds();
+      }
+    }
+  }
+];
+
+async function InsertRow(input_table, isBelow) {
+  const ranges = input_table.getRanges();
+  const cells = ranges.length ? ranges[0].getCells() : [];
+  const cell = cells[0]?.[0] ?? cells[0];
+
+  // below the selected row, or at the end when nothing is selected (empty table)
+  if (cell) {
+    await input_table.addRow({}, isBelow, cell.getRow());
+  } else {
+    await input_table.addRow({}, isBelow);
+  }
+  rewriteLabIds();
+};
+
+const btn = document.getElementById('info-toggle');
+const panel = document.getElementById('project-info');
+
+btn.addEventListener('click', () => {
+  const isOpen = btn.getAttribute('aria-expanded') === 'true';
+  btn.setAttribute('aria-expanded', String(!isOpen));
+  panel.hidden = isOpen;                       // прячем, если было открыто
+  btn.querySelector('.arrow').textContent = isOpen ? '▶' : '▼';
+});
+
+// ==================== Project Date collected ====================
+document.getElementById("project-date-collect-form").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  try {
+    const response = await fetch(this.action, {
+      method: "POST",
+      headers: {"X-CSRFToken": csrftoken},
+      body: new FormData(this),
+    });
+
+    if (!response.ok) {
+      await showResponseError(response);
+      return;
+    }
+
+    showToast("Project saved", "success");
+  }
+  catch (err) {
+    showToast(`Error: ${err.message}`, "error");
+  }
+});

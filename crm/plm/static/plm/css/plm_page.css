@@ -19,6 +19,27 @@
     background-color: lightblue;
 }
 
+.main-window {
+    display: flex;
+    flex-direction: column;
+}
+
+.tab {
+    position: relative;
+    padding: 8px 18px;
+    font-size: 13px;
+    color: #000000;
+    white-space: nowrap;
+    background: transparent;
+    border: none;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+}
+
+.tab.active {
+    background-color: lightblue;
+}
+
 .tab-content {
     width: 100%;
     flex: 1;
@@ -29,18 +50,47 @@
     gap: 10px;
 }
 
+.action-group {
+    width: 100%;
+    flex: 1;
+    /* padding: 10px 10px; */
+    display: none;
+    height: 100%;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.action-group.active {
+    display: flex;
+}
+
 .tab-content.active {
     display: flex;
 }
 
-.section-control-panel {
+.tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 12px;
+    background: #f4f6f9;
+    border-bottom: 1px solid #d5dae2;
+}
+
+/* .section-control-panel {
     width: 100%;
     background-color: lightgray;
     min-height: 50px;
     display: flex;
     flex-direction: row;
     justify-content: start;
-}
+} */
 
 .section-table {
     width: 100%;
@@ -60,7 +110,7 @@
 }
 
 .control-buttons {
-    min-width: 250px;
+    min-width: 120px;
 }
 
 .tem-control-buttons {
@@ -76,6 +126,28 @@
     gap:5px
 }
 
+.data-entry-upload-excel-form button[type="submit"] {
+    align-self: flex-start;
+    /* не растягиваться во flex-колонке, прижаться влево */
+    width: auto;
+    /* перебить width: 100%, если он задан выше */
+}
+
+.excel-upload-section {
+    display: flex;
+    align-items: center;
+}
+
+.project-date-collect-form {
+    display: flex;
+    flex-direction: column;
+
+}
+
+.plm-actions {
+
+}
+
 .temperature-control-panel {
     min-width: 80px;
     margin: 5px 10px;
@@ -89,11 +161,18 @@
     font-size: 17px;
 }
 
-.data-entry-date-collected-container, .nob-date-review-container, .nob-date-analysis-container, .nob-reviewer-info-container{
+.nob-date-review-container, .nob-date-analysis-container, .nob-reviewer-info-container{
     display: flex;
     flex-direction: column;
     margin: 5px 10px;
     gap:5px;
+}
+
+.data-entry-date-collected-container {
+    display: flex;
+    flex-direction: row;
+    /* margin: 5px 10px;
+    gap: 5px; */
 }
 
 .table-overlay {
@@ -128,4 +207,32 @@
 
 #nob-analysis-reviewer-list {
     font-size: 16px;
+}
+
+.collapsible {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.2s ease;
+}
+
+.collapsible.open {
+    grid-template-rows: 1fr;
+}
+
+.collapsible>.inner {
+    overflow: hidden;
+}
+
+.project-info-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    padding: 10px 12px 12px;
+    background: #F4F5F7;
+    border-bottom: 1px solid #D6DAE1;
+}
+
+/* hidden должен побеждать display: grid */
+.project-info-panel[hidden] {
+    display: none;
 }

@@ -2,6 +2,16 @@ from django import forms
 from .models import PlmProject
 import re
 
+class PlmProjectDateCollect(forms.ModelForm):
+    prefix = "date_collect"
+    date_collect = forms.DateField(label='Date Collect', required=True,
+                                   widget=forms.DateInput(attrs={'type': 'date'}))
+
+    class Meta:
+        model = PlmProject
+        fields = ['date_collect']
+
+
 class UpdatePlmProject(forms.ModelForm):
     date_collect = forms.DateField(label='Date Collected', required=True,
                                    widget=forms.DateInput(attrs={'type': 'date'}))

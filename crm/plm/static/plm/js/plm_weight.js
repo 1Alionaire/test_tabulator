@@ -1,6 +1,65 @@
 
 const weightDeletedIds = new Set();
 
+const cellWeightMenu = [
+  {
+    label: "Copy",
+    action: function (e, cell) {
+      const table = cell.getTable();
+      const ranges = table.getRanges();
+
+      if (ranges.length) {
+        table.copyToClipboard("range");     // весь выделенный диапазон
+      } else {
+        navigator.clipboard.writeText(String(cell.getValue() ?? ""));
+      }
+    }
+  },
+  { separator: true },
+  {
+    label: "Insert Row under",
+    action: function() {
+      const ranges = weightTable.getRanges(); // parsing ranges from selectable range
+      if (!ranges.length) return; // in case no selected range
+      
+      const cells = ranges[0].getCells(); // parsing rows from selectable range
+      const cell = cells[0]?.[0] ?? cells[0]; 
+
+      weightTable.addRow({}, false, cell.getRow());  // adding row in weightTable
+    }
+  },
+  {
+    label: "Insert Row below",
+    action: function() {
+      const ranges = weightTable.getRanges(); // parsing ranges from selectable range
+      if (!ranges.length) return; // in case no selected range
+      
+      const cells = ranges[0].getCells(); // parsing rows from selectable range
+      const cell = cells[0]?.[0] ?? cells[0]; 
+
+      weightTable.addRow({}, true, cell.getRow());  // adding row in weightTable
+    }
+  },
+  { separator: true },
+  {
+    label: "Delete Row",
+    action: function () {
+      const ranges = weightTable.getRanges(); // parsing total range
+      if (!ranges.length) return; // in case no selected range
+
+      const rows = ranges[0].getRows(); // parsing rows from selectable range
+      for (const row of rows) {
+        const data = row.getData(); //selecting data from tows
+
+        if (data.id) { 
+            weightDeletedIds.add(data.id);
+        }
+        row.delete(); // deleting row
+      }
+    }
+  }
+];
+
 // ==================== Making whole table ====================
 let weightTable;
 
@@ -24,6 +83,7 @@ weightTable = new Tabulator("#samples-weight-table", {
         selectableRangeClearCells: true,
 
         columnDefaults: {
+          contextMenu: cellWeightMenu,
           headerHozAlign: "center",
           hozAlign: "center",
           vertAlign: "middle",
@@ -122,32 +182,6 @@ weightTable = new Tabulator("#samples-weight-table", {
       weightTable.on("cellEdited", () => calculateWeights());
 })();
 
-  // =================== Create new row ===================
-document.getElementById("weight-insert-toggle").addEventListener("click", function() {
-  const ranges = weightTable.getRanges(); // parsing ranges from selectable range
-  if (!ranges.length) return; // in case no selected range
-  
-  const cells = ranges[0].getCells(); // parsing rows from selectable range
-  const cell = cells[0]?.[0] ?? cells[0]; 
-
-  weightTable.addRow({}, false, cell.getRow());  // adding row in weightTable
-});
-
-// ================== deleting rows =============
-document.getElementById("weight-delete-toggle").addEventListener("click", function () {
-  const ranges = weightTable.getRanges(); // parsing total range
-  if (!ranges.length) return; // in case no selected range
-
-  const rows = ranges[0].getRows(); // parsing rows from selectable range
-  for (const row of rows) {
-    const data = row.getData(); //selecting data from tows
-
-    if (data.id) { 
-        weightDeletedIds.add(data.id);
-    }
-    row.delete(); // deleting row
-  }
-});
 
 function calculateWeights() {
   const data = weightTable.getRows();
@@ -162,11 +196,6 @@ function calculateWeights() {
   }
 }
 
-document.getElementById("weight-test-toggle").addEventListener("click", function () {
-    for (element of weightDeletedIds) {
-        console.log(element);
-    }
-});
 
 // ============================ Save changes ===========================
 document.getElementById("weight-save-toggle").addEventListener("click", weightSaveChanges);
@@ -240,7 +269,7 @@ async function weightSaveChanges() {
     catch (e) {
       showToast(`Error: ${e.message}`, "error");
     } finally {
-      entryDeletedIds.clear();
+      // entryDeletedIds.clear();
     }
 };
 
@@ -254,3 +283,4 @@ document.getElementById("weight-refresh-toggle").addEventListener("click", funct
   weightTable.setData(URLS.weightGetURL);
   showToast(`Refreshed`, "success");
 });
+

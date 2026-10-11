@@ -8,6 +8,8 @@ urlpatterns = [
     path('', views.PLMTableView.as_view(), name='main'),
     path('api/plm-projects/get/', views.api_get_plm_projects_table, name='api_get_plm_projects_table'),
     path('detail/<int:id>/', views.UpdateProjectView.as_view(), name='plm_detail'),
+
+    #
     # data-entry
     path('data-entry-upload-excel/<int:id>/', views.data_entry_upload_excel, name='data_entry_upload_excel'),
     path('api/get-table-options/', views.api_get_table_options, name="api_get_table_options"),
@@ -24,7 +26,10 @@ urlpatterns = [
 
     path('api/temperature-get/<int:id>/', views.api_get_temperature, name = 'api_get_temperature'),
     path('api/plm-project/date/get/<int:id>/', views.api_get_projects_date, name = 'api_get_projects_date'),
+    path('api/plm-project/date-collect/update/<int:id>/', views.api_update_projects_date_collect, name = 'api_update_projects_date_collect'),
     path('api/plm-project/date/update/<int:id>/', views.api_update_projects_date, name = 'api_update_projects_date'),
+
+    
 
     path('api/plm-project/analyst/get/<int:id>/', views.api_get_projects_analyst, name = 'api_get_projects_analyst'),
     path('api/plm-project/analyst/update/<int:id>/', views.api_update_projects_analyst, name = 'api_update_projects_analyst'),

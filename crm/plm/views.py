@@ -4,7 +4,7 @@ from django.views.generic import TemplateView
 from django.http import JsonResponse, FileResponse, Http404
 from main.models import MainProject
 from django.views.generic import UpdateView
-from .forms import UpdatePlmProject
+from .forms import UpdatePlmProject, PlmProjectDateCollect
 from django.shortcuts import  redirect, get_object_or_404
 from django.views.decorators.http import require_GET, require_POST
 from openpyxl import load_workbook
@@ -24,6 +24,7 @@ import logging
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from main.models import MainTypeAnalysis
+from utils.utils import form_errors_to_text
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,11 @@ from .models import (
 def return_int_value_sample_method(input_str):
     methods = {label:value for value, label in SampleMethod.choices}
     return methods[input_str]
+
+
+def get_active_plm_project(id):
+    return get_object_or_404(PlmProject.objects.select_related('project', 'analyst'),
+                             pk=id, project__deleted=False)
 
 # =============== render PLM main page ===============
 class PLMTableView(LoginRequiredMixin, TemplateView):
@@ -133,7 +139,17 @@ class UpdateProjectView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = f'{self.object}'
+        context.setdefault("date_collect_form", PlmProjectDateCollect(instance=self.object))
         return context
+
+@require_POST
+def api_update_projects_date_collect(request, id):
+    form = PlmProjectDateCollect(request.POST, instance=get_active_plm_project(id))
+    print(form)
+    if not form.is_valid():
+        return JsonResponse({'status': '!ok', 'error': form_errors_to_text(form)}, status=400)
+    form.save()
+    return JsonResponse({'status': 'ok'})
 
 # =============== getting all options ===============
 @require_GET
@@ -410,3 +426,4 @@ def generate_plm_report(request, id):
     return FileResponse(pdf_buffer, as_attachment=True,
                         filename=f'PLM_report_{plm_project.lab_id}.pdf',
                         content_type='application/pdf')
+

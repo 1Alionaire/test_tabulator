@@ -98,6 +98,7 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
         selectableRangeClearCellsValue: null,   // Delete/Backspace on a range
         editorEmptyValue: null,
         columnDefaults: {
+          contextMenu: cellMenu,
           headerHozAlign: "center",
           hozAlign: "center",
           vertAlign: "middle",
@@ -212,37 +213,8 @@ function rewriteLabIds() {
   });
 }
 
-// =================== Create new row ===================
-document.getElementById("data-entry-insert-toggle").addEventListener("click", async function() {
-  const ranges = dataEntryTable.getRanges();
-  const cells = ranges.length ? ranges[0].getCells() : [];
-  const cell = cells[0]?.[0] ?? cells[0];
 
-  // below the selected row, or at the end when nothing is selected (empty table)
-  if (cell) {
-    await dataEntryTable.addRow({}, false, cell.getRow());
-  } else {
-    await dataEntryTable.addRow({}, false);
-  }
-  rewriteLabIds();
-  entryHasChanges = true;
-});
 
-// ================== Deleting rows =============
-document.getElementById("data-entry-delete-toggle").addEventListener("click", async function () {
-  const ranges = dataEntryTable.getRanges();
-  if (!ranges.length) return;
-
-  const rows = ranges[0].getRows();
-  for (const row of rows) {
-    if (row.getData().id) {   // row already saved in database
-      entryDeletedIds.add(row.getData().id);
-    }
-  }
-  await Promise.all(rows.map(row => row.delete()));
-  rewriteLabIds();
-  entryHasChanges = true;
-});
 
 // ============================ Save changes ===========================
 document.getElementById("data-entry-save-toggle").addEventListener("click", entrySaveChanges);
@@ -370,3 +342,60 @@ function timeEditor(cell, onRendered, success, cancel) {
 
   return input;
 }
+
+const cellMenu = [
+    {
+    label: "Copy",
+    action: function (e, cell) {
+      const table = cell.getTable();
+      const ranges = table.getRanges();
+
+      if (ranges.length) {
+        table.copyToClipboard("range");     // весь выделенный диапазон
+      } else {
+        navigator.clipboard.writeText(String(cell.getValue() ?? ""));
+      }
+    }
+  },
+  { separator: true },
+  {
+    label: "Insert Row under",
+    action: () => InsertRow(false)
+  },
+  {
+    label: "Insert Row below",
+    action: () => InsertRow(true)
+  },
+  { separator: true },
+  {
+    label: "Delete Row",
+    action: async function () {
+      const ranges = dataEntryTable.getRanges();
+      if (!ranges.length) return;
+
+      const rows = ranges[0].getRows();
+      for (const row of rows) {
+        if (row.getData().id) {   // row already saved in database
+          entryDeletedIds.add(row.getData().id);
+        }
+      }
+      await Promise.all(rows.map(row => row.delete()));
+      rewriteLabIds();
+      entryHasChanges = true;
+    }
+  }
+];
+
+async function InsertRow(isBelow) {
+  const ranges = dataEntryTable.getRanges();
+  const cells = ranges.length ? ranges[0].getCells() : [];
+  const cell = cells[0]?.[0] ?? cells[0];
+
+  // below the selected row, or at the end when nothing is selected (empty table)
+  if (cell) {
+    await dataEntryTable.addRow({}, isBelow, cell.getRow());
+  } else {
+    await dataEntryTable.addRow({}, isBelow);
+  }
+  rewriteLabIds();
+};

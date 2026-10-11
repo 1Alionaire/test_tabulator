@@ -72,3 +72,7 @@ def generate_weight_item(max_tries=1000, RESIDUE_RANGE = (20.0, 40.0)):
             return d
 
     raise RuntimeError("Не удалось подобрать значения — проверь, совместимы ли интервалы")
+
+def form_errors_to_text(form):
+    return '; '.join(f'{form[name].label}: {" ".join(messages)}' if name in form.fields else ' '.join(messages)
+                     for name, messages in form.errors.items())
