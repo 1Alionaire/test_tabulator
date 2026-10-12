@@ -1,16 +1,18 @@
 // ==================== Switching tabs ====================
 
-const tabNav = document.querySelector('.control-panel');
+const tabNav = document.querySelector('.tabs');
 tabNav.addEventListener('click', function(e) {
-    const btn = e.target.closest('.panel-btn');
+    const btn = e.target.closest('.tab');
     if (!btn) return;
     const index = [...tabNav.children].indexOf(btn);
-    tabNav.querySelectorAll('.panel-btn').forEach((b, j) => b.classList.toggle('active', j === index));
+    tabNav.querySelectorAll('.tab').forEach((b, j) => b.classList.toggle('active', j === index));
     document.querySelectorAll('.tab-content').forEach((p, j) => p.classList.toggle('active', j === index));
+    document.querySelectorAll('.action-group').forEach((p, j) => p.classList.toggle('active', j === index));
 
-    // a table built inside a hidden tab has to recalculate its size when shown
-    if (index === 0) dataEntryTable?.redraw(true);
-    if (index === 1) analysisTable?.redraw(true);   // analysisTable in pcm_analysis.js
+    // if (index === 1) dataEntryTable?.redraw(true);
+    // if (index === 2) weightTable?.redraw(true);
+    // if (index === 3) nobTable?.redraw(true);
+    // if (index === 4) temTable?.redraw(true);
 });
 
 
@@ -399,3 +401,13 @@ async function InsertRow(isBelow) {
   }
   rewriteLabIds();
 };
+
+const btn = document.getElementById('info-toggle');
+const panel = document.getElementById('project-info');
+
+btn.addEventListener('click', () => {
+  const isOpen = btn.getAttribute('aria-expanded') === 'true';
+  btn.setAttribute('aria-expanded', String(!isOpen));
+  panel.hidden = isOpen;                       // прячем, если было открыто
+  btn.querySelector('.arrow').textContent = isOpen ? '▶' : '▼';
+});

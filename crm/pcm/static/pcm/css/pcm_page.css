@@ -68,7 +68,7 @@ a.panel-btn {
     flex-direction: column;
 }
 
-.control-buttons, .pcm-time-table-main-actions-box {
+.table-control-buttons, .pcm-time-table-main-actions-box {
     display: flex;
     flex-direction: row;
     margin: 20px 10px;
@@ -127,4 +127,62 @@ a.panel-btn {
 .project-info-actions {
     grid-column: 1 / -1;
     max-width: 150px;
+}
+
+.main-window {
+    display: flex;
+    flex-direction: column;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 12px;
+    background: #f4f6f9;
+    border-bottom: 1px solid #d5dae2
+}
+
+.tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.tab {
+    position: relative;
+    padding: 8px 18px;
+    font-size: 13px;
+    color: #000000;
+    white-space: nowrap;
+    background: transparent;
+    border: none;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    height: 100px;
+}
+
+.tab.active {
+    background-color: lightblue;
+}
+
+.pcm-actions {
+    display: grid;
+}
+
+.action-group {
+    width: 100%;
+    flex: 1;
+    /* padding: 10px 10px; */
+    display: flex;
+    height: 100%;
+    flex-direction: row;
+    gap: 10px;
+    /* все группы в одной ячейке грида: тулбар всегда высотой с самую высокую (Entry) */
+    grid-area: 1 / 1;
+    visibility: hidden;
+}
+
+.action-group.active {
+    visibility: visible;
 }
