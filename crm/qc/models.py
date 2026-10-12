@@ -17,8 +17,8 @@ class Month(models.IntegerChoices):
     DECEMBER = 12, "December"
 
 # Create your models here.
-class PcmZCriteriaPerAnalystMonth(BaseModel):
-    month = models.PositiveSmallIntegerField(choices=Month.choices)
+class PcmZCriterionPerAnalystMonth(BaseModel):
+    month = models.PositiveSmallIntegerField(choices=Month.choices, null=True, blank=True)
     year = models.PositiveSmallIntegerField()
     analyst = models.ForeignKey(
             settings.AUTH_USER_MODEL,
@@ -32,4 +32,6 @@ class PcmZCriteriaPerAnalystMonth(BaseModel):
     relative_std_deviation_low = models.DecimalField(max_digits=6, decimal_places=4, blank=True, null=True)
     relative_std_deviation_medium = models.DecimalField(max_digits=6, decimal_places=4, blank=True, null=True)
     relative_std_deviation_high = models.DecimalField(max_digits=6, decimal_places=4, blank=True, null=True)
-    
+
+    def __str__(self):
+        return str(self.year) + '-' + str(self.month) + '-' + self.analyst.username

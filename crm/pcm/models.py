@@ -2,7 +2,8 @@ from django.db import models
 from main.models import BaseModel
 from django.utils import timezone
 from django.conf import settings
-from qc.models import Month 
+from qc.models import Month
+
 class TypeSamplingPCM(models.IntegerChoices):
     Background = 1, 'Background / Pre-Abatement'
     During = 2, 'During'
@@ -28,10 +29,7 @@ class PcmProject(BaseModel):
 
     type_sampling = models.IntegerField(choices=TypeSamplingPCM, null=True, blank=True)
 
-    relative_std_deviation_low = models.DecimalField(max_digits=6, decimal_places=4, blank=True, null=True)
-    relative_std_deviation_medium = models.DecimalField(max_digits=6, decimal_places=4, blank=True, null=True)
-    relative_std_deviation_high = models.DecimalField(max_digits=6, decimal_places=4, blank=True, null=True)
-    
+    z_criterion_record = models.ForeignKey('qc.PcmZCriterionPerAnalystMonth', on_delete=models.SET_NULL, null=True, blank=True, related_name='pcm_project')
     qc_completed = models.BooleanField(default=False)
     project_file = models.FileField(upload_to='pcm_files/scan', blank=True, null=True) #check
     report_file = models.FileField(upload_to='pcm_files/report', blank=True, null=True) #check

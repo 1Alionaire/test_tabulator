@@ -174,9 +174,12 @@ async function analystTakeProject() {
       await showResponseError(response);
       return;
     }
-
+    data = await response.json()
     await checkProjectAnalyst();
     showToast("The project has been picked up for work", "success");
+    document.querySelector('#z-criterion-low').textContent = `Low : ${data.low}`
+    document.querySelector('#z-criterion-medium').textContent = `Medium : ${data.medium}`
+    document.querySelector('#z-criterion-high').textContent = `High : ${data.high}`
   } catch (err) {
     showToast(`Error: ${err.message}`, "error");
   }

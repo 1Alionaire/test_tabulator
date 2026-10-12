@@ -12,8 +12,12 @@
         <span class="toolbar-section__label">Tabs</span>
         <div class="toolbar-section__body">
           <nav class="tabs">
-            <button type="button" id="tab-entry" class="tab active">Entry</button>
-            <button type="button" id="tab-analysis" class="tab">Analysis</button>
+            <button type="button" id="tab-entry" class="tab active">
+              Entry
+            </button>
+            <button type="button" id="tab-analysis" class="tab">
+              Analysis
+            </button>
             <button type="button" id="tab-project" class="tab">Project</button>
           </nav>
         </div>
@@ -83,6 +87,20 @@
               <div class="analyst-info-container">
                 <span>Analyst: </span>
                 <span id="analysis-analyst-username"></span>
+              </div>
+              <div class="analyst-info-container">
+                <span id="z-criterion-low"
+                  >Low :
+                  {{work.z_criterion_record.relative_std_deviation_low}}</span
+                >
+                <span id="z-criterion-medium"
+                  >Medium :
+                  {{work.z_criterion_record.relative_std_deviation_medium}}</span
+                >
+                <span id="z-criterion-high"
+                  >High :
+                  {{work.z_criterion_record.relative_std_deviation_high}}</span
+                >
               </div>
             </div>
           </div>

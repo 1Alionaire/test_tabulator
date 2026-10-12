@@ -14,7 +14,9 @@ from .models import PcmProject, PcmSample, SampleWorkArea, PcmSampleTimeTableRec
 from .pcm_table_logic import PCMSamplesDataEntryManager, PCMSamplesAnalysisManager, PCMTimeTableManager
 from report_generator.pcm.pcm_report_generator import PcmReportGenerator
 from utils.utils import form_errors_to_text
-
+from qc.models import PcmZCriterionPerAnalystMonth
+import django.utils
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -118,8 +120,18 @@ def api_get_projects_analyst(request, id):
 def api_update_projects_analyst(request, id):
     pcm_project = get_active_pcm_project(id)
     pcm_project.analyst = request.user
-    pcm_project.save(update_fields=['analyst', 'time_update'])
-    return JsonResponse({'status': 'ok', 'analyst': request.user.username})
+    pcm_project.date_analyze = django.utils.timezone.now()
+    z_record = get_object_or_404(PcmZCriterionPerAnalystMonth, month=datetime.now().month,
+                                                                year=datetime.now().year,
+                                                                analyst=request.user)
+    pcm_project.z_criterion_record = z_record
+    pcm_project.save(update_fields=['analyst', 'time_update', 'date_analyze', 'z_criterion_record'])
+
+    return JsonResponse({'status': 'ok', 
+                         'analyst': request.user.username, 
+                         'low':z_record.relative_std_deviation_low,
+                         'medium':z_record.relative_std_deviation_medium,
+                         'high':z_record.relative_std_deviation_high})
 
 # =============== data entry ===============
 @require_GET

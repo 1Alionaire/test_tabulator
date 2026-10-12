@@ -567,27 +567,6 @@ async function analystTakeProject(selectTypeDate) {
 
 checkProjectAnalyst();
 
-async function updateProjectReviewer() {
-    return fetch(URLS.projectReviewerUpdateRL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrftoken,
-        },
-        body: JSON.stringify({'reviewed_by': document.getElementById("nob-analysis-reviewer-list").value}),
-    })
-    .then(r => r.json())
-    .then(result => {
-        if (result.status === "ok") {
-          showToast(`Reviewer updated`, "success");
-        } else {
-          showToast(`Error. Try again later`, "error");
-        }
-    })
-    .catch(showToast(`Error. Try again later`, "error"));
-};
-
-
 document.getElementById("nob-qc-generate-toggle").addEventListener("click", async (e) => {
   e.target.disabled = true;
   try {
