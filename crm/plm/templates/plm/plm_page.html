@@ -65,12 +65,14 @@
           </div>
         </div>
         <div class="action-group" id="panel-tab-1">
-          <button type="button" id="weight-save-toggle" class="panel-btn">
-            Save
-          </button>
-          <button type="button" id="weight-refresh-toggle" class="panel-btn">
-            Refresh
-          </button>
+          <div class="control-buttons">
+            <button type="button" id="weight-save-toggle" class="panel-btn">
+              Save
+            </button>
+            <button type="button" id="weight-refresh-toggle" class="panel-btn">
+              Refresh
+            </button>
+          </div>
         </div>
         <div class="action-group" id="panel-tab-2">
           <div class="tem-control-buttons">
@@ -81,12 +83,7 @@
               Refresh
             </button>
           </div>
-          <button
-            type="button"
-            id="info-toggle"
-            aria-expanded="false"
-            aria-controls="project-info"
-          >
+          <button type="button" id="info-toggle" aria-controls="project-info">
             <span class="arrow">▶</span>
             Project Info
           </button>
@@ -143,25 +140,23 @@
               <option value="27">27</option>
             </select>
           </div>
-          <div class="nob-analyst-info-container">
-            <span>Analyst: </span>
-            <span id="nob-analyst-username"></span>
+          <div class="analyst-info">
+            <span>Analyst:</span>
+            <span>{{work.analyst.username}}</span>
           </div>
-          <div class="nob-date-analysis-container">
-            <label>Date analysis</label>
-            <input type="date" id="nob-date-analysis" />
-            <button id="nob-date-analysis-btn-confirm">Confirm</button>
-          </div>
-          <div class="nob-reviewer-info-container">
-            <span>Reviewer: </span>
-            <select id="nob-analysis-reviewer-list"></select>
-            <button id="nob-choose-reviewer-btn-confirm">Confirm</button>
-          </div>
-          <div class="nob-date-review-container">
-            <label>Date review</label>
-            <input type="date" id="nob-date-review" />
-            <button id="nob-date-review-btn-confirm">Confirm</button>
-          </div>
+          <form
+            id="project-info-form"
+            class="project-info-form"
+            action="{% url 'plm:api_update_project_info' work.id %}"
+            method="POST"
+          >
+            {% csrf_token %} {% for field in form %}
+            <div class="project-info-field">
+              {{ field.label_tag }} {{ field }}
+            </div>
+            {% endfor %}
+            <button type="submit" class="panel-btn">Save</button>
+          </form>
         </div>
         <section class="section-table">
           <section id="samples-nob-table"></section>

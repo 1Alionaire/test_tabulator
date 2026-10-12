@@ -514,58 +514,6 @@ fetch(URLS.temperatureGetURL)
         document.querySelector(".plm-analysis-temperature-select").value = +temperature;
     });
     
-// ========================== Parse project dates from server ====================
-(async () => {
-  const response = await fetch(URLS.projectDateGetURL);
-  const data = await response.json();
-
-  if (data.date_collect) {
-    document.getElementById("data-entry-date-collected").value = data.date_collect;
-  }
-  if (data.date_analyze) {
-    document.getElementById("nob-date-analysis").value = data.date_analyze;
-  }
-  if (data.date_review) {
-    document.getElementById("nob-date-review").value = data.date_review;
-  }
-})();
-
-// ========================== Update project dates ====================
-// document.getElementById("data-entry-date-collected-btn-confirm").addEventListener('click', () => plmProjectDateUpdate('date_collect'));
-// document.getElementById("data-entry-date-collected-btn-confirm").addEventListener('change', () => plmProjectDateUpdate('date_collect'));
-// document.getElementById("nob-date-analysis-btn-confirm").addEventListener('click', () => plmProjectDateUpdate('date_analyze'));
-// document.getElementById("nob-date-review-btn-confirm").addEventListener('click', () => plmProjectDateUpdate('date_review'));
-
-// async function plmProjectDateUpdate(selectTypeDate) {
-//   let payload;
-//   // if (selectTypeDate == 'date_collect') {
-//     payload = JSON.stringify({'date_collect': document.getElementById("data-entry-date-collected").value})
-//   // }
-//   // else if (selectTypeDate == 'date_analyze') {
-//   //   payload = JSON.stringify({'date_analyze': document.getElementById("nob-date-analysis").value})
-//   // }
-//   // else if (selectTypeDate == 'date_review') {
-//   //   payload = JSON.stringify({'date_review': document.getElementById("nob-date-review").value})
-//   // }
-//     return fetch(URLS.projectDateUpdateURL, {
-//         method: "POST",
-//         headers: {
-//             "Content-Type": "application/json",
-//             "X-CSRFToken": csrftoken,
-//         },
-//         body: payload,
-//     })
-//     .then(r => r.json())
-//     .then(result => {
-//         if (result.status === "ok") {
-//             showToast(`Dates saved`, "success");
-//         } else {
-//             showToast(`Error saving. Try again`, "error");
-//         }
-//     })
-//     .catch(console.log('No Success'));
-// }
-
 
 function isEmpty(value) {
   return value === null || value === undefined || String(value).trim() === "";
@@ -586,8 +534,7 @@ async function checkProjectAnalyst() {
     overlays.forEach(function (element) {
       element.hidden = !isEmpty(data.analyst);
     });
-    document.getElementById("nob-analyst-username").textContent = data.analyst;
-  } catch {
+  } catch (err) {
     console.error("checkProjectAnalyst:", err);
   }
 };
@@ -619,45 +566,6 @@ async function analystTakeProject(selectTypeDate) {
 };
 
 checkProjectAnalyst();
-
-// ========================== Parse project dates from server ====================
-(async () => {
-  const response = await fetch(URLS.projectReviewerListGetURL);
-  const data = await response.json();
-
-  const select = document.getElementById("nob-analysis-reviewer-list");
-  const { current, ...users } = data;
-
-  const frag = document.createDocumentFragment();
-
-  const placeholder = new Option("— choose —", "");
-  placeholder.disabled = true;
-  placeholder.selected = current == null;
-  frag.append(placeholder);
-
-  let matched = false;
-
-  for (const [id, username] of Object.entries(users)) {
-    const opt = new Option(username, id);
-    if (username === current) {
-      opt.selected = true;
-      matched = true;
-    }
-    frag.append(opt);
-  }
-
-  // текущий ревьюер есть, но его нет в списке — добавляем, иначе выбор потеряется
-  if (current != null && !matched) {
-    const opt = new Option(`${current}`, "");
-    opt.selected = true;
-    frag.append(opt);
-  }
-
-  select.innerHTML = "";
-  select.append(frag);
-})();
-
-document.getElementById("nob-choose-reviewer-btn-confirm").addEventListener('click', () => updateProjectReviewer());
 
 async function updateProjectReviewer() {
     return fetch(URLS.projectReviewerUpdateRL, {
@@ -697,5 +605,27 @@ document.getElementById("nob-qc-generate-toggle").addEventListener("click", asyn
     showToast(err.message, "error");
   } finally {
     e.target.disabled = false;
+  }
+});
+
+// ==================== Project Date collected ====================
+document.getElementById("project-info-form").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  try {
+    const response = await fetch(this.action, {
+      method: "POST",
+      headers: {"X-CSRFToken": csrftoken},
+      body: new FormData(this),
+    });
+
+    if (!response.ok) {
+      await showResponseError(response);
+      return;
+    }
+
+    showToast("Project saved", "success");
+  }
+  catch (err) {
+    showToast(`Error: ${err.message}`, "error");
   }
 });
