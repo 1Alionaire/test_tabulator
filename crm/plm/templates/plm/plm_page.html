@@ -199,17 +199,10 @@
     analysisUpdateURL: "{% url 'plm:api_update_analysis_table' work.id %}",
 
     temperatureGetURL: "{% url 'plm:api_get_temperature' work.id %}",
-    projectDateGetURL: "{% url 'plm:api_get_projects_date' work.id %}", //
-    projectDateUpdateURL: "{% url 'plm:api_update_projects_date' work.id %}",
 
     projectAnalystGetURL: "{% url 'plm:api_get_projects_analyst' work.id %}", //
     projectAnalystUpdateURL:
       "{% url 'plm:api_update_projects_analyst' work.id %}", //api_get_projects_reviewer
-
-    projectReviewerListGetURL:
-      "{% url 'plm:api_get_projects_reviewer' work.id %}", //
-    projectReviewerUpdateRL:
-      "{% url 'plm:api_update_project_reviewer' work.id %}", //api_generate_qc_samples
 
     qcGenerateSamplesURL: "{% url 'plm:api_generate_qc_samples' work.id %}",
 
