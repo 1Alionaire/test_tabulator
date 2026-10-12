@@ -94,7 +94,7 @@ def data_entry_upload_excel(request, id):
     samples_info_from_excel = []
     try:
         project_lab_id = MainProject.objects.get(plm_project__id=id).lab_id
-        plm_project = PlmProject.objects.get(id=id)
+        plm_project = get_active_plm_project(id)
         wb = load_workbook(excel_file, data_only=True)
         ws_entry = wb['PLM-Entry']
 
@@ -134,7 +134,7 @@ class UpdateProjectView(LoginRequiredMixin, UpdateView):
     context_object_name = 'work'
     
     def get_object(self):
-        return get_object_or_404(PlmProject, id=self.kwargs['id'])
+        return get_active_plm_project(self.kwargs['id'])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -145,7 +145,14 @@ class UpdateProjectView(LoginRequiredMixin, UpdateView):
 @require_POST
 def api_update_projects_date_collect(request, id):
     form = PlmProjectDateCollect(request.POST, instance=get_active_plm_project(id))
-    print(form)
+    if not form.is_valid():
+        return JsonResponse({'status': '!ok', 'error': form_errors_to_text(form)}, status=400)
+    form.save()
+    return JsonResponse({'status': 'ok'})
+
+@require_POST
+def api_update_project_info(request, id):
+    form = UpdatePlmProject(request.POST, instance=get_active_plm_project(id))
     if not form.is_valid():
         return JsonResponse({'status': '!ok', 'error': form_errors_to_text(form)}, status=400)
     form.save()
@@ -177,7 +184,7 @@ def api_get_data_entry_table(request, id):
 # =============== render PLM project ===============
 @require_POST
 def api_update_data_entry_table(request, id):
-    plm_project = PlmProject.objects.get(pk=id)
+    plm_project = get_active_plm_project(id)
     try:
         payload_json = json.loads(request.body)
         data_entry_manager = PLMSamplesDataEntryManager(input_data=payload_json, 
@@ -204,7 +211,7 @@ def api_update_data_entry_table(request, id):
 
 @require_POST
 def api_replace_all_data_entry_table(request, id):
-    plm_project = PlmProject.objects.get(pk=id)
+    plm_project = get_active_plm_project(id)
     try:
         payload_json = json.loads(request.body)
 
@@ -243,7 +250,7 @@ def api_get_weight_table(request, id):
 @require_POST
 def api_update_weight_table(request, id):
     try:
-        plm_project = PlmProject.objects.get(pk=id)
+        plm_project = get_active_plm_project(id)
         payload_json = json.loads(request.body)
 
         weight_manager = PLMSamplesWeightManager(plm_project=plm_project,input_data=payload_json)
@@ -280,7 +287,7 @@ def api_get_nob_analysis_table(request, id):
 
 @require_POST
 def api_update_analysis_table(request, id):
-    selected_plm_project = PlmProject.objects.get(pk=id)
+    selected_plm_project = get_active_plm_project(id)
     payload_json = json.loads(request.body)
     touched_fields = set()
     try:
@@ -344,21 +351,7 @@ def api_get_temperature(request, id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
-@require_GET
-def api_get_projects_date(request, id):
-    try:
-        dates = PlmProject.objects.filter(pk=id).values('date_collect', 'date_analyze', 'date_report', 'date_review')[0]
-        return JsonResponse(dates, safe=False)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
-@require_POST
-def api_update_projects_date(request, id):
-    with transaction.atomic():
-        payload_json = json.loads(request.body)
-        PlmProject.objects.filter(pk=id).update(**payload_json)
-        return JsonResponse({'status':'ok'})
-
+# =============== Analyst get and update info ===============
 @require_GET
 def api_get_projects_analyst(request, id):
     try:
@@ -378,26 +371,6 @@ def api_update_projects_analyst(request, id):
         project.save()
         return JsonResponse({'status': 'ok'})
 
-@require_GET
-def api_get_projects_reviewer(request, id):
-    current_reviewer = PlmProject.objects.get(pk=id).reviewed_by
-    result = {}
-    for user in User.objects.all():
-        if user == current_reviewer:
-            result['current'] = user.username
-        else:
-            result[user.id] = user.username
-    try:
-        return JsonResponse(result, safe=False)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
-@require_POST
-def api_update_project_reviewer(request, id):
-    with transaction.atomic():
-        payload = json.loads(request.body)
-        PlmProject.objects.filter(pk=id).update(reviewed_by = payload['reviewed_by'])
-        return JsonResponse({'status': 'ok'})
 
 def get_test_function(request, id):
     main_project = MainProject.active_objects.filter(plm_project__id=id)
