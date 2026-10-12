@@ -7,116 +7,180 @@
 <main class="main">
   <section class="main-window">
     <section class="toolbar">
-      <nav class="tabs">
-        <button type="button" id="tab-entry" class="tab active">Entry</button>
-        <button type="button" id="tab-weight" class="tab">Weight</button>
-        <button type="button" id="tab-nob-analysis" class="tab">NOB</button>
-        <button type="button" id="tab-tem-anaysis" class="tab">TEM</button>
-        <button type="button" id="tab-result" class="tab">Result</button>
-      </nav>
+      <!-- the label sits outside .tabs: plm_entry.js finds the tab index from .tabs children -->
+      <div class="toolbar-section toolbar-section--tabs">
+        <span class="toolbar-section__label">Tabs</span>
+        <div class="toolbar-section__body">
+          <nav class="tabs">
+            <button type="button" id="tab-entry" class="tab active">
+              Entry
+            </button>
+            <button type="button" id="tab-weight" class="tab">Weight</button>
+            <button type="button" id="tab-nob-analysis" class="tab">NOB</button>
+            <button type="button" id="tab-tem-anaysis" class="tab">TEM</button>
+            <button type="button" id="tab-result" class="tab">Result</button>
+          </nav>
+        </div>
+      </div>
 
       <div class="plm-actions">
         <div class="action-group active" id="panel-tab-0">
-          <div class="control-buttons">
-            <button type="button" id="data-entry-save-toggle" class="panel-btn">
-              Save
-            </button>
-            <button
-              type="button"
-              id="data-entry-refresh-toggle"
-              class="panel-btn"
-            >
-              Refresh
-            </button>
+          <div class="toolbar-section toolbar-section--table">
+            <span class="toolbar-section__label">Table</span>
+            <div class="toolbar-section__body">
+              <div class="control-buttons">
+                <button
+                  type="button"
+                  id="data-entry-save-toggle"
+                  class="panel-btn"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  id="data-entry-refresh-toggle"
+                  class="panel-btn"
+                >
+                  Refresh
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div class="data-entry-date-collected-container">
-            <form
-              id="project-date-collect-form"
-              class="project-date-collect-form"
-              action="{% url 'plm:api_update_projects_date_collect' work.id %}"
-              method="post"
-            >
-              {% csrf_token %} {{ date_collect_form.as_p }}
-              <button type="submit" name="date_collect_form">Save</button>
-            </form>
-          </div>
-          <div id="excel-upload-section">
-            <form
-              action="{% url 'plm:data_entry_upload_excel' work.id %}"
-              class="data-entry-upload-excel-form"
-              method="POST"
-              enctype="multipart/form-data"
-            >
-              {% csrf_token %}
-              <!-- Label for accessibility -->
-              <label for="file-upload">Choose a file to upload:</label>
+          <div class="toolbar-section toolbar-section--project">
+            <span class="toolbar-section__label">Project</span>
+            <div class="toolbar-section__body">
+              <div class="data-entry-date-collected-container">
+                <form
+                  id="project-date-collect-form"
+                  class="project-date-collect-form"
+                  action="{% url 'plm:api_update_projects_date_collect' work.id %}"
+                  method="post"
+                >
+                  {% csrf_token %} {{ date_collect_form.as_p }}
+                  <button type="submit" name="date_collect_form">Save</button>
+                </form>
+              </div>
+              <div id="excel-upload-section">
+                <form
+                  action="{% url 'plm:data_entry_upload_excel' work.id %}"
+                  class="data-entry-upload-excel-form"
+                  method="POST"
+                  enctype="multipart/form-data"
+                >
+                  {% csrf_token %}
+                  <!-- Label for accessibility -->
+                  <label for="file-upload">Choose a file to upload:</label>
 
-              <!-- The actual file input field -->
-              <input
-                type="file"
-                id="data-entry-file-upload"
-                name="uploaded_file"
-              />
+                  <!-- The actual file input field -->
+                  <input
+                    type="file"
+                    id="data-entry-file-upload"
+                    name="uploaded_file"
+                  />
 
-              <!-- Submit button -->
-              <button type="submit">Upload File</button>
-            </form>
+                  <!-- Submit button -->
+                  <button type="submit">Upload File</button>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
         <div class="action-group" id="panel-tab-1">
-          <div class="control-buttons">
-            <button type="button" id="weight-save-toggle" class="panel-btn">
-              Save
-            </button>
-            <button type="button" id="weight-refresh-toggle" class="panel-btn">
-              Refresh
-            </button>
+          <div class="toolbar-section toolbar-section--table">
+            <span class="toolbar-section__label">Table</span>
+            <div class="toolbar-section__body">
+              <div class="control-buttons">
+                <button type="button" id="weight-save-toggle" class="panel-btn">
+                  Save
+                </button>
+                <button
+                  type="button"
+                  id="weight-refresh-toggle"
+                  class="panel-btn"
+                >
+                  Refresh
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         <div class="action-group" id="panel-tab-2">
-          <div class="tem-control-buttons">
-            <button type="button" id="nob-save-toggle" class="panel-btn">
-              Save
-            </button>
-            <button type="button" id="nob-refresh-toggle" class="panel-btn">
-              Refresh
-            </button>
+          <div class="toolbar-section toolbar-section--table">
+            <span class="toolbar-section__label">Table</span>
+            <div class="toolbar-section__body">
+              <div class="tem-control-buttons">
+                <button type="button" id="nob-save-toggle" class="panel-btn">
+                  Save
+                </button>
+                <button type="button" id="nob-refresh-toggle" class="panel-btn">
+                  Refresh
+                </button>
+              </div>
+              <div class="tem-control-buttons">
+                <button
+                  type="button"
+                  id="nob-qc-generate-toggle"
+                  class="panel-btn"
+                >
+                  QC Generate samples
+                </button>
+                <button
+                  type="button"
+                  id="nob-qc-complete-toggle"
+                  class="panel-btn"
+                >
+                  Complete QC
+                </button>
+              </div>
+            </div>
           </div>
-          <button type="button" id="info-toggle" aria-controls="project-info">
-            <span class="arrow">▶</span>
-            Project Info
-          </button>
 
-          <div class="tem-control-buttons">
-            <button type="button" id="nob-qc-generate-toggle" class="panel-btn">
-              QC Generate samples
-            </button>
-            <button type="button" id="nob-qc-complete-toggle" class="panel-btn">
-              Complete QC
-            </button>
+          <div class="toolbar-section toolbar-section--project">
+            <span class="toolbar-section__label">Project</span>
+            <div class="toolbar-section__body">
+              <button
+                type="button"
+                id="info-toggle"
+                aria-controls="project-info"
+                class="panel-btn"
+              >
+                <span class="arrow">▶</span>
+                Project Info
+              </button>
+            </div>
           </div>
         </div>
         <div class="action-group" id="panel-tab-3">
-          <div class="tem-control-buttons">
-            <button type="button" id="tem-save-toggle" class="panel-btn">
-              Save
-            </button>
-            <button type="button" id="tem-refresh-toggle" class="panel-btn">
-              Refresh
-            </button>
+          <div class="toolbar-section toolbar-section--table">
+            <span class="toolbar-section__label">Table</span>
+            <div class="toolbar-section__body">
+              <div class="tem-control-buttons">
+                <button type="button" id="tem-save-toggle" class="panel-btn">
+                  Save
+                </button>
+                <button type="button" id="tem-refresh-toggle" class="panel-btn">
+                  Refresh
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         <div class="action-group" id="panel-tab-4">
-          <div class="tem-control-buttons">
-            <a
-              href="{% url 'plm:generate_plm_report' work.id %}"
-              class="panel-btn panel-btn--link"
-              >Report</a
-            >
-            <button type="button" id="tem-test-toggle" class="panel-btn">
-              Invoice
-            </button>
+          <div class="toolbar-section toolbar-section--project">
+            <span class="toolbar-section__label">Project</span>
+            <div class="toolbar-section__body">
+              <div class="tem-control-buttons">
+                <a
+                  href="{% url 'plm:generate_plm_report' work.id %}"
+                  class="panel-btn panel-btn--link"
+                  >Report</a
+                >
+                <button type="button" id="tem-test-toggle" class="panel-btn">
+                  Invoice
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -136,7 +136,8 @@ a.panel-btn {
 
 .toolbar {
     display: flex;
-    align-items: center;
+    /* stretch: the Tabs / Table / Project sections are all the same height */
+    align-items: stretch;
     gap: 12px;
     padding: 6px 12px;
     background: #f4f6f9;
@@ -159,7 +160,7 @@ a.panel-btn {
     border: none;
     border-radius: 8px 8px 0 0;
     cursor: pointer;
-    height: 100px;
+    height: 80px;
 }
 
 .tab.active {
@@ -185,4 +186,67 @@ a.panel-btn {
 
 .action-group.active {
     visibility: visible;
+}
+
+/* ================= Toolbar sections: Tabs | Table | Project ================= */
+.toolbar-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px 10px;
+    border: 1px solid #d5dae2;
+    border-radius: 8px;
+}
+
+.toolbar-section__label {
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #4a5260;
+}
+
+/* content under the label fills the rest of the section and is centred in it */
+.toolbar-section__body {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.toolbar-section--tabs {
+    background: #ffffff;
+}
+
+.toolbar-section--table {
+    background: #d8dde4;
+    border-color: #bcc4ce;
+}
+
+.toolbar-section--project {
+    background: #e9ecf0;
+    border-color: #cdd3db;
+}
+
+/* the section padding replaces the old margins around the button groups */
+.toolbar-section .table-control-buttons {
+    margin: 0;
+}
+
+/* white buttons so they stand out on the gray sections;
+   they fill the group's min-width but never squeeze their label */
+.toolbar-section .panel-btn {
+    flex: 1 0 auto;
+    width: auto;
+    min-height: 40px;
+    padding: 0 14px;
+    background: #ffffff;
+    border: 1px solid #c4cad3;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.toolbar-section .panel-btn:hover {
+    background: #eef3fb;
 }

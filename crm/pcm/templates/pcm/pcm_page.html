@@ -7,56 +7,97 @@
 <main class="main">
   <section class="main-window">
     <section class="toolbar">
-      <nav class="tabs">
-        <button type="button" id="tab-entry" class="tab active">Entry</button>
-        <button type="button" id="tab-analysis" class="tab">Analysis</button>
-        <button type="button" id="tab-project" class="tab">Project</button>
-      </nav>
+      <!-- the label sits outside .tabs: pcm_entry.js finds the tab index from .tabs children -->
+      <div class="toolbar-section toolbar-section--tabs">
+        <span class="toolbar-section__label">Tabs</span>
+        <div class="toolbar-section__body">
+          <nav class="tabs">
+            <button type="button" id="tab-entry" class="tab active">Entry</button>
+            <button type="button" id="tab-analysis" class="tab">Analysis</button>
+            <button type="button" id="tab-project" class="tab">Project</button>
+          </nav>
+        </div>
+      </div>
       <div class="pcm-actions">
         <div class="action-group active" id="panel-tab-0">
-          <div class="table-control-buttons">
-            <button type="button" id="data-entry-save-toggle" class="panel-btn">
-              Save
-            </button>
-            <button
-              type="button"
-              id="data-entry-refresh-toggle"
-              class="panel-btn"
-            >
-              Refresh
-            </button>
+          <div class="toolbar-section toolbar-section--table">
+            <span class="toolbar-section__label">Table</span>
+            <div class="toolbar-section__body">
+              <div class="table-control-buttons">
+                <button
+                  type="button"
+                  id="data-entry-save-toggle"
+                  class="panel-btn"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  id="data-entry-refresh-toggle"
+                  class="panel-btn"
+                >
+                  Refresh
+                </button>
+              </div>
+            </div>
           </div>
-          <button type="button" id="info-toggle" aria-controls="project-info">
-            <span class="arrow">▶</span>
-            Project Info
-          </button>
+          <div class="toolbar-section toolbar-section--project">
+            <span class="toolbar-section__label">Project</span>
+            <div class="toolbar-section__body">
+              <button
+                type="button"
+                id="info-toggle"
+                aria-controls="project-info"
+              >
+                <span class="arrow">▶</span>
+                Project Info
+              </button>
+            </div>
+          </div>
         </div>
         <div class="action-group" id="panel-tab-1">
-          <div class="table-control-buttons">
-            <button type="button" id="analysis-save-toggle" class="panel-btn">
-              Save
-            </button>
-            <button
-              type="button"
-              id="analysis-refresh-toggle"
-              class="panel-btn"
-            >
-              Refresh
-            </button>
+          <div class="toolbar-section toolbar-section--table">
+            <span class="toolbar-section__label">Table</span>
+            <div class="toolbar-section__body">
+              <div class="table-control-buttons">
+                <button
+                  type="button"
+                  id="analysis-save-toggle"
+                  class="panel-btn"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  id="analysis-refresh-toggle"
+                  class="panel-btn"
+                >
+                  Refresh
+                </button>
+              </div>
+            </div>
           </div>
-          <div class="analyst-info-container">
-            <span>Analyst: </span>
-            <span id="analysis-analyst-username"></span>
+          <div class="toolbar-section toolbar-section--project">
+            <span class="toolbar-section__label">Project</span>
+            <div class="toolbar-section__body">
+              <div class="analyst-info-container">
+                <span>Analyst: </span>
+                <span id="analysis-analyst-username"></span>
+              </div>
+            </div>
           </div>
         </div>
         <div class="action-group" id="panel-tab-2">
-          <div class="table-control-buttons">
-            <a
-              href="{% url 'pcm:generate_pcm_report' work.id %}"
-              id="analysis-report-link"
-              class="panel-btn"
-              >Report</a
-            >
+          <div class="toolbar-section toolbar-section--project">
+            <span class="toolbar-section__label">Project</span>
+            <div class="toolbar-section__body">
+              <a
+                href="{% url 'pcm:generate_pcm_report' work.id %}"
+                id="analysis-report-link"
+                class="panel-btn"
+                >Report</a
+              >
+            </div>
           </div>
         </div>
       </div>
