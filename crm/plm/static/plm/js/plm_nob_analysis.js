@@ -549,7 +549,7 @@ async function analystTakeProject(selectTypeDate) {
       },
     });
     const data = await res.json();
-
+    console.log(data)
     if (!res.ok) {
       showToast(data.error || "Не удалось взять проект", "error");
       return;
@@ -558,7 +558,7 @@ async function analystTakeProject(selectTypeDate) {
       element.hidden = !isEmpty(data.analyst);
     })
     checkProjectAnalyst();
-    //nob-analyst-username
+    document.querySelector('#project-analyst-username').textContent = data.analyst
     showToast("The project has been picked up for work", "success");
   } catch {
     showToast("Error", "error");

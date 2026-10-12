@@ -105,13 +105,17 @@
             <button type="button" id="tem-refresh-toggle" class="panel-btn">
               Refresh
             </button>
+          </div>
+        </div>
+        <div class="action-group" id="panel-tab-4">
+          <div class="tem-control-buttons">
             <a
               href="{% url 'plm:generate_plm_report' work.id %}"
-              class="panel-btn"
+              class="panel-btn panel-btn--link"
               >Report</a
             >
             <button type="button" id="tem-test-toggle" class="panel-btn">
-              Test
+              Invoice
             </button>
           </div>
         </div>
@@ -142,7 +146,7 @@
           </div>
           <div class="analyst-info">
             <span>Analyst:</span>
-            <span>{{work.analyst.username}}</span>
+            <span id="project-analyst-username">{{work.analyst.username}}</span>
           </div>
           <form
             id="project-info-form"

@@ -84,8 +84,9 @@
     gap: 12px;
     padding: 6px 12px;
     background: #f4f6f9;
-    border-bottom: 1px solid #d5dae2;
+    border-bottom: 1px solid #d5dae2
 }
+
 
 /* .section-control-panel {
     width: 100%;
@@ -267,5 +268,18 @@
 }
 
 .info-toggle {
-    min-width: 200px;
+    min-width: 300px;
+    max-width: 300px;
+}
+
+/* правит только то, чем <a> отличается от <button> */
+.panel-btn--link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    color: inherit;
+    text-decoration: none;
+    font-family: inherit;
+    cursor: pointer;
 }

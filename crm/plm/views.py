@@ -369,7 +369,7 @@ def api_update_projects_analyst(request, id):
         project = get_object_or_404(PlmProject, id=id)
         project.analyst = request.user
         project.save()
-        return JsonResponse({'status': 'ok'})
+        return JsonResponse({'status': 'ok', 'analyst':request.user.username})
 
 
 def get_test_function(request, id):
