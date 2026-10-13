@@ -140,7 +140,7 @@ class PlmSample(BaseModel):
     lab_sample = models.CharField(max_length=25, blank=True, null=True)
     description = models.CharField(max_length=100, blank=True, null=True)
     location = models.CharField(max_length=100,blank=True, null=True)
-    method = models.IntegerField(choices=SampleMethod.choices,default=SampleMethod.Sample1981)
+    method = models.PositiveSmallIntegerField(choices=SampleMethod.choices,default=SampleMethod.Sample1981)
     color = models.CharField(max_length=25, null=True, blank=True)
     is_qc_sample = models.BooleanField(default=False)
 
@@ -152,22 +152,22 @@ class PlmSample(BaseModel):
         related_name="sample",
     )
 
-    analysis_temperature = models.PositiveIntegerField(default=23, null=True)
-    texture = models.IntegerField(choices=SampleTexture, default=SampleTexture.NonFibs, null=True, blank=True)
+    analysis_temperature = models.PositiveSmallIntegerField(default=23, null=True)
+    texture = models.PositiveSmallIntegerField(choices=SampleTexture, default=SampleTexture.NonFibs, null=True, blank=True)
 
-    morphology = models.IntegerField(choices=SampleMorphology, null=True, blank=True)
+    morphology = models.PositiveSmallIntegerField(choices=SampleMorphology, null=True, blank=True)
     ri_alpha_oil = models.CharField(max_length=6, blank=True, null=True)
     ri_delta_oil = models.CharField(max_length=6, blank=True, null=True)
-    sign_of_elongation = models.IntegerField(choices=SampleSignElong, null=True, blank=True)
-    extinction_angle = models.IntegerField(choices=SampleExtincAngle, null=True, blank=True)
-    pleochroism_color = models.IntegerField(choices=SamplePleochColor, null=True, blank=True)
-    birefringence = models.IntegerField(choices=SampleBirefringence, null=True, blank=True)
-    other_fiber = models.IntegerField(choices=SampleOtherFiber, null=True, blank=True)
-    other_fiber_property = models.IntegerField(choices=SampleOtherFiberProperty, null=True, blank=True)
+    sign_of_elongation = models.PositiveSmallIntegerField(choices=SampleSignElong, null=True, blank=True)
+    extinction_angle = models.PositiveSmallIntegerField(choices=SampleExtincAngle, null=True, blank=True)
+    pleochroism_color = models.PositiveSmallIntegerField(choices=SamplePleochColor, null=True, blank=True)
+    birefringence = models.PositiveSmallIntegerField(choices=SampleBirefringence, null=True, blank=True)
+    other_fiber = models.PositiveSmallIntegerField(choices=SampleOtherFiber, null=True, blank=True)
+    other_fiber_property = models.PositiveSmallIntegerField(choices=SampleOtherFiberProperty, null=True, blank=True)
     other_fiber_percent = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, default=0)
 
     # asb info
-    asb_type = models.IntegerField(choices=SampleASbestosType, default = SampleASbestosType.NAD , null=True, blank=True)
+    asb_type = models.PositiveSmallIntegerField(choices=SampleASbestosType, default = SampleASbestosType.NAD , null=True, blank=True)
     asb_point_1 = models.PositiveSmallIntegerField(default=50)
     asb_point_2 = models.PositiveSmallIntegerField(default=50)
     asb_point_3 = models.PositiveSmallIntegerField(default=50)
@@ -180,7 +180,7 @@ class PlmSample(BaseModel):
 
     rest_percent = models.DecimalField(max_digits=5, decimal_places=2, default=100, blank=True, null=True)
 
-    tem_asb_type = models.IntegerField(choices=SampleASbestosType, default = SampleASbestosType.NAD, null=True, blank=True)
+    tem_asb_type = models.PositiveSmallIntegerField(choices=SampleASbestosType, default = SampleASbestosType.NAD, null=True, blank=True)
     tem_asb_point = models.PositiveSmallIntegerField(default=0)
     tem_asb_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True, null=True)
 

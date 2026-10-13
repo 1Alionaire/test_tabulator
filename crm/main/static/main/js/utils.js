@@ -261,3 +261,30 @@ function bindTypeToEdit(table) {
     });
   });
 }
+
+async function generatePaper(inputURL) {
+  try {
+    const resp = await fetch(inputURL);
+    if (!resp.ok) {
+      const data = await resp.json();
+      throw new Error(data.error);
+    }
+
+    // Имя файла из Content-Disposition, если сервер его прислал
+    const cd = resp.headers.get("Content-Disposition") || "";
+    const match = cd.match(/filename="?([^"]+)"?/);
+    const filename = match ? match[1] : "Invoice.pdf";
+
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    showToast(err.message, "error");
+  }
+}

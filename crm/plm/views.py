@@ -11,7 +11,10 @@ from openpyxl import load_workbook
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 import json
-from plm.plm_table_logic import PLMSamplesDataEntryManager, PLMSamplesWeightManager, generate_qc_entry_process
+from plm.plm_table_logic import (PLMSamplesDataEntryManager, 
+                                 PLMSamplesWeightManager, 
+                                 generate_qc_entry_process, 
+                                 validate_plm_project_for_report)
 import django.utils
 from datetime import datetime
 from users.models import User
@@ -385,16 +388,6 @@ def api_update_projects_analyst(request, id):
         logger.exception('update project analyst error')
         return JsonResponse({'error': 'internal server error'}, status=500)
 
-def generate_invoice(request, id):
-    main_project = MainProject.active_objects.filter(plm_project__id=id)
-    if not main_project.exists():  # удалённый или несуществующий проект
-        raise Http404('Project not found')
-    pdf_buffer = InvoiceGenerator(main_project).build()
-    return FileResponse(pdf_buffer, as_attachment=True,
-                            filename=f'Invoice.pdf',
-                            content_type='application/pdf')
-    # return JsonResponse({'status': 'ok', 'data':data})
-
 @require_POST
 def api_generate_qc_samples(request, id):
     try:
@@ -408,9 +401,26 @@ def api_generate_qc_samples(request, id):
 @require_GET
 def generate_plm_report(request, id):
     plm_project = get_object_or_404(PlmProject.objects.select_related('project__company'), pk=id)
+    #validate whole project
+    errors = validate_plm_project_for_report(plm_project)
+    if errors:
+        return JsonResponse({'status' : '!ok' , 'error': errors}, status=400)
     pdf_buffer = BulkSampleReportGenerator(plm_project).build()
     MainProjectUpdateSignal(plm_project).update_status(MainProjectStatus.Done)
     return FileResponse(pdf_buffer, as_attachment=True,
                         filename=f'PLM_report_{plm_project.lab_id}.pdf',
                         content_type='application/pdf')
 
+def generate_invoice(request, id):
+    main_project = MainProject.active_objects.filter(plm_project__id=id)
+    plm_project = get_object_or_404(PlmProject, id=id)
+    #validate whole project
+    errors = validate_plm_project_for_report(plm_project)
+    if errors:
+        return JsonResponse({'status' : '!ok' , 'error': errors}, status=400)
+    if not main_project.exists():  # удалённый или несуществующий проект
+        raise Http404('Project not found')
+    pdf_buffer = InvoiceGenerator(main_project).build()
+    return FileResponse(pdf_buffer, as_attachment=True,
+                            filename=f'Invoice.pdf',
+                            content_type='application/pdf')

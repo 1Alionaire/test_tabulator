@@ -539,7 +539,7 @@ async function checkProjectAnalyst() {
   }
 };
 
-async function analystTakeProject(selectTypeDate) {
+async function analystTakeProject() {
   try {
     const res = await fetch(URLS.projectAnalystUpdateURL, {
       method: "POST",
@@ -608,3 +608,5 @@ document.getElementById("project-info-form").addEventListener("submit", async fu
     showToast(`Error: ${err.message}`, "error");
   }
 });
+
+

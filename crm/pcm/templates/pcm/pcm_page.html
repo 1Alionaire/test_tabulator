@@ -109,12 +109,9 @@
           <div class="toolbar-section toolbar-section--project">
             <span class="toolbar-section__label">Project</span>
             <div class="toolbar-section__body">
-              <a
-                href="{% url 'pcm:generate_pcm_report' work.id %}"
-                id="analysis-report-link"
-                class="panel-btn"
-                >Report</a
-              >
+              <button type="button" id="pcm-report-toggle" class="panel-btn">
+                Create report
+              </button>
             </div>
           </div>
         </div>
@@ -175,11 +172,13 @@
     projectAnalystGetURL: "{% url 'pcm:api_get_projects_analyst' work.id %}",
     projectAnalystUpdateURL:
       "{% url 'pcm:api_update_projects_analyst' work.id %}",
+
+    pcmReportGenerateURL: "{% url 'pcm:generate_pcm_report' work.id %}",
   };
   const PROJECT_LAB_ID = "{{ work.lab_id|escapejs }}";
 </script>
 
 <script src="{% static 'pcm/js/pcm_entry.js' %}"></script>
 <script src="{% static 'pcm/js/pcm_analysis.js' %}"></script>
-<script src="{% static 'pcm/js/pcm_project.js' %}"></script>
+<script src="{% static 'pcm/js/pcm_report.js' %}"></script>
 {% endblock %}

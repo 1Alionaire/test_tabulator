@@ -468,3 +468,15 @@ def generate_qc_entry_process(input_project_id):
         max_row_number = generate_tem_qc_sample(max_row_number, select_project)
     
     return max_row_number_before - max_row_number
+
+def validate_plm_project_for_report(plm_project):
+    errors = []
+    if plm_project.analyst is None:
+        errors.append('No analyst') 
+    if plm_project.date_collect is None:
+        errors.append('No date collected') 
+    if plm_project.date_analyze is None:
+        errors.append('No date analysis')
+    if plm_project.date_report is None:
+        errors.append('No date report')
+    return errors

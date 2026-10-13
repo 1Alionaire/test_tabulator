@@ -11,7 +11,10 @@ import logging
 from main.models import MainProject, MainTypeAnalysis, MainProjectStatus
 from .forms import UpdatePcmProject
 from .models import PcmProject, PcmSample, SampleWorkArea, PcmSampleTimeTableRecord
-from .pcm_table_logic import PCMSamplesDataEntryManager, PCMSamplesAnalysisManager, PCMTimeTableManager
+from .pcm_table_logic import (PCMSamplesDataEntryManager, 
+                              PCMSamplesAnalysisManager, 
+                              PCMTimeTableManager, 
+                              validate_pcm_project_for_report)
 from report_generator.pcm.pcm_report_generator import PcmReportGenerator
 from utils.utils import form_errors_to_text
 from qc.models import PcmZCriterionPerAnalystMonth
@@ -179,8 +182,11 @@ def api_update_analysis_table(request, id):
 @require_GET
 def generate_pcm_report(request, id):
     pcm_project = get_active_pcm_project(id)
+    errors = validate_pcm_project_for_report(pcm_project)
+    if errors:
+        return JsonResponse({'status' : '!ok' , 'error': errors}, status=400)
+    
     pdf_buffer = PcmReportGenerator(pcm_project).build()
-
     MainProjectUpdateSignal(pcm_project).update_status(MainProjectStatus.Done)
 
     return FileResponse(pdf_buffer, as_attachment=True,

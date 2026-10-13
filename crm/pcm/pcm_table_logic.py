@@ -241,3 +241,21 @@ class PCMTimeTableManager():
             record.save()
 
         return len(time_table_array)
+
+def validate_pcm_project_for_report(pcm_project):
+    errors = []
+    if pcm_project.analyst is None:
+        errors.append('No analyst') 
+    if pcm_project.date_collect is None:
+        errors.append('No date collected') 
+    if pcm_project.date_analyze is None:
+        errors.append('No date analysis')
+    if pcm_project.work_area is None:
+        errors.append('No work area')
+    if pcm_project.technician is None:
+        errors.append('No technician')
+    if pcm_project.rotometer is None:
+        errors.append('No rotometer')
+    if pcm_project.type_sampling is None:
+        errors.append('No type sampling')
+    return errors
