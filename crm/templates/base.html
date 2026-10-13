@@ -53,8 +53,11 @@
             </li>
           </ul>
         </div>
-
-        <a href="" class="nav-tab">QC</a>
+        
+        {% if user|in_group:"Manager" %}
+          <a href="" class="nav-tab">QC</a>
+        {% endif %}
+        
         <a href="{%url 'finance:finance_main_menu' %}" class="nav-tab"
           >FINANCE</a
         >
