@@ -8,7 +8,7 @@ from django.db import IntegrityError
 from decimal import Decimal
 import json
 import logging
-from main.models import MainProject, MainTypeAnalysis, MainTurnAroundTime, MainProjectStatus
+from main.models import MainProject, MainTypeAnalysis, MainProjectStatus
 from .forms import UpdatePcmProject
 from .models import PcmProject, PcmSample, SampleWorkArea, PcmSampleTimeTableRecord
 from .pcm_table_logic import PCMSamplesDataEntryManager, PCMSamplesAnalysisManager, PCMTimeTableManager
@@ -17,6 +17,8 @@ from utils.utils import form_errors_to_text
 from qc.models import PcmZCriterionPerAnalystMonth
 import django.utils
 from datetime import datetime
+from main.main_table_logic import MainProjectUpdateSignal
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
@@ -119,19 +121,31 @@ def api_get_projects_analyst(request, id):
 @require_POST
 def api_update_projects_analyst(request, id):
     pcm_project = get_active_pcm_project(id)
-    pcm_project.analyst = request.user
-    pcm_project.date_analyze = django.utils.timezone.now()
-    z_record = get_object_or_404(PcmZCriterionPerAnalystMonth, month=datetime.now().month,
-                                                                year=datetime.now().year,
-                                                                analyst=request.user)
-    pcm_project.z_criterion_record = z_record
-    pcm_project.save(update_fields=['analyst', 'time_update', 'date_analyze', 'z_criterion_record'])
+    try:
+        with transaction.atomic():
+            pcm_project.analyst = request.user
+            pcm_project.date_analyze = django.utils.timezone.now()
+            z_record = get_object_or_404(PcmZCriterionPerAnalystMonth, month=datetime.now().month,
+                                                                        year=datetime.now().year,
+                                                                        analyst=request.user)
+            pcm_project.z_criterion_record = z_record
+            pcm_project.save(update_fields=['analyst', 'time_update', 'date_analyze', 'z_criterion_record'])
 
-    return JsonResponse({'status': 'ok', 
-                         'analyst': request.user.username, 
-                         'low':z_record.relative_std_deviation_low,
-                         'medium':z_record.relative_std_deviation_medium,
-                         'high':z_record.relative_std_deviation_high})
+            MainProjectUpdateSignal(pcm_project).update_status(MainProjectStatus.InProcess)
+            return JsonResponse({'status': 'ok', 
+                                'analyst': request.user.username, 
+                                'low':z_record.relative_std_deviation_low,
+                                'medium':z_record.relative_std_deviation_medium,
+                                'high':z_record.relative_std_deviation_high})
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'invalid JSON'}, status=400)
+    except ValidationError as e:
+        return JsonResponse({'error': '; '.join(e.messages)}, status=400)
+    except IntegrityError as e:
+        return JsonResponse({'error': f'database constraint failed: {e}'}, status=400)
+    except Exception:
+        logger.exception('update project analyst error')
+        return JsonResponse({'error': 'internal server error'}, status=500)
 
 # =============== data entry ===============
 @require_GET
@@ -166,6 +180,9 @@ def api_update_analysis_table(request, id):
 def generate_pcm_report(request, id):
     pcm_project = get_active_pcm_project(id)
     pdf_buffer = PcmReportGenerator(pcm_project).build()
+
+    MainProjectUpdateSignal(pcm_project).update_status(MainProjectStatus.Done)
+
     return FileResponse(pdf_buffer, as_attachment=True,
                         filename=f'PCM_report_{pcm_project.lab_id}.pdf',
                         content_type='application/pdf')

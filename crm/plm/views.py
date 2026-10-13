@@ -25,6 +25,8 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from main.models import MainTypeAnalysis
 from utils.utils import form_errors_to_text
+from main.main_table_logic import MainProjectUpdateSignal
+from main.models import MainProject, MainTypeAnalysis, MainProjectStatus
 
 logger = logging.getLogger(__name__)
 
@@ -365,12 +367,23 @@ def api_get_projects_analyst(request, id):
 
 @require_POST
 def api_update_projects_analyst(request, id):
-    with transaction.atomic():
-        project = get_object_or_404(PlmProject, id=id)
-        project.analyst = request.user
-        project.save()
-        return JsonResponse({'status': 'ok', 'analyst':request.user.username})
-
+    try:
+        with transaction.atomic():
+            project = get_object_or_404(PlmProject, id=id)
+            project.analyst = request.user
+            project.save()
+            MainProjectUpdateSignal(project).update_status(MainProjectStatus.InProcess)
+            return JsonResponse({'status': 'ok', 'analyst':request.user.username})
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'invalid JSON'}, status=400)
+    except ValidationError as e:
+        return JsonResponse({'error': '; '.join(e.messages)}, status=400)
+    except IntegrityError as e:
+        return JsonResponse({'error': f'database constraint failed: {e}'}, status=400)
+    except Exception:
+        logger.exception('update project analyst error')
+        return JsonResponse({'error': 'internal server error'}, status=500)
 
 def get_test_function(request, id):
     main_project = MainProject.active_objects.filter(plm_project__id=id)
@@ -396,6 +409,7 @@ def api_generate_qc_samples(request, id):
 def generate_plm_report(request, id):
     plm_project = get_object_or_404(PlmProject.objects.select_related('project__company'), pk=id)
     pdf_buffer = BulkSampleReportGenerator(plm_project).build()
+    MainProjectUpdateSignal(plm_project).update_status(MainProjectStatus.Done)
     return FileResponse(pdf_buffer, as_attachment=True,
                         filename=f'PLM_report_{plm_project.lab_id}.pdf',
                         content_type='application/pdf')

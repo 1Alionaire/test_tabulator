@@ -7,7 +7,7 @@ from django.db.models import Q
 import django.utils
 from utils.utils import generate_rand_string_4
 import math
-
+from django.shortcuts import get_object_or_404
 
 REQUIRED_ON_CREATE = {
     'company_id', 'project_name', 'project_address', 'date_registered', 'time_registered',
@@ -134,7 +134,7 @@ class MainProjectTableManager():
         for project in objects:
             project.full_clean()
             project.save()
-            ProjectCreateSignal(project).create_project()
+            MainProjectCreateSignal(project).create_project()
 
         return len(objects)
         
@@ -166,7 +166,7 @@ class MainProjectTableManager():
         )
 
 
-class ProjectCreateSignal:
+class MainProjectCreateSignal:
     def __init__(self, main_project):
         self.main_project = main_project
 
@@ -219,4 +219,14 @@ class ProjectCreateSignal:
                 setattr(sample, 'weight', weight_item)
                 sample.save()
                 weight_item.save()
-                
+
+class MainProjectUpdateSignal:
+    def __init__(self, input_project):
+        if isinstance(input_project, PcmProject):
+            self.main_project_query = MainProject.objects.filter(pcm_project = input_project)
+        if isinstance(input_project, PlmProject):
+            self.main_project_query = MainProject.objects.filter(plm_project = input_project)
+
+    def update_status(self, status: MainProjectStatus):
+        return self.main_project_query.update(status = status)
+
