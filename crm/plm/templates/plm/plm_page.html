@@ -180,11 +180,13 @@
                 <a
                   href="{% url 'plm:generate_plm_report' work.id %}"
                   class="panel-btn panel-btn--link"
-                  >Report</a
+                  >Create Report</a
                 >
-                <button type="button" id="tem-test-toggle" class="panel-btn">
-                  Invoice
-                </button>
+                <a
+                  href="{% url 'plm:generate_invoice' work.id %}"
+                  class="panel-btn panel-btn--link"
+                  >Create Invoice</a
+                >
               </div>
             </div>
           </div>
@@ -279,8 +281,6 @@
       "{% url 'plm:api_update_projects_analyst' work.id %}", //api_get_projects_reviewer
 
     qcGenerateSamplesURL: "{% url 'plm:api_generate_qc_samples' work.id %}",
-
-    qcTest: "{% url 'plm:get_test_function' work.id %}",
   };
 </script>
 

@@ -385,7 +385,7 @@ def api_update_projects_analyst(request, id):
         logger.exception('update project analyst error')
         return JsonResponse({'error': 'internal server error'}, status=500)
 
-def get_test_function(request, id):
+def generate_invoice(request, id):
     main_project = MainProject.active_objects.filter(plm_project__id=id)
     if not main_project.exists():  # удалённый или несуществующий проект
         raise Http404('Project not found')

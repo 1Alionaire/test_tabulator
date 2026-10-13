@@ -269,9 +269,3 @@ async function temSaveChanges() {
       // entryDeletedIds.clear();
     };
 };
-
-document.getElementById("tem-test-toggle").addEventListener("click", testFunc);
-
-async function testFunc() {
-window.location.href = URLS.qcTest;   // browser downloads Invoice.pdf
-};

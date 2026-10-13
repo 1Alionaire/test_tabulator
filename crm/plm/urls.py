@@ -36,8 +36,7 @@ urlpatterns = [
     path('api/qc/generate-samples/<int:id>/', views.api_generate_qc_samples, name = 'api_generate_qc_samples'),
     # generate report
     path('report/generate-report/<int:id>/', views.generate_plm_report, name='generate_plm_report'),
-    
-    path('api/test/<int:id>/', views.get_test_function, name='get_test_function'),
+    path('report/generate-invoice/<int:id>/', views.generate_invoice, name='generate_invoice'),
 
 ]
 
