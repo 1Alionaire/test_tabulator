@@ -229,7 +229,6 @@ class MainProjectUpdateSignal:
 
     def update_status(self, status: MainProjectStatus):
         if status == MainProjectStatus.Done:
-            print('test')
             return self.main_project_query.update(status = status, is_overdue=False)
         else:
             return self.main_project_query.update(status = status)

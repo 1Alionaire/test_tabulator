@@ -36,6 +36,44 @@ class PcmZCriterionPerAnalystMonth(BaseModel):
     def __str__(self):
         return str(self.year) + '-' + str(self.month) + '-' + self.analyst.username
 
-class PcmQCReplicateDuplicateItem(BaseModel):
+class PlmTypeQCSample(models.IntegerChoices):
+    Replicate = 1, 'Replicate'
+    Duplicate = 2, 'Duplicate'
+
+class PlmQCReplicateDuplicateItem(BaseModel):
+    type = models.PositiveSmallIntegerField(choices=PlmTypeQCSample.choices)
     project = models.ForeignKey('plm.PlmProject', on_delete=models.CASCADE, related_name='plm_project')
-    
+    original_sample = models.ForeignKey('plm.PlmSample', on_delete=models.CASCADE, related_name='original_sample')
+    qc_sample = models.ForeignKey('plm.PlmSample', on_delete=models.CASCADE, related_name='qc_sample')
+    analyst = models.ForeignKey(
+            settings.AUTH_USER_MODEL,
+            on_delete=models.CASCADE,
+            related_name='analyst',
+            verbose_name='Analyst',
+        )
+    reviewer = models.ForeignKey(
+            settings.AUTH_USER_MODEL,
+            on_delete=models.CASCADE,
+            related_name='reviewer',                      # не показывать в формах
+            verbose_name='Reviewer',
+        )
+
+    @property
+    def relative_diff(self):
+        if self.original_sample.asb_percent is None or self.qc_sample.asb_percent is None:
+            return 0
+
+        denominator = (self.original_sample.asb_percent + self.qc_sample.asb_percent) / 2
+
+        if denominator == 0:
+            return 0
+
+        return round(abs((self.original_sample.asb_percent - self.qc_sample.asb_percent) / denominator), 2)
+
+    @property
+    def pass_or_fail(self):
+        if self.relative_diff > 1:
+            return False
+        else:
+            return True
+        
