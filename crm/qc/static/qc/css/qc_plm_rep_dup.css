@@ -1,0 +1,31 @@
+.table-wrap {
+    overflow-x: auto;
+}
+
+.qc-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.qc-table th,
+.qc-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+.badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.85em;
+}
+
+.badge.pass {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge.fail {
+    background: #f8d7da;
+    color: #721c24;
+}

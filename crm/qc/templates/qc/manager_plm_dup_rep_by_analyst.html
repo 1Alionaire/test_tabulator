@@ -1,0 +1,18 @@
+{% extends 'base.html' %} {% load static %} {% block extra_css %}
+<link
+  type="text/css"
+  href="{% static 'qc/css/qc_main.css' %}"
+  rel="stylesheet"
+/>{% endblock %} {% block content%}
+<main class="main-container center-menu">
+  <div id="qc-nav" data-table-url="{% url 'qc:manager_plm_rep_dup_all_info' %}">
+    <button type="button" id="nav-back" hidden class="menu-btn">← Back</button>
+    <h3 id="nav-title"></h3>
+    <div id="nav-buttons"></div>
+  </div>
+
+  {{ nav_data|json_script:"nav-data" }}
+</main>
+{% endblock%} {% block extra_js %}
+<script src="{% static 'qc/js/qc_navigator.js' %}"></script>
+{% endblock %}

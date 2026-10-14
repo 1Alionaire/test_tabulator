@@ -53,11 +53,27 @@
             </li>
           </ul>
         </div>
-        
-        {% if user|in_group:"Manager" %}
-          <a href="" class="nav-tab">QC</a>
-        {% endif %}
-        
+
+        <div class="dropdown">
+          <button type="button" class="dropdown-toggle">QC</button>
+            <ul class="dropdown-menu">
+              {% if user|in_group:"Manager" %}
+                <li>
+                  <a href="{%url 'qc:manager_pcm_main' %}" class="analysis-nav-tab">PCM</a>
+                </li>
+                <li>
+                  <a href="{%url 'qc:manager_plm_main' %}" class="analysis-nav-tab">PLM</a>
+                </li>
+              {% else %}
+                <li>
+                  <a href="{%url 'qc:user_pcm_main'  %}" class="analysis-nav-tab">PCM</a>
+                </li>
+                <li>
+                  <a href="{%url 'qc:user_plm_main' %}" class="analysis-nav-tab">PLM</a>
+                </li>
+              {% endif %}
+            </ul>
+          </div>
         <a href="{%url 'finance:finance_main_menu' %}" class="nav-tab"
           >FINANCE</a
         >

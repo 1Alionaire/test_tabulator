@@ -1,0 +1,58 @@
+{% extends 'base.html' %}{% load static %} {% block extra_css %}
+<link
+  type="text/css"
+  href="{% static 'qc/css/qc_plm_rep_dup.css' %}"
+  rel="stylesheet"
+/>{% endblock %} {% block content %}
+<a href="{% url 'qc:manager_plm_rep_dup_by_analyst' %}">← Back to selection</a>
+{% with first=items.0 %} {% if first %}
+<h2>
+  {{ first.analyst }} · {{ first.get_qc_type_display }} ·
+  {{first.get_analysis_type_display }} ·
+  {{first.project.date_analyze|date:"FY"}}
+</h2>
+{% endif %} {% endwith %}
+
+<div class="table-wrap">
+  <table class="qc-table">
+    <thead>
+      <tr>
+        <th>Project</th>
+        <th>Analysis Date</th>
+        <th>Original Sample</th>
+        <th>Asb, %</th>
+        <th>QC Sample</th>
+        <th>Asb, %</th>
+        <th>Rel. Difference</th>
+        <th>Result</th>
+        <th>Reviewer</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td>{{ item.project }}</td>
+        <td>{{ item.project.date_analyze|date:"m-d-Y" }}</td>
+        <td>{{ item.original_sample }}</td>
+        <td>{{ item.original_sample.asb_percent|default_if_none:"—" }}</td>
+        <td>{{ item.qc_sample }}</td>
+        <td>{{ item.qc_sample.asb_percent|default_if_none:"—" }}</td>
+        <td>{{ item.relative_diff|floatformat:2 }}</td>
+        <td>
+          {% if item.pass_or_fail %}
+          <span class="badge pass">Pass</span>
+          {% else %}
+          <span class="badge fail">Fail</span>
+          {% endif %}
+        </td>
+        <td>{{ item.reviewer }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="9">No records found</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

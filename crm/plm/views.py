@@ -393,9 +393,16 @@ def api_generate_qc_samples(request, id):
     try:
         with transaction.atomic():
             created_samples = generate_qc_entry_process(id)
-        return JsonResponse({'status': 'ok', 'created':created_samples})
-    except Exception as e:
-        logger.exception(f'data entry table update failed {e}')
+            return JsonResponse({'status': 'ok', 'created':created_samples})
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'invalid JSON'}, status=400)
+    except ValidationError as e:
+        return JsonResponse({'error': '; '.join(e.messages)}, status=400)
+    except IntegrityError as e:
+        return JsonResponse({'error': f'database constraint failed: {e}'}, status=400)
+    except Exception:
+        logger.exception('update project analyst error')
+        return JsonResponse({'error': 'internal server error'}, status=500)
 
 # =============== PDF report ===============
 @require_GET

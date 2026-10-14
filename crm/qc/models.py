@@ -40,8 +40,22 @@ class PlmTypeQCSample(models.IntegerChoices):
     Replicate = 1, 'Replicate'
     Duplicate = 2, 'Duplicate'
 
+class PlmTypeAnalysisSample(models.IntegerChoices):
+    PLM = 1, 'PLM'
+    NOB = 2, 'NOB'
+    TEM = 3, 'TEM'
+
+class PlmReplicates(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(qc_type=PlmTypeQCSample.Replicate)
+    
+class PlmDuplicates(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(qc_type=PlmTypeQCSample.Duplicate)
+  
 class PlmQCReplicateDuplicateItem(BaseModel):
-    type = models.PositiveSmallIntegerField(choices=PlmTypeQCSample.choices)
+    qc_type = models.PositiveSmallIntegerField(choices=PlmTypeQCSample.choices, default=PlmTypeQCSample.Replicate)
+    analysis_type = models.PositiveSmallIntegerField(choices=PlmTypeAnalysisSample.choices, default=PlmTypeAnalysisSample.PLM)
     project = models.ForeignKey('plm.PlmProject', on_delete=models.CASCADE, related_name='plm_project')
     original_sample = models.ForeignKey('plm.PlmSample', on_delete=models.CASCADE, related_name='original_sample')
     qc_sample = models.ForeignKey('plm.PlmSample', on_delete=models.CASCADE, related_name='qc_sample')
@@ -57,6 +71,10 @@ class PlmQCReplicateDuplicateItem(BaseModel):
             related_name='reviewer',                      # не показывать в формах
             verbose_name='Reviewer',
         )
+
+    objects = models.Manager()
+    plm_replicates = PlmReplicates()
+    plm_duplicates = PlmDuplicates()
 
     @property
     def relative_diff(self):
@@ -76,4 +94,6 @@ class PlmQCReplicateDuplicateItem(BaseModel):
             return False
         else:
             return True
+
+        
         

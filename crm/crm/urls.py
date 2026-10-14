@@ -25,5 +25,5 @@ urlpatterns = [
     path('tem/', include('tem.urls', namespace='tem')),
     path('finance/', include('finance.urls', namespace='finance')),
     path('users/', include('users.urls', namespace='users')),
-    
+    path('qc/', include('qc.urls', namespace='qc')),
 ]

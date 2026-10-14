@@ -1,0 +1,31 @@
+.center-menu {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    /* по горизонтали */
+    align-items: center;
+    /* по вертикали */
+    gap: 24px;
+    flex-direction: column
+}
+
+.menu-btn {
+    min-width: 180px;
+    padding: 16px 32px;
+    text-align: center;
+    font-size: 18px;
+    text-decoration: none;
+    color: white;
+    background: #2459b8;
+    border-radius: 8px;
+    transition: background 0.15s;
+}
+
+.menu-btn:hover {
+    background: #1b4591;
+}
+
+.test {
+    display:flex;
+    flex-direction: row;
+}

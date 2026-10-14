@@ -11,6 +11,7 @@ from utils.utils import generate_weight_item
 from decimal import Decimal, ROUND_HALF_UP
 from django.db.models import Q
 from tem.models import TEMGridQCRecord
+from qc.models import PlmQCReplicateDuplicateItem
 
 PLM_ENTRY_REQUIRED_ON_CREATE = {
     'homo_area', 'client_sample', 'lab_sample', 'description',
@@ -446,8 +447,8 @@ def generate_tem_qc_sample(max_row_number, select_project):
     
 
 def generate_qc_entry_process(input_project_id):
-    max_row_number = PlmSample.objects.aggregate(Max('row_number'))['row_number__max']
     select_project = PlmProject.objects.get(pk=input_project_id)
+    max_row_number = PlmSample.objects.filter(plm_project=input_project_id).aggregate(Max('row_number'))['row_number__max']
 
     if max_row_number < 1000:
         max_row_number = 1000
@@ -467,7 +468,10 @@ def generate_qc_entry_process(input_project_id):
                                                                                  SampleMethod.Sample1994]).exclude(tem_na_or_ps='PS').exists():
         max_row_number = generate_tem_qc_sample(max_row_number, select_project)
     
-    return max_row_number_before - max_row_number
+    return max_row_number - max_row_number_before
+
+def complete_qc_process(input_project_id):
+    plm_project = PlmProject.objects.get(pk=input_project_id)
 
 def validate_plm_project_for_report(plm_project):
     errors = []
