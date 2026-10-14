@@ -35,3 +35,7 @@ class PcmZCriterionPerAnalystMonth(BaseModel):
 
     def __str__(self):
         return str(self.year) + '-' + str(self.month) + '-' + self.analyst.username
+
+class PcmQCReplicateDuplicateItem(BaseModel):
+    project = models.ForeignKey('plm.PlmProject', on_delete=models.CASCADE, related_name='plm_project')
+    

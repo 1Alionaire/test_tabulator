@@ -169,7 +169,6 @@ class DataForInvoiceGenerator:
             array[0]['project_name'] = input_project.project_name
             array[0]['project_address'] = input_project.project_address
 
-        print(array)
         return array
 
    

@@ -48,6 +48,9 @@ function checkCOCFile(cell) {
             hozAlign: "center", formatter: "rownum",
             cssClass: "range-header-col", editor: false
         },
+        rowFormatter: function (row) {
+          row.getElement().classList.toggle("row-overdue", row.getData().is_overdue === true);
+        },
         history:true, // history for undo/redo
         height: "100%", // height
         width: "100%",  // width 
@@ -232,7 +235,12 @@ function checkCOCFile(cell) {
               headerSort: false,
               width: 70,
             },
-
+            {
+              title: 'Is Overdue',
+              field : "is_overdue", 
+              editable: false,
+              visible: false,
+            },
           ],
       });
   })();

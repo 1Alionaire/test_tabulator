@@ -324,3 +324,7 @@ textarea {
 .logout-button:hover {
     background-color: rgba(255, 255, 255, 0.15);
 }
+
+.tabulator .tabulator-row.row-overdue .tabulator-cell {
+    background-color: #ffd5d5;
+}

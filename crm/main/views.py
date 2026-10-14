@@ -45,6 +45,8 @@ def api_get_table_options(request):
         ],
     })
 
+
+
 @require_GET
 def api_get_main_projects_table(request):
     main_projects = MainProject.active_objects.all().order_by('-lab_id_sort').values(
@@ -62,7 +64,8 @@ def api_get_main_projects_table(request):
                                                      'nob_number_samples', 
                                                      'technician', 
                                                      'status', 
-                                                     'comment')
+                                                     'comment',
+                                                     'is_overdue')
     return JsonResponse(list(main_projects), safe=False)
 
 @csrf_exempt
