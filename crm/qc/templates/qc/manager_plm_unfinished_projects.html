@@ -1,0 +1,29 @@
+{% extends 'base.html' %}{% load static %} {% block extra_css %}
+<link
+  type="text/css"
+  href="{% static 'qc/css/qc_plm_rep_dup.css' %}"
+  rel="stylesheet"
+/>{% endblock %} {% block content %}
+<a href="{% url 'qc:manager_plm_rep_dup_menu' %}">← Back to menu</a>
+<div class="table-wrap">
+  <table class="qc-table">
+    <thead>
+      <tr>
+        <th>Project</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for project in projects %}
+      <tr>
+        <td>{{ project.lab_id }}</td>
+        <td>{{ project.analyst }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="9">No records found</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

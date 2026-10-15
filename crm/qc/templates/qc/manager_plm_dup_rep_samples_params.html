@@ -5,7 +5,10 @@
   rel="stylesheet"
 />{% endblock %} {% block content%}
 <main class="main-container center-menu">
-  <div id="qc-nav" data-table-url="{% url 'qc:manager_plm_rep_dup_all_info' %}">
+  <div
+    id="qc-nav"
+    data-table-url="{% url 'qc:manager_plm_rep_dup_samples_info' %}"
+  >
     <button type="button" id="nav-back" hidden class="menu-btn">← Back</button>
     <h3 id="nav-title"></h3>
     <div id="nav-buttons"></div>
