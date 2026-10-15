@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, UpdateView
-from django.http import FileResponse, JsonResponse
+from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_GET, require_POST
 from django.core.exceptions import ValidationError
@@ -17,9 +17,9 @@ from .pcm_table_logic import (PCMSamplesDataEntryManager,
                               validate_pcm_project_for_report)
 from report_generator.pcm.pcm_report_generator import PcmReportGenerator
 from utils.utils import form_errors_to_text
-from qc.models import PcmZCriterionPerAnalystMonth
+from qc.models import PcmZCriterionPerAnalystMonth, Month
 import django.utils
-from datetime import datetime
+from datetime import date, datetime
 from main.main_table_logic import MainProjectUpdateSignal
 from django.db import transaction
 
@@ -96,6 +96,7 @@ class UpdateProjectView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = f'{self.object}'
+        context['year'] = datetime.now().year
         return context
 
 # =============== getting all options ===============
@@ -199,8 +200,8 @@ class PCMTimeTableByYearView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['years'] = PcmSampleTimeTableRecord.objects.filter(analyst=self.request.user).values_list('year', flat=True).distinct()
-                
+        context['years'] = PcmSampleTimeTableRecord.objects.filter(analyst=self.request.user).values_list('year', flat=True).distinct().order_by('year')
+
         return context
 
 class PCMTimeTableByMonthView(TemplateView):
@@ -212,7 +213,7 @@ class PCMTimeTableByMonthView(TemplateView):
         context['year'] = year
         context['months'] = (
                 PcmSampleTimeTableRecord.objects.filter(analyst=self.request.user, year=year)
-                    .values_list('month', flat=True).distinct()
+                    .values_list('month', flat=True).distinct().order_by('month')
             )
         return context
 
@@ -224,13 +225,20 @@ class PCMTimeTableByDayView(TemplateView):
         year = int(self.kwargs.get('year'))
         month = int(self.kwargs.get('month'))
         day = int(self.kwargs.get('day'))
+        try:
+            context['selected_date'] = date(year, month, day)
+        except ValueError:
+            raise Http404('invalid date')
         context['year'] = year
         context['month'] = month
         context['selected_day'] = day
-        context['days'] = (
-                        PcmSampleTimeTableRecord.objects.filter(analyst=self.request.user, year=year, month=month)
+        days = (
+                        PcmSampleTimeTableRecord.objects.filter(analyst=self.request.user, year=year, month=month,
+                                                                day__isnull=False)
                             .values_list('day', flat=True).distinct()
                     )
+        # the open day is listed even before it has records
+        context['days'] = sorted(set(days) | {day})
         return context
 
 # =============== getting all PCM projects ===============

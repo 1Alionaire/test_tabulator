@@ -4,7 +4,10 @@
   href="{% static 'pcm/css/pcm_page.css' %}"
   rel="stylesheet"
 />{% endblock %} {% block content %}
-<div class="pcm-time-table-main-page-actions">
+<div class="pcm-time-table-main-page-actions pcm-time-table-picker">
+  <div class="pcm-time-table-picker__header">
+    <h1 class="pcm-time-table-picker__title">PCM Time Table</h1>
+  </div>
   <div class="pcm-time-table-main-actions-box">
     {% for year in years %}
     <a
@@ -13,6 +16,8 @@
     >
       {{ year }}
     </a>
+    {% empty %}
+    <p class="pcm-time-table-picker__empty">No time table records yet.</p>
     {% endfor %}
   </div>
 </div>

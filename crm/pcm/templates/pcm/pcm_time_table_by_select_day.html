@@ -4,36 +4,50 @@
   href="{% static 'pcm/css/pcm_page.css' %}"
   rel="stylesheet"
 />{% endblock %} {% block content %}
-<div class="pcm-time-table-main-page-actions">
-  <div class="pcm-time-table-main-actions-box">
-    {% for day in days %}
-    {% if day == selected_day %}
+<div class="pcm-time-table-picker pcm-time-table-picker--day">
+  <div class="pcm-time-table-picker__header">
     <a
-      class="pcm-time-table-main-action-btn" disabled
+      href="{% url 'pcm:time_table_by_month' year %}"
+      class="pcm-time-table-picker__back"
     >
-    {% else %}
-    <a
-      href="{% url 'pcm:time_table_by_day' year=year month=month day=day%}"
-      class="pcm-time-table-main-action-btn"
-    >
-    {% endif %}
-      {{ day }}
+      Back
     </a>
-    {% endfor %}
-  </div>
-  <section class="section-control-panel" id="data-entry-control-panel">
-    <div class="control-buttons">
-      <button type="button" id="time-table-save-toggle" class="panel-btn">
+    <h1 class="pcm-time-table-picker__title">
+      PCM Time Table · {{ selected_date|date:"F j, Y" }}
+    </h1>
+    <div class="time-table-control-buttons">
+      <button
+        type="button"
+        id="time-table-save-toggle"
+        class="panel-btn panel-btn--primary"
+      >
         Save
       </button>
       <button type="button" id="time-table-refresh-toggle" class="panel-btn">
         Refresh
       </button>
-      <button type="button" id="time-table-insert-row-toggle" class="panel-btn">
-        Insert
+      <button
+        type="button"
+        id="time-table-insert-row-toggle"
+        class="panel-btn"
+      >
+        Insert row
       </button>
     </div>
-  </section>
+  </div>
+  <nav class="pcm-time-table-days" aria-label="Days">
+    {% for day in days %}
+    {% if day == selected_day %}
+    <a class="pcm-time-table-day" aria-current="page">{{ day }}</a>
+    {% else %}
+    <a
+      href="{% url 'pcm:time_table_by_day' year=year month=month day=day %}"
+      class="pcm-time-table-day"
+      >{{ day }}</a
+    >
+    {% endif %}
+    {% endfor %}
+  </nav>
   <section class="section-table">
     <section id="pcm-time-table"></section>
   </section>
@@ -42,9 +56,9 @@
 <script>
   const URLS = {
     PCMTimeTableGetURL:
-      "{% url 'pcm:api_get_time_table' year=year month=month day=day %}",
+      "{% url 'pcm:api_get_time_table' year=year month=month day=selected_day %}",
     PCMTimeTableUpdateURL:
-      "{% url 'pcm:api_update_time_table' year=year month=month day=day %}",
+      "{% url 'pcm:api_update_time_table' year=year month=month day=selected_day %}",
   };
 </script>
 

@@ -4,7 +4,16 @@
   href="{% static 'pcm/css/pcm_page.css' %}"
   rel="stylesheet"
 />{% endblock %} {% block content %}
-<div class="pcm-time-table-month-page">
+<div class="pcm-time-table-month-page pcm-time-table-picker">
+  <div class="pcm-time-table-picker__header">
+    <a
+      href="{% url 'pcm:time_table_by_year'%}"
+      class="pcm-time-table-picker__back"
+    >
+      Back
+    </a>
+    <h1 class="pcm-time-table-picker__title">PCM Time Table · {{ year }}</h1>
+  </div>
   <div class="pcm-time-table-main-actions-box">
     {% for month in months %}
     <a
@@ -23,8 +32,10 @@
       {% elif month == 10 %} October 
       {% elif month == 11 %} November 
       {% elif month == 12 %} December 
-       {% endif%}
+      {% endif%}
     </a>
+    {% empty %}
+    <p class="pcm-time-table-picker__empty">No records for {{ year }}.</p>
     {% endfor %}
   </div>
 </div>

@@ -51,6 +51,15 @@ a.panel-btn {
     justify-content: start;
 }
 
+.section-control-panel-time-table {
+    width: 100%;
+    background-color: lightgray;
+    min-height: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+}
+
 .section-table {
     width: 100%;
     background-color: lightblue;
@@ -249,4 +258,170 @@ a.panel-btn {
 
 .toolbar-section .panel-btn:hover {
     background: #eef3fb;
+}
+
+/* ================= Time table: year and month pages ================= */
+.pcm-time-table-picker {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    background: #f4f6f9;
+    /* a long list of years scrolls inside the page, the nav bar stays put */
+    overflow-y: auto;
+}
+
+.pcm-time-table-picker__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+}
+
+.pcm-time-table-picker__title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f2a37;
+}
+
+/* tiles instead of the button row the day page uses (both share these classes) */
+.pcm-time-table-picker .pcm-time-table-main-actions-box {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin: 0;
+    min-width: 0;
+}
+
+.pcm-time-table-picker .pcm-time-table-main-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 72px;
+    padding: 0 16px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2a37;
+    text-decoration: none;
+    background: #ffffff;
+    border: 1px solid #c4cad3;
+    border-radius: 8px;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+
+.pcm-time-table-picker .pcm-time-table-main-action-btn:hover {
+    color: #045bbe;
+    background: #eef3fb;
+    border-color: #045bbe;
+}
+
+.pcm-time-table-picker a:focus-visible,
+.pcm-time-table-picker button:focus-visible {
+    outline: 2px solid #045bbe;
+    outline-offset: 2px;
+}
+
+.pcm-time-table-picker__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    font-size: 14px;
+    color: #1f2a37;
+    text-decoration: none;
+    background: #ffffff;
+    border: 1px solid #c4cad3;
+    border-radius: 6px;
+}
+
+.pcm-time-table-picker__back::before {
+    content: "←";
+    content: "←" / "";   /* decorative: screen readers announce only "Back" */
+}
+
+.pcm-time-table-picker__back:hover {
+    background: #eef3fb;
+}
+
+.pcm-time-table-picker__empty {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: #4a5260;
+}
+
+/* ================= Time table: day page ================= */
+/* the table takes the rest of the window; on a very short window the page scrolls instead */
+.pcm-time-table-picker--day .section-table {
+    min-height: 240px;
+    background: none;
+}
+
+/* Save / Refresh / Insert row sit at the right end of the header */
+.time-table-control-buttons {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.time-table-control-buttons .panel-btn {
+    width: auto;
+    min-height: 36px;
+    padding: 0 16px;
+    color: #1f2a37;
+    background: #ffffff;
+    border: 1px solid #c4cad3;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.time-table-control-buttons .panel-btn:hover {
+    background: #eef3fb;
+}
+
+.time-table-control-buttons .panel-btn--primary {
+    color: #ffffff;
+    background: #045bbe;
+    border-color: #045bbe;
+}
+
+.time-table-control-buttons .panel-btn--primary:hover {
+    background: #034a9b;
+}
+
+.pcm-time-table-days {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.pcm-time-table-day {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2a37;
+    text-decoration: none;
+    background: #ffffff;
+    border: 1px solid #c4cad3;
+    border-radius: 6px;
+}
+
+.pcm-time-table-day[href]:hover {
+    color: #045bbe;
+    background: #eef3fb;
+    border-color: #045bbe;
+}
+
+.pcm-time-table-day[aria-current="page"] {
+    color: #ffffff;
+    background: #045bbe;
+    border-color: #045bbe;
 }
