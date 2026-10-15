@@ -13,8 +13,9 @@ from django.db import transaction
 import json
 from plm.plm_table_logic import (PLMSamplesDataEntryManager, 
                                  PLMSamplesWeightManager, 
-                                 generate_qc_entry_process, 
-                                 validate_plm_project_for_report)
+                                 generate_qc_entry_process,
+                                 validate_plm_project,
+                                 complete_qc_process,)
 import django.utils
 from datetime import datetime
 from users.models import User
@@ -404,12 +405,32 @@ def api_generate_qc_samples(request, id):
         logger.exception('update project analyst error')
         return JsonResponse({'error': 'internal server error'}, status=500)
 
+def api_complete_qc_process(request, id):
+    plm_project = get_object_or_404(PlmProject, pk=id)
+    errors = validate_plm_project(plm_project, for_what='qc')
+    if errors:
+        return JsonResponse({'status' : '!ok' , 'error': errors}, status=400)
+    try:
+        with transaction.atomic():  
+            made_qc_items = complete_qc_process(plm_project)
+            return JsonResponse({'status': 'ok', 'generated':made_qc_items})
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'invalid JSON'}, status=400)
+    except ValidationError as e:
+        return JsonResponse({'error': '; '.join(e.messages)}, status=400)
+    except IntegrityError as e:
+        return JsonResponse({'error': f'database constraint failed: {e}'}, status=400)
+    except Exception:
+        logger.exception('update project analyst error')
+        return JsonResponse({'error': 'internal server error'}, status=500)
+
+
 # =============== PDF report ===============
 @require_GET
 def generate_plm_report(request, id):
     plm_project = get_object_or_404(PlmProject.objects.select_related('project__company'), pk=id)
     #validate whole project
-    errors = validate_plm_project_for_report(plm_project)
+    errors = validate_plm_project(plm_project, for_what='report')
     if errors:
         return JsonResponse({'status' : '!ok' , 'error': errors}, status=400)
     pdf_buffer = BulkSampleReportGenerator(plm_project).build()
@@ -422,7 +443,7 @@ def generate_invoice(request, id):
     main_project = MainProject.active_objects.filter(plm_project__id=id)
     plm_project = get_object_or_404(PlmProject, id=id)
     #validate whole project
-    errors = validate_plm_project_for_report(plm_project)
+    errors = validate_plm_project(plm_project, for_what='report')
     if errors:
         return JsonResponse({'status' : '!ok' , 'error': errors}, status=400)
     if not main_project.exists():  # удалённый или несуществующий проект
@@ -431,3 +452,4 @@ def generate_invoice(request, id):
     return FileResponse(pdf_buffer, as_attachment=True,
                             filename=f'Invoice.pdf',
                             content_type='application/pdf')
+

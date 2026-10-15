@@ -278,7 +278,8 @@
     projectAnalystUpdateURL:
       "{% url 'plm:api_update_projects_analyst' work.id %}", //api_get_projects_reviewer
 
-    qcGenerateSamplesURL: "{% url 'plm:api_generate_qc_samples' work.id %}",
+    qcGenerateSamplesURL: "{% url 'plm:api_generate_qc_samples' work.id %}", //
+    qcCompleteURL: "{% url 'plm:api_complete_qc_process' work.id %}",
 
     plmInvoiceGenerateURL: "{% url 'plm:generate_invoice' work.id %}",
     plmReportGenerateURL: "{% url 'plm:generate_plm_report' work.id %}",

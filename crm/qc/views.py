@@ -78,35 +78,6 @@ class ManagerPlmRepDupByAnalyst(LoginRequiredMixin, TemplateView):
             for r in rows
         ]
         return ctx
-        # context = super().get_context_data(**kwargs)
-        # replicate_analysts = PlmQCReplicateDuplicateItem.plm_replicates.values_list('analyst', flat=True).distinct()
-        # context['replicate_analysts'] = User.objects.filter(id__in=replicate_analysts)
-        # for analyst in context['replicate_analysts']:
-        #     analyst.qc_type = 1
-        #     if PlmQCReplicateDuplicateItem.plm_replicates.filter(analyst=analyst, 
-        #                                                   analysis_type=1).exists():
-        #         analyst.analysis_type = 1
-        #     if PlmQCReplicateDuplicateItem.plm_replicates.filter(analyst=analyst, 
-        #                                                   analysis_type=2).exists():
-        #         analyst.analysis_type = 2
-        #     if PlmQCReplicateDuplicateItem.plm_replicates.filter(analyst=analyst, 
-        #                                                   analysis_type=3).exists():
-        #         analyst.analysis_type = 3
-
-        # duplicate_analysts = PlmQCReplicateDuplicateItem.plm_duplicates.values_list('analyst', flat=True).distinct()
-        # context['duplicate_analysts'] = User.objects.filter(id__in=duplicate_analysts)
-        # for analyst in context['duplicate_analysts']:
-        #     analyst.qc_type = 2
-        #     if PlmQCReplicateDuplicateItem.plm_duplicates.filter(analyst=analyst, 
-        #                                                   analysis_type=1).exists():
-        #         analyst.analysis_type = 1
-        #     if PlmQCReplicateDuplicateItem.plm_duplicates.filter(analyst=analyst,  
-        #                                                   analysis_type=2).exists():
-        #         analyst.analysis_type = 2
-        #     if PlmQCReplicateDuplicateItem.plm_duplicates.filter(analyst=analyst, 
-        #                                                   analysis_type=3).exists():
-        #         analyst.analysis_type = 3
-
 
 class ManagerPlmRepDupAllInfo(ListView):
     model = PlmQCReplicateDuplicateItem

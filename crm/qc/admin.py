@@ -16,7 +16,10 @@ class PcmZCriterionPerAnalystMonthAdmin(admin.ModelAdmin):
 
 @admin.register(PlmQCReplicateDuplicateItem)
 class PlmQCReplicateDuplicateItemAdmin(admin.ModelAdmin):
-    list_display = ('qc_type', 'project', 'original_sample', 
+    list_display = ('qc_type',
+                    'analysis_type',
+                    'project', 
+                    'original_sample', 
                     'qc_sample', 
                     'analyst', 
                     'reviewer', 

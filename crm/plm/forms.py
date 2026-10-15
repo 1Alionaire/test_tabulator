@@ -26,7 +26,7 @@ class UpdatePlmProject(forms.ModelForm):
 
     class Meta:
         model = PlmProject
-        fields = ['date_analyze', 'date_report', 'date_review']
+        fields = ['date_analyze', 'date_report', 'date_review', 'reviewed_by']
         
 class ExcelUploadForm(forms.Form):
     excel_file = forms.FileField(label="Upload Excel file")

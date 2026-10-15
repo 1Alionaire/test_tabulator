@@ -587,6 +587,30 @@ document.getElementById("nob-qc-generate-toggle").addEventListener("click", asyn
   }
 });
 
+document.getElementById("nob-qc-complete-toggle").addEventListener("click", async (e) => {
+  e.target.disabled = true;
+  try {
+    const res = await fetch(URLS.qcCompleteURL, {
+      method: "POST",
+      headers: { "X-CSRFToken": getCookie("csrftoken") },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+    if (data.generated > 0) {
+      showToast(`${data.generated} QC Samples generated`, "success");
+    }
+    else {
+      showToast(`Already generated`, "success");
+    }
+  } catch (err) {
+    console.error(err);
+    showToast(err.message, "error");
+  } finally {
+    e.target.disabled = false;
+  }
+});
+
 // ==================== Project Date collected ====================
 document.getElementById("project-info-form").addEventListener("submit", async function (e) {
   e.preventDefault();

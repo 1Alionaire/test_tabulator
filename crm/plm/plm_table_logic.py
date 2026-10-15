@@ -11,7 +11,9 @@ from utils.utils import generate_weight_item
 from decimal import Decimal, ROUND_HALF_UP
 from django.db.models import Q
 from tem.models import TEMGridQCRecord
-from qc.models import PlmQCReplicateDuplicateItem
+from qc.models import PlmQCReplicateDuplicateItem, PlmTypeAnalysisSample, PlmTypeQCSample
+from django.core import serializers
+import json
 
 PLM_ENTRY_REQUIRED_ON_CREATE = {
     'homo_area', 'client_sample', 'lab_sample', 'description',
@@ -470,17 +472,68 @@ def generate_qc_entry_process(input_project_id):
     
     return max_row_number - max_row_number_before
 
-def complete_qc_process(input_project_id):
-    plm_project = PlmProject.objects.get(pk=input_project_id)
 
-def validate_plm_project_for_report(plm_project):
+
+def complete_qc_process(plm_project):
+    all_qc_records = None
+    counter = 0
+    all_samples = PlmSample.objects.filter(plm_project=plm_project)
+    qc_samples = all_samples.filter(Q(is_qc_sample=True) | Q(is_tem_qc_sample=True))
+
+    if PlmQCReplicateDuplicateItem.objects.filter(project=plm_project).exists():
+        all_qc_records = PlmQCReplicateDuplicateItem.objects.filter(project=plm_project).values('qc_sample__lab_sample', 'original_sample__method')
+
+    if all_qc_records:
+        for qc_sample in qc_samples:
+            if all_qc_records.filter(qc_sample__lab_sample=qc_sample.lab_sample, qc_sample__method=qc_sample.method).exists():
+                pass
+            else:
+                generatePlmQCReplicateDuplicateItem(inp_qc_sample=qc_sample,inp_project=plm_project,inp_all_samples=all_samples)
+                counter += 1
+    else:
+        for qc_sample in qc_samples:
+            generatePlmQCReplicateDuplicateItem(inp_qc_sample=qc_sample,inp_project=plm_project,inp_all_samples=all_samples)
+            counter += 1
+
+    return counter
+    
+def generatePlmQCReplicateDuplicateItem(inp_qc_sample, inp_project, inp_all_samples):
+    original_sample = inp_all_samples.get(lab_sample=inp_qc_sample.lab_sample[1:])
+    input_qc_type = PlmTypeQCSample.Replicate if inp_qc_sample.lab_sample[0] == 'R' else PlmTypeQCSample.Duplicate
+    if inp_qc_sample.method == SampleMethod.Sample1981:
+        input_analysis_type = PlmTypeAnalysisSample.PLM
+    if inp_qc_sample.method == SampleMethod.Sample1986:
+        input_analysis_type = PlmTypeAnalysisSample.NOB
+    if inp_qc_sample.method in [SampleMethod.Sample1984, SampleMethod.Sample1986, SampleMethod.Sample1986] and inp_qc_sample.is_tem_qc_sample:
+        input_analysis_type = PlmTypeAnalysisSample.TEM
+
+    PlmQCReplicateDuplicateItem.objects.create(qc_type = input_qc_type,
+                                            analysis_type=input_analysis_type,
+                                            project=inp_project,
+                                            original_sample=original_sample,
+                                            qc_sample=inp_qc_sample,
+                                            analyst=inp_project.analyst,
+                                            reviewer=inp_project.reviewed_by)
+
+def validate_plm_project(plm_project, for_what='report'):
     errors = []
-    if plm_project.analyst is None:
-        errors.append('No analyst') 
-    if plm_project.date_collect is None:
-        errors.append('No date collected') 
-    if plm_project.date_analyze is None:
-        errors.append('No date analysis')
-    if plm_project.date_report is None:
-        errors.append('No date report')
+    report_fields = {'analyst':'No analyst',
+                    'date_collect':'No date collect',
+                    'date_analyze':'No date analysis', 
+                    'date_report': 'No date report'}
+
+    qc_fields = {'date_analyze':'No date analysis',
+                'date_review':'No date review', 
+                'analyst':'No analyst',
+                'reviewed_by': 'No reviewer'}
+    
+    if for_what == 'report':
+        fields = report_fields
+    elif for_what == 'qc':
+        fields = qc_fields
+
+    for field, text_error in fields.items():
+        if getattr(plm_project, field) == None:
+            errors.append(text_error)
+    
     return errors

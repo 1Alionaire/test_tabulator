@@ -244,18 +244,16 @@ class PCMTimeTableManager():
 
 def validate_pcm_project_for_report(pcm_project):
     errors = []
-    if pcm_project.analyst is None:
-        errors.append('No analyst') 
-    if pcm_project.date_collect is None:
-        errors.append('No date collected') 
-    if pcm_project.date_analyze is None:
-        errors.append('No date analysis')
-    if pcm_project.work_area is None:
-        errors.append('No work area')
-    if pcm_project.technician is None:
-        errors.append('No technician')
-    if pcm_project.rotometer is None:
-        errors.append('No rotometer')
-    if pcm_project.type_sampling is None:
-        errors.append('No type sampling')
+    fields = {'analyst' : 'No analyst',
+            'date_collect' : 'No date collect',
+            'date_analyze':'No date analysis', 
+            'work_area': 'No work area',
+            'technician': 'No technician',
+            'rotometer':'No rotometer',
+            'type_sampling' : 'No type sampling'}
+
+    for field, text_error in fields.items():
+        if getattr(pcm_project, field) == None or getattr(pcm_project, field) == '':
+            errors.append(text_error)
+
     return errors
