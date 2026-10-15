@@ -1,0 +1,19 @@
+{% extends 'base.html' %} {% load static %} {% block extra_css %}
+<link
+  type="text/css"
+  href="{% static 'qc/css/qc_main.css' %}"
+  rel="stylesheet"
+/>{% endblock %} {% block content%}
+<main class="center-menu">
+  <a
+    href="{% url 'qc:manager_plm_rep_dup_samples_parameters' %}"
+    class="menu-btn"
+    >Replicate/Duplicate samples</a
+  >
+  <a
+    href="{% url 'qc:manager_plm_rep_dup_unfinished_projects' %}"
+    class="menu-btn"
+    >Unfinished Projects</a
+  >
+</main>
+{% endblock%} {% block extra_js %} {% endblock %}

@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.http import JsonResponse, FileResponse, Http404
-from main.models import MainProject
+from main.models import MainProjectStatus
 from django.views.generic import UpdateView
 from django.shortcuts import  redirect, get_object_or_404
 from django.views.decorators.http import require_GET, require_POST
@@ -22,7 +22,7 @@ from main.models import MainTypeAnalysis
 from utils.utils import form_errors_to_text
 from .models import PlmQCReplicateDuplicateItem, PlmTypeQCSample, PlmTypeAnalysisSample
 from users.models import User
-from plm.models import SampleMethod
+from plm.models import SampleMethod, PlmProject
 from django.db.models.functions import ExtractYear, ExtractMonth
 from django.views.generic import TemplateView, ListView
 
@@ -45,11 +45,17 @@ class ManagerPlmMenuView(LoginRequiredMixin, TemplateView):
         }
     template_name = 'qc/manager_plm_menu.html'
 
-class ManagerPlmRepDupByAnalyst(LoginRequiredMixin, TemplateView):
+class ManagerPlmRepDupMenu(LoginRequiredMixin, TemplateView):
     extra_context = {
         'title': 'QC Reps Dups by Analyst'
         }
-    template_name = 'qc/manager_plm_dup_rep_by_analyst.html'
+    template_name = 'qc/manager_plm_dup_rep_menu.html'
+
+class ManagerPlmRepDupSampleParameters(LoginRequiredMixin, TemplateView):
+    extra_context = {
+        'title': 'QC Reps Dups by Analyst'
+        }
+    template_name = 'qc/manager_plm_dup_rep_samples_params.html'
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -79,7 +85,7 @@ class ManagerPlmRepDupByAnalyst(LoginRequiredMixin, TemplateView):
         ]
         return ctx
 
-class ManagerPlmRepDupAllInfo(ListView):
+class ManagerPlmRepDupSampleInfo(LoginRequiredMixin, ListView):
     model = PlmQCReplicateDuplicateItem
     template_name = 'qc/manager_plm_dup_rep_all_info.html'
     context_object_name = 'items'
@@ -104,6 +110,16 @@ class ManagerPlmRepDupAllInfo(ListView):
         }
         return qs.filter(**lookups)
 
+class ManagerPlmRepDupUnfinishedProjects(LoginRequiredMixin, ListView):
+    model = PlmProject
+    template_name = 'qc/manager_plm_unfinished_projects.html'
+    context_object_name = 'projects'
+
+    def get_queryset(self):
+        return super().get_queryset().filter(qc_completed=False, project__status=MainProjectStatus.Done).select_related(
+            'project'
+        )
+    
 
 class ManagerPcmMenuView(LoginRequiredMixin, TemplateView):
     extra_context = {

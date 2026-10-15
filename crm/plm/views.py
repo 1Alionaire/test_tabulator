@@ -413,6 +413,7 @@ def api_complete_qc_process(request, id):
     try:
         with transaction.atomic():  
             made_qc_items = complete_qc_process(plm_project)
+            PlmProject.objects.filter(pk=id).update(qc_completed=True)
             return JsonResponse({'status': 'ok', 'generated':made_qc_items})
     except json.JSONDecodeError:
         return JsonResponse({'error': 'invalid JSON'}, status=400)

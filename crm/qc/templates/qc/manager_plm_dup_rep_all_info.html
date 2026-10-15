@@ -4,7 +4,9 @@
   href="{% static 'qc/css/qc_plm_rep_dup.css' %}"
   rel="stylesheet"
 />{% endblock %} {% block content %}
-<a href="{% url 'qc:manager_plm_rep_dup_by_analyst' %}">← Back to selection</a>
+<a href="{% url 'qc:manager_plm_rep_dup_samples_parameters' %}"
+  >← Back to selection</a
+>
 {% with first=items.0 %} {% if first %}
 <h2>
   {{ first.analyst }} · {{ first.get_qc_type_display }} ·
