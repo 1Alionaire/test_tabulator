@@ -49,7 +49,7 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
           contextMenu: cellMenu,
           headerHozAlign: "center",
           hozAlign: "center",
-          vertAlign: "middle",
+          vertAlign: "middle", 
         },
         clipboard: true,
         clipboardCopyStyled: false,

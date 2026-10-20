@@ -24,9 +24,7 @@ class TEMGridRecord(BaseModel):
     )
 
     filled = models.BooleanField(default=False)
+    qc = models.BooleanField(default=False)
 
-# Create your models here.
-class TEMGridQCRecord(TEMGridRecord):
-    pass
 
     

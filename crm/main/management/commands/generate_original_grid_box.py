@@ -1,4 +1,4 @@
-from tem.models import TEMGridRecord, TEMGridQCRecord
+from tem.models import TEMGridRecord
 from django.core.management.base import BaseCommand
 
 all_grid_id = [('A1', 'B1'), ('C1', 'D1'), ('E1', 'A2'), ('B2', 'C2'), ('D2', 'E2'), 

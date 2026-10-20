@@ -10,10 +10,10 @@ import random
 from utils.utils import generate_weight_item
 from decimal import Decimal, ROUND_HALF_UP
 from django.db.models import Q
-from tem.models import TEMGridQCRecord
 from qc.models import PlmQCReplicateDuplicateItem, PlmTypeAnalysisSample, PlmTypeQCSample
 from django.core import serializers
 import json
+from tem.models import TEMGridRecord
 
 PLM_ENTRY_REQUIRED_ON_CREATE = {
     'homo_area', 'client_sample', 'lab_sample', 'description',
@@ -399,7 +399,7 @@ def generate_tem_qc_sample(max_row_number, select_project):
                             is_tem_qc=True)
 
 
-        tem_grid_book_record = TEMGridQCRecord.objects.filter(filled=False).order_by("position").first() #take the lowest non-filled record
+        tem_grid_book_record = TEMGridRecord.objects.filter(filled=False, qc=True).order_by("position").first() #take the lowest non-filled record
 
         if tem_grid_book_record is not None:
             tem_grid_book_record.plm_tem_project = select_project
@@ -429,7 +429,7 @@ def generate_tem_qc_sample(max_row_number, select_project):
                             is_nob_qb=False, 
                             is_tem_qc=True)
 
-        tem_grid_book_record = TEMGridQCRecord.objects.filter(filled=False).order_by("position").first() #take the lowest non-filled record
+        tem_grid_book_record = TEMGridRecord.objects.filter(filled=False, qc=True).order_by("position").first() #take the lowest non-filled record
 
         if tem_grid_book_record is not None:
             tem_grid_book_record.plm_tem_project = select_project

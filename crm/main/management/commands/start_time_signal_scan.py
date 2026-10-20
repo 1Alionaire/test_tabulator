@@ -11,7 +11,7 @@ class Command(BaseCommand):
     help = "Launch update_main_project_overdue_status with interval"
 
     def handle(self, *args, **opts):
-        interval = 300
+        interval = 60
         while True:
             close_old_connections()  # иначе соединение с БД со временем «протухнет»
             try:

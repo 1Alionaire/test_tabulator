@@ -20,7 +20,7 @@ import django.utils
 from datetime import datetime
 from users.models import User
 from django.db.models import Max
-from tem.models import TEMGridQCRecord, TEMGridRecord
+from tem.models import TEMGridRecord
 from report_generator.plm.plm_report_generator import BulkSampleReportGenerator
 from invoice_generator.invoice_generator import InvoiceGenerator, DataForInvoiceGenerator
 from finance.models import Company
@@ -311,13 +311,15 @@ def api_update_analysis_table(request, id):
                         setattr(sample, name_field, value)
                         touched_fields.add(name_field)
 
+                print(f'record_row : {record_row}')
                 if 'tem_grid_box' in record_row and 'tem_grid_box_id_1' in record_row and 'tem_grid_box_id_2' in record_row :
                     TEMGridRecord.objects.filter(grid_box=record_row['tem_grid_box'], 
                                                 grid_id_1=record_row['tem_grid_box_id_1'], 
-                                                grid_id_2=record_row['tem_grid_box_id_2']).update(
+                                                grid_id_2=record_row['tem_grid_box_id_2'],
+                                                qc=False).update(
                                                     plm_tem_project=selected_plm_project,
                                                     plm_tem_sample=sample,
-                                                    filled=True
+                                                    filled=True,
                                                 )
 
                 setattr(sample, 'time_update', django.utils.timezone.now())
