@@ -288,3 +288,107 @@ async function generatePaper(inputURL) {
     showToast(err.message, "error");
   }
 }
+
+function normalizeTime(raw) {
+  const s = String(raw ?? "").trim();
+  if (!s) return "";
+  if (TIME_RE.test(s)) return s;
+
+  const digits = s.replace(/\D/g, "");
+  let h, m;
+
+  if (digits.length <= 2) {          // "9" → 09:00, "14" → 14:00
+    h = digits.padStart(2, "0");
+    m = "00";
+  } else if (digits.length === 3) {  // "930" → 09:30
+    h = `0${digits[0]}`;
+    m = digits.slice(1);
+  } else if (digits.length === 4) {  // "1430" → 14:30
+    h = digits.slice(0, 2);
+    m = digits.slice(2);
+  } else {
+    return null;
+  }
+
+  const result = `${h}:${m}`;
+  return TIME_RE.test(result) ? result : null;
+}
+
+function tabulatorTimeEditor(cell, onRendered, success, cancel) {
+  const input = document.createElement("input");
+  input.type = "text";
+  const raw = cell.getValue();
+  input.value = raw ? String(raw).slice(0, 5) : ""; 
+  // input.value = cell.getValue() ?? "";
+  input.placeholder = "HH:MM";
+  input.inputMode = "numeric";
+  input.style.cssText =
+    "width:100%;height:100%;box-sizing:border-box;border:none;outline:none;" +
+    "padding:0 6px;background:transparent;text-align:inherit;font:inherit;color:inherit;";
+
+  let finished = false;
+
+  function commit() {
+    if (finished) return;
+    const value = normalizeTime(input.value);
+    if (value === null) {
+      finished = true;
+      return cancel();
+    }
+    finished = true;
+    success(value);
+  }
+    // Позволяем мышкой переставлять курсор внутри текста
+    input.addEventListener("mousedown", (event) => {
+        event.stopPropagation();
+    });
+
+  input.addEventListener("click", (event) => {
+        event.stopPropagation();
+    });
+
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      commit();
+      const nextRow = cell.getRow().getNextRow();
+      if (nextRow) {
+        requestAnimationFrame(() => nextRow.getCell(cell.getField()).edit());
+      }
+      return;
+    }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      finished = true;
+      cancel();
+    }
+  });
+
+  input.addEventListener("blur", commit);
+
+  onRendered(() => {
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  });
+
+  return input;
+}
+
+// ===================== Checking fresh rows in middle of table for replacing whole table
+function checkNewRows(inputTable) {
+  let freshCell = null //init variable 
+  const data = inputTable.getRows(); // parse whole table
+  for (row of data) {   // going through table
+    if (!row.getData().id) { // fresh table doesnt have "id" value
+      freshCell = row.getPosition() // taking position of fresh cell and put in var
+    }
+    if (row.getData().id && freshCell) // if next cell has "id" value and we already have fresh cell
+    {
+      return true;
+    }
+  }
+  return false;
+}

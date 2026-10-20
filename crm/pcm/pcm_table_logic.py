@@ -10,9 +10,9 @@ FIELD_AREA_MM2 = Decimal('0.00785')           # Walton-Beckett graticule field a
 FILTER_COLLECTION_AREA_MM2 = Decimal('385')   # effective collection area of 25-mm filter, mm²
 
 PCM_ENTRY_FIELDS = {'client_sample', 'iwa_owa', 'location', 'time_in', 'time_out',
-                    'flow_rate_before', 'flow_rate_after', 'sample_volume'}
+                    'flow_rate_before', 'flow_rate_after', 'sample_volume', 'segment_area'}
 
-PCM_ANALYSIS_FIELDS = {'amount_fibers', 'fields', 'qc_amount_fibers', 'qc_fields'}
+PCM_ANALYSIS_FIELDS = {'amount_fibers', 'fields', 'qc_amount_fibers', 'qc_fields', 'segment_area'}
 
 # always calculated on the server, values from the client are ignored
 PCM_RESULT_FIELDS = {'fiber_per_mm', 'fiber_per_cub_cm', 'qc_fiber_per_mm', 'qc_fiber_per_cub_cm'}
@@ -41,14 +41,14 @@ def calculate_sample_volume(sample):
         return None
     return _round(flow_rate * minutes, '0.01')
 
-def calculate_fiber_results(amount_fibers, fields, sample_volume):
-    # returns (fibers/mm², fibers/cc), without blank correction
-    if amount_fibers is None or not fields:
+def calculate_fiber_results(amount_fibers, fields, sample_volume, segment_area):
+    
+    if (amount_fibers is None) or (fields is None) or (sample_volume is None) or (segment_area is None):
         return None, None
-    fiber_density = amount_fibers / (fields * FIELD_AREA_MM2)
-    if not sample_volume:
-        return _round(fiber_density, '0.01'), None
-    fiber_concentration = fiber_density * FILTER_COLLECTION_AREA_MM2 / (sample_volume * 1000)
+
+    fiber_density = ((amount_fibers / fields) / segment_area)
+    fiber_concentration = ((amount_fibers / fields) * 49) / sample_volume
+
     return _round(fiber_density, '0.01'), _round(fiber_concentration, '0.001')
 
 def calculate_sample_results(sample):
@@ -58,18 +58,20 @@ def calculate_sample_results(sample):
         sample.sample_volume = calculated_volume
 
     sample.fiber_per_mm, sample.fiber_per_cub_cm = calculate_fiber_results(
-        sample.amount_fibers, sample.fields, sample.sample_volume)
+        sample.amount_fibers, sample.fields, sample.sample_volume, sample.segment_area)
+    
     sample.qc_fiber_per_mm, sample.qc_fiber_per_cub_cm = calculate_fiber_results(
-        sample.qc_amount_fibers, sample.qc_fields, sample.sample_volume)
+        sample.qc_amount_fibers, sample.qc_fields, sample.sample_volume, sample.segment_area)
 
+# updating sample function 
 def set_sample_fields(sample, row, field_names):
-    for name in field_names & row.keys():
-        field = PcmSample._meta.get_field(name)
-        value = row[name]
+    for name in field_names & row.keys(): # updating only required fields in field_names
+        field = PcmSample._meta.get_field(name) # taking field from Sample django model
+        value = row[name] # taking value from row
         if value == '':
             value = None
         # Tabulator sends null for cleared cells; NOT NULL columns fall back to their model default
-        if value is None and not field.null:
+        if value is None and not field.null: 
             value = field.get_default()
         try:
             setattr(sample, name, field.to_python(value))
@@ -95,36 +97,28 @@ class PCMSamplesDataEntryManager():
         if len(row_ids) != len(set(row_ids)):
             return {'error': 'duplicate sample ids'}
 
-        if set(row_ids) & {int(sample_id) for sample_id in self.data_to_delete}:
-            return {'error': 'sample cannot be updated and deleted at the same time'}
-
-    def table_update_processing(self) -> dict:
-        result = {'status': 'ok'}
-        with transaction.atomic():
+    def table_update_processing(self) -> dict: # entry point
+        result = {'status': 'ok'} # init result dict
+        with transaction.atomic(): 
             samples = {sample.id : sample for sample in
-                        PcmSample.objects.select_for_update().filter(pcm_project=self.pcm_project)}
+                        PcmSample.objects.select_for_update().filter(pcm_project=self.pcm_project)} #taking all existing pcm samples
 
-            delete_ids = {int(sample_id) for sample_id in self.data_to_delete}
-            update_ids = {int(row['id']) for row in self.rows if row.get('id')}
-            missing = (delete_ids | update_ids) - samples.keys()
-            if missing:
-                raise ValidationError(f'samples not found (deleted?): {sorted(missing)}')
-
-            result['deleted'] = self._delete_data(delete_ids)
-            result['updated'], result['created'] = self._save_rows(samples)
+            result['deleted'] = self._delete_data({int(sample_id) for sample_id in self.data_to_delete}) # call deleting function
+            result['updated'], result['created'] = self._save_rows(samples) # call updating function
         return result
 
     def _delete_data(self, delete_ids):
-        if not delete_ids:
-            return 0
-        deleted, _ = PcmSample.objects.filter(pcm_project=self.pcm_project, pk__in=delete_ids).delete()
-        return deleted
+        if not delete_ids: # 
+            return 0 #
+        deleted, _ = PcmSample.objects.filter(pcm_project=self.pcm_project, pk__in=delete_ids).delete() # just delete
+        return deleted 
 
     def _save_rows(self, samples):
-        lab_id = self.pcm_project.project.lab_id
-        now = timezone.now()
-        to_update = []
-        to_create = []
+        # init variables
+        lab_id = self.pcm_project.project.lab_id 
+        now = timezone.now() 
+        to_update = [] 
+        to_create = [] 
 
         # table order defines row numbers and lab sample ids
         for position, row in enumerate(self.rows, start=1):
@@ -138,13 +132,14 @@ class PCMSamplesDataEntryManager():
 
             sample.row_number = position
             sample.lab_sample = f'{lab_id}-{position}'
-            set_sample_fields(sample, row, PCM_ENTRY_FIELDS)
-            calculate_sample_results(sample)
-            validate_sample(sample)
+            set_sample_fields(sample, row, PCM_ENTRY_FIELDS) # update every field in sample
+            calculate_sample_results(sample) # calculate volume, fiber per mm2, fiber per cc
+            validate_sample(sample) #call "full_clean" function on every sample
 
         PcmSample.objects.bulk_update(
             to_update, sorted(PCM_ENTRY_FIELDS | PCM_RESULT_FIELDS | {'row_number', 'lab_sample', 'time_update'})
         )
+
         PcmSample.objects.bulk_create(to_create)
         return len(to_update), len(to_create)
 

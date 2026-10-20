@@ -3,6 +3,15 @@ const ANALYSIS_INPUT_FIELDS = ["amount_fibers", "fields", "qc_amount_fibers", "q
 
 let analysisHasChanges = false;
 
+// returns [fibers/mm², fibers/cc], without blank correction
+function calculateFiberResults(amountFibers, fields, sampleVolume) {
+  if (isEmpty(amountFibers) || !Number(fields)) return [null, null];
+  const fiberDensity = Number(amountFibers) / (Number(fields) * FIELD_AREA_MM2);
+  if (!Number(sampleVolume)) return [roundTo(fiberDensity, 2), null];
+  const fiberConcentration = fiberDensity * FILTER_COLLECTION_AREA_MM2 / (Number(sampleVolume) * 1000);
+  return [roundTo(fiberDensity, 2), roundTo(fiberConcentration, 3)];
+}
+
 // calculateFiberResults in pcm_entry.js
 function updateFiberResults(row) {
   const data = row.getData();
@@ -15,6 +24,8 @@ function updateFiberResults(row) {
     qc_fiber_per_cub_cm: qcFiberPerCubCm,
   });
 }
+
+
 
 const analysisTable = new Tabulator("#samples-analysis-table", {
         rowHeader: {

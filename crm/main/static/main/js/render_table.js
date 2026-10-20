@@ -96,19 +96,33 @@ function checkCOCFile(cell) {
               headerSort: false,
               
             },
+            // {
+            //   title:"Time", 
+            //   field:"time_registered", 
+            //   formatter:"time",
+            //   width:80 , 
+            //   headerSort: false, 
+            //   editor: "input",
+            //   formatter: function (cell) {
+            //     const v = cell.getValue();
+            //     return v ? String(v).slice(0, 5) : "";
+            //   },
+            //   editorParams: {
+            //     elementAttributes: { maxlength: "5" },
+            //   },
+            //   validator: {
+            //     type: function (cell, value) {
+            //       if (value === "" || value === null) return true;   // пустое разрешаем
+            //       return TIME_RE.test(value);
+            //     },
+            //   },
+            // },
             {
-              title:"Time", 
-              field:"time_registered", 
-              formatter:"time",
-              width:80 , 
-              headerSort: false, 
-              editor: "input",
-              validator: {
-                type: function (cell, value) {
-                  if (value === "" || value === null) return true;   // пустое разрешаем
-                  return TIME_RE.test(value);
-                },
-              },
+              title:"Time",
+              field:"time_registered",
+              width: 80,
+              formatter: formatTimeHM,
+              editor: tabulatorTimeEditor,
             },
             {
               title: "Company", 

@@ -3,6 +3,7 @@ from main.models import BaseModel
 from django.utils import timezone
 from django.conf import settings
 from qc.models import Month
+from decimal import Decimal
 
 class TypeSamplingPCM(models.IntegerChoices):
     Background = 1, 'Background / Pre-Abatement'
@@ -33,6 +34,16 @@ class PcmProject(BaseModel):
     qc_completed = models.BooleanField(default=False)
     project_file = models.FileField(upload_to='pcm_files/scan', blank=True, null=True) #check
     report_file = models.FileField(upload_to='pcm_files/report', blank=True, null=True) #check
+    reviewer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='pcm_reviewer',
+        verbose_name='Reviewer',
+    ) #check
+    date_review = models.DateField(auto_now_add=False, default=timezone.now, blank=True) #check
+    
 
     @property
     def lab_id(self):
@@ -41,12 +52,14 @@ class PcmProject(BaseModel):
     def __str__(self):
         return self.project.lab_id
 
-
 class SampleWorkArea(models.IntegerChoices):
     IWA = 1, 'IWA'
     OWA = 2, 'OWA'
     __empty__ = '—'
 
+class SampleQCAcceptOrReject(models.IntegerChoices):
+    Accept = 1, 'Accept'
+    Reject = 2, 'Reject'
 
 class PcmSample(BaseModel):
     pcm_project = models.ForeignKey('pcm.PcmProject', on_delete=models.CASCADE, related_name='pcm_samples')
@@ -68,8 +81,9 @@ class PcmSample(BaseModel):
     qc_fields = models.PositiveSmallIntegerField(default=100)
     qc_fiber_per_cub_cm = models.DecimalField(max_digits=6, decimal_places=3, blank=True, null=True)
     qc_fiber_per_mm = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
-
-
+    time_analysis = models.TimeField(auto_now_add=False, default=timezone.now)
+    segment_area = models.DecimalField(max_digits=6, decimal_places=5, default=Decimal("0.00785"))
+    qc_accept_or_reject = models.PositiveSmallIntegerField(choices=SampleQCAcceptOrReject.choices, null=True, blank=True)
 
 class PcmSampleTimeTableRecord(BaseModel):
     analyst = models.ForeignKey(

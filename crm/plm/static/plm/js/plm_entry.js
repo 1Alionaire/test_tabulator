@@ -23,18 +23,6 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
-function isEmpty(inputString) {
-  if (inputString == undefined || inputString == 'undefined' || 
-    inputString == null || inputString == 'null' || 
-    inputString == NaN ||  inputString == 'NaN'
-  ) {
-    return true
-  } 
-  else {
-    return false
-  }
-};
-
 const entryORIGINALS = new Map();
 let dataEntryTable;
 const entryDeletedIds = new Set();
@@ -166,21 +154,6 @@ document.getElementById("data-entry-refresh-toggle").addEventListener("click", f
   showToast("Refreshed", "success");
 });
 
-// ===================== Checking fresh rows in middle of table for replacing whole table
-function checkNewRows() {
-  let freshCell = null //init variable 
-  const data = dataEntryTable.getRows(); // parse whole table
-  for (row of data) {   // going through table
-    if (!row.getData().id) { // fresh table doesnt have "id" value
-      freshCell = row.getPosition() // taking position of fresh cell and put in var
-    }
-    if (row.getData().id && freshCell) // if next cell has "id" value and we already have fresh cell
-    {
-      return true;
-    }
-  }
-  return false;
-}
 
   // =================== When adding or deleting row all LabId rewriting ===================
 function rewriteLabIds() {
@@ -197,7 +170,7 @@ document.getElementById("data-entry-save-toggle").addEventListener("click", entr
 // ============================ Save changes ===========================
 async function entrySaveChanges() {
 // Save scenario 1: we have changes affects whole dataEntryTable(insert rows in middle, deleting existing rows)
-  if ((entryDeletedIds.size || checkNewRows()) && (confirm("All previous samples results will be deleted, continue?"))) {
+  if ((entryDeletedIds.size || checkNewRows(dataEntryTable)) && (confirm("All previous samples results will be deleted, continue?"))) {
     try {
       const response = await fetch(URLS.dataEntryReplaceAllURL, {
         method: "POST",

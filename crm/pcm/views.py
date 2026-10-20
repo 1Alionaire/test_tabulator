@@ -157,7 +157,7 @@ def api_get_data_entry_table(request, id):
     all_samples = PcmSample.objects.filter(pcm_project=get_active_pcm_project(id)).order_by('row_number').values(
                                                     'id', 'row_number', 'lab_sample', 'client_sample',
                                                     'iwa_owa', 'location', 'time_in', 'time_out',
-                                                    'flow_rate_before', 'flow_rate_after', 'sample_volume')
+                                                    'flow_rate_before', 'flow_rate_after', 'sample_volume', 'segment_area')
     return JsonResponse(list(all_samples), safe=False)
 
 @require_POST
@@ -171,7 +171,7 @@ def api_get_analysis_table(request, id):
     all_samples = PcmSample.objects.filter(pcm_project=get_active_pcm_project(id)).order_by('row_number').values(
                                                     'id', 'row_number', 'lab_sample', 'client_sample', 'sample_volume',
                                                     'amount_fibers', 'fields', 'fiber_per_mm', 'fiber_per_cub_cm',
-                                                    'qc_amount_fibers', 'qc_fields', 'qc_fiber_per_mm', 'qc_fiber_per_cub_cm')
+                                                    'qc_amount_fibers', 'qc_fields', 'qc_fiber_per_mm', 'qc_fiber_per_cub_cm', 'segment_area')
     return JsonResponse(list(all_samples), safe=False)
 
 @require_POST
