@@ -218,7 +218,7 @@ temTable = new Tabulator("#samples-tem-table", {
         const tableData = temTable.getRows();
 
         if (cell.getField() === 'tem_asb_point') {
-          if (['2', '3', '4', '5', '6', '7'].includes(currentRow.getData().tem_asb_type)) {
+          if ([2, 3, 4, 5, 6, 7].includes(currentRow.getData().tem_asb_type)) {
             result = Math.round((+(cell.getValue()) * (Number(currentRow.getData().weight__residue)) / 100 ) * 100) / 100;
             if (isFinite(result)) {
                 currentRow.update({tem_asb_percent:result});

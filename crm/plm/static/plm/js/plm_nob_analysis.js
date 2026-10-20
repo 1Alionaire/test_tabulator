@@ -379,11 +379,11 @@ nobTable = new Tabulator("#samples-nob-table", {
         let currentRow = cell.getRow();
         if (cell.getField() == 'asb_point_1' || cell.getField() == 'asb_point_2' || cell.getField() == 'asb_point_3' || cell.getField() == 'asb_point_4' 
         || cell.getField() == 'asb_point_5' || cell.getField() == 'asb_point_6' || cell.getField() == 'asb_point_7' || cell.getField() == 'asb_point_8')  {
-            if (cell.getValue() == null) {
-                let field = cell.getField();
-                currentRow.update({field:50});
-            };
-        };
+          if (cell.getValue() == null) {
+            let field = cell.getField();
+            currentRow.update({field:50});
+          };
+      };
     });
 
     nobTable.on("cellEdited", function(cell) {
@@ -425,7 +425,7 @@ nobTable = new Tabulator("#samples-nob-table", {
             };
 
 
-            if (['2', '3', '4', '5', '6', '7'].includes(cell.getValue())) {
+            if ([2, 3, 4, 5, 6, 7].includes(cell.getValue())) {
                 // in case Chrysotile
                 temperature = cell.getRow().getData().analysis_temperature;
                 const defaults = ASBESTOS_PARAMETERS[cell.getValue()];
@@ -438,7 +438,8 @@ nobTable = new Tabulator("#samples-nob-table", {
         };
 
         if (cell.getField() == 'asb_point_1' || cell.getField() == 'asb_point_2' || cell.getField() == 'asb_point_3' || cell.getField() == 'asb_point_4') {
-            if (['2', '3', '4', '5', '6', '7'].includes(currentRow.getData().asb_type)) {
+            if ([2, 3, 4, 5, 6, 7].includes(currentRow.getData().asb_type)) {
+              console.log('test');
                 let totalPoints = Number(currentRow.getData().asb_point_1) + Number(currentRow.getData().asb_point_2) + Number(currentRow.getData().asb_point_3) + Number(currentRow.getData().asb_point_4);
                 if (currentRow.getData().method == 1) {
                     let asbestoCulcResult = Math.round((400 / totalPoints) * 100) / 100;
@@ -475,7 +476,7 @@ nobTable = new Tabulator("#samples-nob-table", {
         };
 
         if (cell.getField() == 'asb_point_5' || cell.getField() == 'asb_point_6' || cell.getField() == 'asb_point_7' || cell.getField() == 'asb_point_8') {
-          if (['2', '3', '4', '5', '6', '7'].includes(currentRow.getData().asb_type)) {
+          if ([2, 3, 4, 5, 6, 7].includes(currentRow.getData().asb_type)) {
             let count_points = 0
             if (currentRow.getData().asb_point_5 != 50) count_points += 1
             if (currentRow.getData().asb_point_6 != 50) count_points += 1
