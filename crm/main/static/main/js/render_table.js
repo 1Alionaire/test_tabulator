@@ -415,8 +415,10 @@ function applyFilters() {
     .map((option) => parseInt(option.value, 10));
 
   if (filterStatusSelectedValues.length) {
-    filters.push({ field: "status", type: "in", value: filterStatusSelectedValues });
-  }
+    if (!isNaN(filterStatusSelectedValues)) {
+      filters.push({ field: "status", type: "in", value: filterStatusSelectedValues });
+    };
+  };
 
   // Sample type 
   const filterSampleType = document.querySelector("#filter-input-sample-type");
@@ -424,7 +426,9 @@ function applyFilters() {
     .map((option) => parseInt(option.value, 10));
 
   if (filterSampleTypeSelectedValues.length) {
-    filters.push({ field: "project_type", type: "in", value: filterSampleTypeSelectedValues });
+    if (!isNaN(filterSampleTypeSelectedValues)) {
+      filters.push({ field: "project_type", type: "in", value: filterSampleTypeSelectedValues });
+    }
   }
 
   // Turn around time
@@ -433,8 +437,10 @@ function applyFilters() {
     .map((option) => parseInt(option.value, 10));
 
   if (filterTurnAroundTimeSelectedValues.length) {
-    filters.push({ field: "turn_around_time", type: "in", value: filterTurnAroundTimeSelectedValues });
-  }
+    if (!isNaN(filterTurnAroundTimeSelectedValues)) {
+      filters.push({ field: "turn_around_time", type: "in", value: filterTurnAroundTimeSelectedValues });
+    };
+  };
 
   const filterProjectName = document.querySelector("#filter-input-project-name").value;
   if (filterProjectName) filters.push({ field: "project_name", type: "like", value: filterProjectName });
