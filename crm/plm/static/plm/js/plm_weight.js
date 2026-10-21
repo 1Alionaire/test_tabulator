@@ -196,6 +196,14 @@ function calculateWeights() {
   }
 }
 
+function returnNull(inputValue){
+  if (isEmpty(inputValue)) {
+    return null
+  }
+  else {
+    return inputValue
+  }
+}
 
 // ============================ Save changes ===========================
 document.getElementById("weight-save-toggle").addEventListener("click", weightSaveChanges);
@@ -212,16 +220,16 @@ function weightCollectChanges() {
     const clientId = String(data.client_sample);           
 
     let all_data_row = {id:data.id,
-                        client_sample:data.client_sample,
-                        w_crucible:data.w_crucible, 
-                        w_crucible_with_sample:data.w_crucible_with_sample, 
-                        w_sample:data.w_sample,
-                        w_sample_ashed:data.w_sample_ashed, 
-                        org:data.org,
-                        w_petri:data.w_petri,
-                        w_petri_with_sample:data.w_petri_with_sample,
-                        residue:data.residue,
-                        caco3:data.caco3};
+                        client_sample: returnNull(data.client_sample),
+                        w_crucible : returnNull(data.w_crucible), 
+                        w_crucible_with_sample : returnNull(data.w_crucible_with_sample), 
+                        w_sample : returnNull(data.w_sample),
+                        w_sample_ashed : returnNull(data.w_sample_ashed), 
+                        org: returnNull(data.org),
+                        w_petri:returnNull(data.w_petri),
+                        w_petri_with_sample:returnNull(data.w_petri_with_sample),
+                        residue:returnNull(data.residue),
+                        caco3 : returnNull(data.caco3)};
 
     // in case its new cell
     if (isEmpty(String(data.id))) { 
