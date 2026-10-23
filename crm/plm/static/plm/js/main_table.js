@@ -235,6 +235,9 @@ function applyFilters() {
     filters.push({ field: "turn_around_time", type: "in", value: filterTurnAroundTimeSelectedValues });
   }
 
+  const filterLabId = document.querySelector("#filter-input-lab-id").value;
+  if (filterLabId) filters.push(likeIgnoreCase("lab_id", filterLabId));
+
   const filterProjectName = document.querySelector("#filter-input-project-name").value;
   if (filterProjectName) filters.push(likeIgnoreCase("project_name", filterProjectName ));
 
