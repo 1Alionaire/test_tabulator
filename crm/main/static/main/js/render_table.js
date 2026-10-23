@@ -96,27 +96,6 @@ function checkCOCFile(cell) {
               headerSort: false,
               
             },
-            // {
-            //   title:"Time", 
-            //   field:"time_registered", 
-            //   formatter:"time",
-            //   width:80 , 
-            //   headerSort: false, 
-            //   editor: "input",
-            //   formatter: function (cell) {
-            //     const v = cell.getValue();
-            //     return v ? String(v).slice(0, 5) : "";
-            //   },
-            //   editorParams: {
-            //     elementAttributes: { maxlength: "5" },
-            //   },
-            //   validator: {
-            //     type: function (cell, value) {
-            //       if (value === "" || value === null) return true;   // пустое разрешаем
-            //       return TIME_RE.test(value);
-            //     },
-            //   },
-            // },
             {
               title:"Time",
               field:"time_registered",
@@ -396,6 +375,7 @@ async function initFilterPanel() {
 
 initFilterPanel();
 
+
 function applyFilters() {
   
   const filters = [];
@@ -443,10 +423,10 @@ function applyFilters() {
   };
 
   const filterProjectName = document.querySelector("#filter-input-project-name").value;
-  if (filterProjectName) filters.push({ field: "project_name", type: "like", value: filterProjectName });
+  if (filterProjectName) filters.push(likeIgnoreCase("project_name", filterProjectName));
 
   const filterProjectAddress = document.querySelector("#filter-input-project-address").value;
-  if (filterProjectAddress) filters.push({ field: "project_address", type: "like", value: filterProjectAddress });
+  if (filterProjectAddress) filters.push(likeIgnoreCase("project_address", filterProjectAddress));
 
   table.setFilter(filters);   // пустой массив = снять всё
 }

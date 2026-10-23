@@ -236,10 +236,10 @@ function applyFilters() {
   }
 
   const filterProjectName = document.querySelector("#filter-input-project-name").value;
-  if (filterProjectName) filters.push({ field: "project_name", type: "like", value: filterProjectName });
+  if (filterProjectName) filters.push(likeIgnoreCase("project_name", filterProjectName ));
 
   const filterProjectAddress = document.querySelector("#filter-input-project-address").value;
-  if (filterProjectAddress) filters.push({ field: "project_address", type: "like", value: filterProjectAddress });
+  if (filterProjectAddress) filters.push(likeIgnoreCase("project_address", filterProjectAddress));
 
   table.setFilter(filters);   // пустой массив = снять всё
 }

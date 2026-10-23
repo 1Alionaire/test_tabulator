@@ -392,3 +392,12 @@ function checkNewRows(inputTable) {
   }
   return false;
 }
+
+
+// case-insensitive "contains" filter for text fields
+function likeIgnoreCase(field, value) {
+  const searchValue = value.toLowerCase();
+  return {
+    field: (data) => String(data[field] ?? "").toLowerCase().includes(searchValue),
+  };
+}
