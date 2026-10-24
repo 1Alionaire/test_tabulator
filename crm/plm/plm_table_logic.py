@@ -52,6 +52,7 @@ class PLMSamplesDataEntryManager():
         if self.type == 'update':
             self.data_to_update = input_data.get('updated', [])
             self.data_to_create = input_data.get('created', [])
+            self.data_to_delete = input_data.get('deleted', [])
 
         self.error = None
 
@@ -73,14 +74,22 @@ class PLMSamplesDataEntryManager():
 
     def validate_updated_data(self):
         if self.data_to_update:
-            for record in self.data_to_update:
-                for field_name, value in record.items():
-                    if field_name == 'lab_sample':
+            for id, data in self.data_to_update.items():
+                for field_name, value in data.items():
+                    if field_name  == 'lab_sample':
                         if value is not None:
                             if len(str(value)) < 6:
                                 return {'error': 'changed lab_id is too short'} 
                         else:
                             return {'error': 'lab_id is required'} 
+            # for record in self.data_to_update:
+            #     for field_name, value in record.items():
+            #         if field_name == 'lab_sample':
+            #             if value is not None:
+            #                 if len(str(value)) < 6:
+            #                     return {'error': 'changed lab_id is too short'} 
+            #             else:
+            #                 return {'error': 'lab_id is required'} 
 
     def validate_created_data(self):
         if self.data_to_create:
@@ -100,10 +109,13 @@ class PLMSamplesDataEntryManager():
         if self.type == 'update':
             result = {'status': 'ok'}
             with transaction.atomic():
+                if self.data_to_delete:
+                    result['deleted'] = self._delete_data()
                 if self.data_to_update:
                     result['updated'] = self._update_data()
                 if self.data_to_create:
                     result['created'] = self._create_data()
+                
 
         elif self.type == 'replace_all':
             samples = []
@@ -123,20 +135,29 @@ class PLMSamplesDataEntryManager():
 
     def _update_data(self):
         work_data = self.data_to_update
-        id_list = [element.get('id') for element in work_data]
+        id_list = list(work_data.keys())
+        # id_list = [element.get('id') for element in work_data]
         
+
         touched_fields = set()
 
         samples_to_update = {sample.id : sample for sample in 
                                             PlmSample.objects.select_for_update().filter(pk__in=id_list)}
 
-        for record_row in work_data:
-            sample = samples_to_update[int(record_row.get('id'))]
-            for name_field, value in record_row.items():
-                if name_field != 'id':
-                    setattr(sample, name_field, value)
-                    touched_fields.add(name_field)
+        # for record_row in work_data:
+        #     sample = samples_to_update[int(record_row.get('id'))]
+        #     for name_field, value in record_row.items():
+        #         if name_field != 'id':
+        #             setattr(sample, name_field, value)
+        #             touched_fields.add(name_field)
 
+        #     sample.time_update = django.utils.timezone.now()
+
+        for id, data in work_data.items():
+            sample = samples_to_update[int(id)]
+            for name_field, value in data.items():
+                setattr(sample, name_field, value)
+                touched_fields.add(name_field)
             sample.time_update = django.utils.timezone.now()
 
         return PlmSample.objects.bulk_update(
@@ -153,6 +174,10 @@ class PLMSamplesDataEntryManager():
             sample.save()
 
         return len(samples)
+
+    def _delete_data(self):
+        PlmSample.objects.filter(id__in=self.data_to_delete).delete()
+        return len(self.data_to_delete)
 
 class PLMSamplesWeightManager():
     def __init__(self, plm_project, input_data):

@@ -23,10 +23,21 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
+const updatedData = new Map();
+
+function markDirty(row, field) {
+  const id = row.getData().id;
+  // (updatedData[id] ??= {})[field] = row.getData()[field];
+  if (!updatedData.has(id)) updatedData.set(id, {});
+  updatedData.get(id)[field] = row.getData()[field];
+}
+
 const entryORIGINALS = new Map();
 let dataEntryTable;
 const entryDeletedIds = new Set();
 const dirtyRows = [];
+const entryDeletedIdsInEnd = new Set();
+
 
 (async () => { 
 const response = await fetch(URLS.tableOptionsGetURL);
@@ -125,25 +136,35 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
           ],
       });
       dataEntryTable.on("tableBuilt", () => bindTypeToEdit(dataEntryTable));
-
+      
       dataEntryTable.on("cellEdited", (cell) => {
-        if (!dirtyRows.includes(cell.getRow().getData())) {
-          dirtyRows.push(cell.getRow().getData());
+        if (cell.getRow().getData().id) {
+          markDirty(cell.getRow(), cell.getField());
         }
+        else {
+          if (!dirtyRows.includes(cell.getRow().getData())) {
+            dirtyRows.push(cell.getRow().getData());
+          };
+        };
       });
 
       dataEntryTable.on("clipboardPasted", (clipboard, rowData, rows) => {
-        rows.forEach(row =>  {
+        const fields = new Set(rowData.flatMap(Object.keys));
+
+        rows.forEach((row) => {
+          fields.forEach((field) => markDirty(row, field));
           if (!dirtyRows.includes(row.getData())) {
             dirtyRows.push(row.getData());
           };
-        }
-      );
+        });
     });
 })();
 
+
+
 // =================== Refresh table ===================
 document.getElementById("data-entry-refresh-toggle").addEventListener("click", function() {
+  
   const hasChanges = dirtyRows.size || entryDeletedIds.length //put all possible changes in const
   if (hasChanges && !confirm("Unsaved changes will be lost. Continue?")) { //asking user for continue if we have changes
         return;
@@ -199,14 +220,16 @@ async function entrySaveChanges() {
   } 
 // Save scenario 2: we dont have changes affects whole dataEntryTable(edit existing cells or adding rows at the end of dataEntryTable)
   else {
-    let payload = {
-      created: dirtyRows.filter((element) => !element.id),
-      updated: dirtyRows.filter((element) => element.id)
-    } // collect changed cells and new cells 
-    if (!dirtyRows.length) {
+    console.log(updatedData);
+    if (!updatedData.size && !dirtyRows.length && !entryDeletedIdsInEnd.size) { 
       console.log('no data?')
       return;
-    }
+    };
+    let payload = {
+      created: dirtyRows, 
+      updated: Object.fromEntries(updatedData),
+      deleted: [...entryDeletedIdsInEnd]
+    } 
     try {
       const response = await fetch(URLS.dataEntryUpdateURL, { // fetch data
         method: "POST",
@@ -279,16 +302,28 @@ const cellMenu = [
 
       const rows = ranges[0].getRows(); // parsing rows from selectable range
       for (const row of rows) {
-        const data = row.getData(); //selecting data from tows
-        
-        if (data.id) {  // if deleted row has id(it means dataEntryTable has data)
-          entryDeletedIds.add(data.id);  // adding to set of deleted existing records  
+        if (row.getData().id) { 
+          // const data = row.getData(); //selecting data from tows
+          if (row.getPosition() == dataEntryTable.getRows().length ) {
+            entryDeletedIdsInEnd.add(row.getData().id);
+          }
+          else {
+            entryDeletedIds.add(row.getData().id);
+          }
         }
         row.delete(); // deleting row
         rewriteLabIds();
       }
     }
-  }
+  }, 
+  { separator: true },
+{
+    label: "Test",
+    action: function () {
+      console.log(`entryDeletedIdsInEnd : ${entryDeletedIdsInEnd}`)
+      console.log(`entryDeletedIds : ${entryDeletedIds}`)
+    }
+  }, 
 ];
 
 async function InsertRow(input_table, isBelow) {

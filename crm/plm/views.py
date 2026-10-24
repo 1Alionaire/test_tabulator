@@ -193,6 +193,7 @@ def api_update_data_entry_table(request, id):
     plm_project = get_active_plm_project(id)
     try:
         payload_json = json.loads(request.body)
+        print(payload_json)
         data_entry_manager = PLMSamplesDataEntryManager(input_data=payload_json, 
                                                         plm_project=plm_project, 
                                                         type='update')
