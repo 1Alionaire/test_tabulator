@@ -24,6 +24,7 @@ const csrftoken = getCookie('csrftoken');
 // live preview only: the server recalculates the same values on save (pcm_table_logic.py)
 const FIELD_AREA_MM2 = 0.00785;             // Walton-Beckett graticule field area, mm²
 const FILTER_COLLECTION_AREA_MM2 = 385;     // effective collection area of 25-mm filter, mm²
+const updatedData = new Map();
 
 function roundTo(value, places) {
   const factor = 10 ** places;
@@ -52,14 +53,31 @@ function calculateSampleVolume(data) {
 // ==================== Data entry table ====================
 const VOLUME_INPUT_FIELDS = ["time_in", "time_out", "flow_rate_before", "flow_rate_after"];
 
-const entryDeletedIds = new Set();
-let entryHasChanges = false;
+// sent on save; row number and lab sample follow the table order and are set by the server
+const ENTRY_SAVE_FIELDS = ["client_sample", "iwa_owa", "location", "time_in", "time_out",
+                           "flow_rate_before", "flow_rate_after", "sample_volume"];
+
+// row.getData() returns the same object until the table is reloaded,
+// table.getData() returns copies - so edited rows are looked up through getRows()
+const entryDirtyRows = new Set();
+const entryDeletedIds = new Set();   // ids of saved rows deleted in the table
+const entryDeletedIdsInEnd = new Set();
 let dataEntryTable;
 
 // volume typed by hand stays until time in/out and both flow rates are filled
 function updateSampleVolume(row) {
   const volume = calculateSampleVolume(row.getData());
   if (volume !== null) row.update({sample_volume: volume});
+}
+
+function markRowDirty(row) {
+  entryDirtyRows.add(row.getData());
+}
+
+function markDirty(row, field) {
+  const id = row.getData().id;
+  if (!updatedData.has(id)) updatedData.set(id, {});
+  updatedData.get(id)[field] = row.getData()[field];
 }
 
 (async () => {
@@ -172,26 +190,64 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
       });
       dataEntryTable.on("tableBuilt", () => bindTypeToEdit(dataEntryTable));
 
-      dataEntryTable.on("cellEdited", (cell) => {
-        entryHasChanges = true;
-        if (VOLUME_INPUT_FIELDS.includes(cell.getField())) updateSampleVolume(cell.getRow());
+      // also fires when a selected range is cleared with Delete/Backspace
+      dataEntryTable.on("cellEdited", (cell) => { // in case cell edited
+        markRowDirty(cell.getRow()); // add to dirty Rows
+        if (cell.getRow().getData().id) { // if sample exists
+          markDirty(cell.getRow(), cell.getField()); // mark cell dirty
+        }
+        if (VOLUME_INPUT_FIELDS.includes(cell.getField())) updateSampleVolume(cell.getRow()); //if field
       });
 
       // range paste passes internal rows, not row components
       dataEntryTable.on("clipboardPasted", (clipboard, rowData, rows) => {
-        entryHasChanges = true;
-        rows.forEach(row => updateSampleVolume(row.getComponent()));
+        const fields = new Set(rowData.flatMap(Object.keys));
+
+        rows.forEach(row => {
+          // fields.forEach((field) => markDirty(row, field));
+          fields.forEach((field) => {
+              if (row.getData().id) {
+                markDirty(row, field);
+              }
+          });
+          markRowDirty(row.getComponent());
+          updateSampleVolume(row.getComponent());
+        });
       });
 })();
 
+// =================== Detecting changes ===================
+// saved rows deleted in the table and still gone (undo brings a deleted row back)
+function getDeletedIds() {
+  const presentIds = new Set(dataEntryTable.getRows().map(row => row.getData().id));
+  return [...entryDeletedIds].filter(id => !presentIds.has(id));
+}
+
+function entryHasChanges() {
+  const rows = dataEntryTable.getRows().map(row => row.getData());
+  return rows.some(data => !data.id || entryDirtyRows.has(data)) || getDeletedIds().length > 0;
+}
+
+function entryPayloadRow(data) {
+  const row = {id: data.id};
+  for (const field of ENTRY_SAVE_FIELDS) row[field] = data[field];
+  return row;
+}
+
+// drops local changes and loads the saved samples
+function reloadEntryTable() {
+  entryDirtyRows.clear();
+  entryDeletedIds.clear();
+  updatedData.clear()
+  return dataEntryTable.setData(URLS.dataEntryGetURL);
+}
+
 // =================== Refresh table ===================
 document.getElementById("data-entry-refresh-toggle").addEventListener("click", function() {
-  if ((entryHasChanges || entryDeletedIds.size) && !confirm("Unsaved changes will be lost. Continue?")) {
+  if (entryHasChanges() && !confirm("Unsaved changes will be lost. Continue?")) {
     return;
   }
-  dataEntryTable.setData(URLS.dataEntryGetURL);
-  entryDeletedIds.clear();
-  entryHasChanges = false;
+  reloadEntryTable();
   showToast("Refreshed", "success");
 });
 
@@ -203,29 +259,40 @@ function rewriteLabIds() {
 }
 
 // ============================ Save changes ===========================
-document.getElementById("data-entry-save-toggle").addEventListener("click", entrySaveChanges);
+const entrySaveButton = document.getElementById("data-entry-save-toggle");
+entrySaveButton.addEventListener("click", entrySaveChanges);
 
 async function entrySaveChanges() {
-  if (entryDeletedIds.size && !confirm("Deleted samples will lose their analysis results. Continue?")) {
+  const rows = dataEntryTable.getRows().map(row => row.getData()); // parse all rows 
+
+  // Save scenario 1: saved rows were deleted in the middle of table or new rows inserted above them,
+  // so saved samples change their numbers - the whole table replaces all samples
+  if (getDeletedIds().length || checkNewRows(dataEntryTable)) { //if we have deleted  or new rows in the middle
+    if (!confirm("All previous samples results will be deleted, continue?")) {
+      return;                                   // nothing is saved, the edits stay in the table
+    }
+    await sendEntryChanges(URLS.dataEntryReplaceAllURL, {rows: rows.map(entryPayloadRow)}, true, // full replacement samples
+                           (result) => `Table Saved: Replaced: ${result.created}`);
     return;
   }
-    const payload = {
-    rows: dataEntryTable.getData("active").map(row => ({
-      id: row.id,
-      client_sample: row.client_sample,
-      iwa_owa: row.iwa_owa,
-      location: row.location,
-      time_in: row.time_in,
-      time_out: row.time_out,
-      flow_rate_before: row.flow_rate_before,
-      flow_rate_after: row.flow_rate_after,
-      sample_volume: row.sample_volume,
-    })),
-    deleted: [...entryDeletedIds],
+  // Save scenario 2: edited saved rows and new rows at the end of the table
+  const payload = {
+    updated: Object.fromEntries(updatedData), //take json with updated data
+    created: rows.filter(data => !data.id).map(entryPayloadRow), // take new samples
+    deleted: [...entryDeletedIdsInEnd] // take only in the end deleted samples, they are not influence whole table
   };
+  if (!updatedData.size && !payload.created.length && !payload.deleted.length) {
+    showToast("No changes to save", "info");
+    return;
+  }
+  await sendEntryChanges(URLS.dataEntryUpdateURL, payload, false,
+                         (result) => `Table Saved: Updated: ${result.updated} Created: ${result.created}`);
+}
 
+async function sendEntryChanges(url, payload, replacesAll, successMessage) {
+  entrySaveButton.disabled = true;              // a second click while saving would create the new rows twice
   try {
-    const response = await fetch(URLS.dataEntryUpdateURL, {
+    const response = await fetch(url, {
       method: "POST",
       headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
       body: JSON.stringify(payload),
@@ -237,19 +304,24 @@ async function entrySaveChanges() {
     }
 
     const resultJSON = await response.json();
-    entryDeletedIds.clear();
-    entryHasChanges = false;
-    dataEntryTable.setData(URLS.dataEntryGetURL);
-    if (!analysisHasChanges) analysisTable.setData(URLS.analysisGetURL);   // volumes changed
+    showToast(successMessage(resultJSON), "success");
 
-    showToast(`Table Saved: Updated: ${resultJSON.updated} Created: ${resultJSON.created} Deleted: ${resultJSON.deleted}`, "success");
+    // volumes changed; after replacing all samples the analysis rows no longer exist
+    if (replacesAll || !analysisHasChanges) {
+      analysisHasChanges = false;
+      analysisTable.setData(URLS.analysisGetURL);
+    }
+    await reloadEntryTable();                   // new samples get their ids
   }
   catch (e) {
     showToast(`Error: ${e.message}`, "error");
   }
-};
+  finally {
+    entrySaveButton.disabled = false;
+  }
+}
 
-const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
+const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;   // used by normalizeTime in utils.js
 
 const cellMenu = [
     {
@@ -267,43 +339,54 @@ const cellMenu = [
   },
   { separator: true },
   {
-    label: "Insert Row under",
-    action: () => InsertRow(false)
+    label: "Insert row above",
+    action: () => InsertRow(true)
   },
   {
-    label: "Insert Row below",
-    action: () => InsertRow(true)
+    label: "Insert row below",
+    action: () => InsertRow(false)
   },
   { separator: true },
   {
-    label: "Delete Row",
+    label: "Delete row",
     action: async function () {
       const ranges = dataEntryTable.getRanges();
       if (!ranges.length) return;
 
       const rows = ranges[0].getRows();
       for (const row of rows) {
-        if (row.getData().id) {   // row already saved in database
-          entryDeletedIds.add(row.getData().id);
+        if (row.getData().id) { 
+          if (row.getPosition() === dataEntryTable.getRows().length ) {
+            entryDeletedIdsInEnd.add(row.getData().id);
+          }
+          else {
+            entryDeletedIds.add(row.getData().id);
+          }
         }
       }
       await Promise.all(rows.map(row => row.delete()));
       rewriteLabIds();
-      entryHasChanges = true;
+    }
+  },
+  {
+    label: "Test",
+    action: async function () {
+      console.log(updatedData);
     }
   }
 ];
 
-async function InsertRow(isBelow) {
+// above = true: above the selected row (Tabulator addRow puts the row before the target)
+async function InsertRow(above) {
   const ranges = dataEntryTable.getRanges();
   const cells = ranges.length ? ranges[0].getCells() : [];
   const cell = cells[0]?.[0] ?? cells[0];
 
-  // below the selected row, or at the end when nothing is selected (empty table)
+  // next to the selected row, or at the top / end when nothing is selected (empty table)
   if (cell) {
-    await dataEntryTable.addRow({}, isBelow, cell.getRow());
+    await dataEntryTable.addRow({}, above, cell.getRow());
   } else {
-    await dataEntryTable.addRow({}, isBelow);
+    await dataEntryTable.addRow({}, above);
   }
   rewriteLabIds();
 };

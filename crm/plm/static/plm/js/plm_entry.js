@@ -27,7 +27,6 @@ const updatedData = new Map();
 
 function markDirty(row, field) {
   const id = row.getData().id;
-  // (updatedData[id] ??= {})[field] = row.getData()[field];
   if (!updatedData.has(id)) updatedData.set(id, {});
   updatedData.get(id)[field] = row.getData()[field];
 }
@@ -220,7 +219,6 @@ async function entrySaveChanges() {
   } 
 // Save scenario 2: we dont have changes affects whole dataEntryTable(edit existing cells or adding rows at the end of dataEntryTable)
   else {
-    console.log(updatedData);
     if (!updatedData.size && !dirtyRows.length && !entryDeletedIdsInEnd.size) { 
       console.log('no data?')
       return;

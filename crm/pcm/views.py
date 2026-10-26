@@ -32,11 +32,11 @@ def get_active_pcm_project(id):
                              pk=id, project__deleted=False)
 
 
-def process_table_update(request, manager_class, pcm_project, log_message):
+def process_table_update(request, manager_class, pcm_project, log_message, **manager_options):
     try:
         # parse_float=Decimal: 0.1 stays 0.1, a float would fail DecimalField validation
         payload_json = json.loads(request.body, parse_float=Decimal)
-        table_manager = manager_class(pcm_project=pcm_project, input_data=payload_json)
+        table_manager = manager_class(pcm_project=pcm_project, input_data=payload_json, **manager_options)
         error = table_manager.validate_whole_object()
 
         # validating whole object
@@ -162,8 +162,16 @@ def api_get_data_entry_table(request, id):
 
 @require_POST
 def api_update_data_entry_table(request, id):
+    payload_json = json.loads(request.body, parse_float=Decimal)
+    print(payload_json)
+    # return JsonResponse({'status':'ok'})
     return process_table_update(request, PCMSamplesDataEntryManager, get_active_pcm_project(id),
-                                'pcm data entry table update failed')
+                                'pcm data entry table update failed', mode='update')
+
+@require_POST
+def api_replace_all_data_entry_table(request, id):
+    return process_table_update(request, PCMSamplesDataEntryManager, get_active_pcm_project(id),
+                                'pcm data entry table replace failed', mode='replace_all')
 
 # =============== analysis ===============
 @require_GET

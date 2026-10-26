@@ -25,6 +25,7 @@ PLM_WEIGHT_REQUIRED_ON_CREATE = {'client_sample', 'w_crucible', 'w_crucible_with
                                  'w_petri', 'w_petri_with_sample', 'residue', 'caco3' }
 
 
+
 def copy_weight_item(plm_project, sample_to_copy, prefix):
     if sample_to_copy.weight is not None:
         copied_weight = PlmSampleWeight(plm_project=plm_project, 
@@ -144,20 +145,11 @@ class PLMSamplesDataEntryManager():
         samples_to_update = {sample.id : sample for sample in 
                                             PlmSample.objects.select_for_update().filter(pk__in=id_list)}
 
-        # for record_row in work_data:
-        #     sample = samples_to_update[int(record_row.get('id'))]
-        #     for name_field, value in record_row.items():
-        #         if name_field != 'id':
-        #             setattr(sample, name_field, value)
-        #             touched_fields.add(name_field)
-
-        #     sample.time_update = django.utils.timezone.now()
-
         for id, data in work_data.items():
             sample = samples_to_update[int(id)]
-            for name_field, value in data.items():
-                setattr(sample, name_field, value)
-                touched_fields.add(name_field)
+            for field_name, value in data.items():
+                setattr(sample, field_name, value)
+                touched_fields.add(field_name)
             sample.time_update = django.utils.timezone.now()
 
         return PlmSample.objects.bulk_update(

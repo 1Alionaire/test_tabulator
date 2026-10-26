@@ -15,6 +15,7 @@ urlpatterns = [
     # data-entry
     path('api/data-entry-table/get/<int:id>/', views.api_get_data_entry_table, name='api_get_data_entry_table'),
     path('api/data-entry-table/update/<int:id>/', views.api_update_data_entry_table, name='api_update_data_entry_table'),
+    path('api/data-entry-table/replace-all/<int:id>/', views.api_replace_all_data_entry_table, name='api_replace_all_data_entry_table'),
     # analysis
     path('api/analysis-table/get/<int:id>/', views.api_get_analysis_table, name='api_get_analysis_table'),
     path('api/analysis-table/update/<int:id>/', views.api_update_analysis_table, name='api_update_analysis_table'),

@@ -1,6 +1,7 @@
-from .models import PcmSample, PcmSampleTimeTableRecord
+from .models import PcmProject, PcmSample, PcmSampleTimeTableRecord
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Max
 from django.utils import timezone
 from decimal import Decimal, ROUND_HALF_UP
 import django.utils
@@ -87,61 +88,95 @@ def validate_sample(sample):
 
 
 class PCMSamplesDataEntryManager():
-    def __init__(self, pcm_project, input_data):
+    # same two save modes as PLM data entry:
+    # 'update'      - edited saved rows + new rows added at the end of the table
+    # 'replace_all' - rows were deleted or inserted above saved rows: the whole table replaces
+    #                 every sample of the project, analysis results are not kept
+    def __init__(self, pcm_project, input_data, mode):
+        if not isinstance(input_data, dict):
+            raise ValidationError('invalid payload')
         self.pcm_project = pcm_project
-        self.rows = input_data.get('rows', [])
-        self.data_to_delete = input_data.get('deleted', [])
+        self.mode = mode
+        if mode == 'update':
+            self.data_to_update = input_data.get('updated', [])
+            self.data_to_create = input_data.get('created', [])
+            self.data_to_delete = input_data.get('deleted', [])
+        elif mode == 'replace_all':
+            self.rows = input_data.get('rows', [])
+        else:
+            raise ValueError(f'unknown data entry save mode: {mode}')
 
     def validate_whole_object(self):
-        row_ids = [int(row['id']) for row in self.rows if row.get('id')]
-        if len(row_ids) != len(set(row_ids)):
-            return {'error': 'duplicate sample ids'}
+        if self.mode == 'update':
+            if any(row.get('id') for row in self.data_to_create):
+                return {'error': 'new sample already has an id'}
+            update_ids = [int(key) for key in self.data_to_update.keys()]
+            if len(update_ids) != len(set(update_ids)):
+                return {'error': 'duplicate sample ids'}
+        return None
 
-    def table_update_processing(self) -> dict: # entry point
-        result = {'status': 'ok'} # init result dict
-        with transaction.atomic(): 
-            samples = {sample.id : sample for sample in
-                        PcmSample.objects.select_for_update().filter(pcm_project=self.pcm_project)} #taking all existing pcm samples
+    def table_update_processing(self) -> dict:
+        with transaction.atomic():
+            # one data entry save per project at a time: new row numbers depend on the saved samples
+            PcmProject.objects.select_for_update().get(pk=self.pcm_project.pk)
+            if self.mode == 'update':
+                return {'status': 'ok', 'updated': self._update_data(), 'created': self._create_data(), 'deleted':self._delete_data()}
+            return {'status': 'ok', **self._replace_all()}
 
-            result['deleted'] = self._delete_data({int(sample_id) for sample_id in self.data_to_delete}) # call deleting function
-            result['updated'], result['created'] = self._save_rows(samples) # call updating function
-        return result
+    def _update_data(self):
+        if not self.data_to_update:
+            return 0
+        update_ids = {int(key) for key in self.data_to_update.keys()}
 
-    def _delete_data(self, delete_ids):
-        if not delete_ids: # 
-            return 0 #
-        deleted, _ = PcmSample.objects.filter(pcm_project=self.pcm_project, pk__in=delete_ids).delete() # just delete
-        return deleted 
+        samples = {sample.id : sample for sample in
+                    PcmSample.objects.select_for_update().filter(pcm_project=self.pcm_project, pk__in=update_ids)}
 
-    def _save_rows(self, samples):
-        # init variables
-        lab_id = self.pcm_project.project.lab_id 
-        now = timezone.now() 
-        to_update = [] 
-        to_create = [] 
+        now = timezone.now()
+        touched_fields = set()
+        for id, data in self.data_to_update.items():
+            sample = samples[int(id)]
+            for field_name, value in data.items():
+                setattr(sample, field_name, value)
+                touched_fields.add(field_name)
+            calculate_sample_results(sample)
+            validate_sample(sample)
+            sample.time_update = now
 
-        # table order defines row numbers and lab sample ids
-        for position, row in enumerate(self.rows, start=1):
-            if row.get('id'):
-                sample = samples[int(row['id'])]
-                sample.time_update = now
-                to_update.append(sample)
-            else:
-                sample = PcmSample(pcm_project=self.pcm_project)
-                to_create.append(sample)
-
-            sample.row_number = position
-            sample.lab_sample = f'{lab_id}-{position}'
-            set_sample_fields(sample, row, PCM_ENTRY_FIELDS) # update every field in sample
-            calculate_sample_results(sample) # calculate volume, fiber per mm2, fiber per cc
-            validate_sample(sample) #call "full_clean" function on every sample
-
-        PcmSample.objects.bulk_update(
-            to_update, sorted(PCM_ENTRY_FIELDS | PCM_RESULT_FIELDS | {'row_number', 'lab_sample', 'time_update'})
+        # volume and results are recalculated from the edited fields
+        return PcmSample.objects.bulk_update(
+            samples.values(), sorted(touched_fields | {'sample_volume', 'time_update'})
         )
 
-        PcmSample.objects.bulk_create(to_create)
-        return len(to_update), len(to_create)
+    def _create_data(self):
+        if not self.data_to_create:
+            return 0
+        # in this mode new rows are only at the end of the table, after the saved samples
+        last_row_number = (PcmSample.objects.filter(pcm_project=self.pcm_project)
+                                            .aggregate(Max('row_number'))['row_number__max'] or 0)
+        samples = [self._new_sample(row, position)
+                   for position, row in enumerate(self.data_to_create, start=last_row_number + 1)]
+        PcmSample.objects.bulk_create(samples)
+        return len(samples)
+
+    def _delete_data(self):
+        PcmSample.objects.filter(id__in=self.data_to_delete).delete()
+        return len(self.data_to_delete)
+
+    def _replace_all(self):
+        # every row is built and validated before anything is deleted
+        samples = [self._new_sample(row, position) for position, row in enumerate(self.rows, start=1)]
+        deleted, _ = PcmSample.objects.filter(pcm_project=self.pcm_project).delete()
+        PcmSample.objects.bulk_create(samples)
+        return {'deleted': deleted, 'created': len(samples)}
+
+    def _new_sample(self, row, position):
+        # table order defines row numbers and lab sample ids
+        sample = PcmSample(pcm_project=self.pcm_project, row_number=position,
+                           lab_sample=f'{self.pcm_project.project.lab_id}-{position}')
+        set_sample_fields(sample, row, PCM_ENTRY_FIELDS)
+        calculate_sample_results(sample)
+        validate_sample(sample)
+        return sample
 
 
 class PCMSamplesAnalysisManager():
