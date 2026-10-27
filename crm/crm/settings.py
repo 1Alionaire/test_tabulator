@@ -51,7 +51,7 @@ THIRD_PARTY_APPS = [
     # 'corsheaders',
     # 'rosetta',
     # 'django_summernote',
-    # 'django_filters',
+    'django_filters',
 ]
 
 LOCAL_APPS = [
@@ -196,4 +196,8 @@ MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # сразу
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }

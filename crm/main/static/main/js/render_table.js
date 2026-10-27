@@ -26,7 +26,7 @@ function onlyOnCreate(cell) {
 }
 
 function checkNOBType(cell) {
-  if (cell.getRow().getData().project_type == '3' || cell.getRow().getData().project_type == '4') return true
+  if (cell.getRow().getData().project_type === '3' || cell.getRow().getData().project_type === '4') return true
 }
 
 function checkCOCFile(cell) {
@@ -105,7 +105,7 @@ function checkCOCFile(cell) {
             },
             {
               title: "Company", 
-              field: "company_id",
+              field: "company",
               formatter: "lookup",
               formatterParams: Object.fromEntries(statusOptions['company'].map(o => [o.value, o.label])),
               editor: "list",
@@ -375,9 +375,31 @@ async function initFilterPanel() {
 
 initFilterPanel();
 
+// async function newFilterLogic() {
+//   e.preventDefault();
+//   const formData = new FormData(form);
+//   const response = await fetch('/api/samples/', {
+//     method: 'GET',
+//     headers: {
+//       'Content-Type': 'application/json',
+//       'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+//     },
+//     body: JSON.stringify(data),
+//   });
+// }
+
+const form = document.getElementById('filter-form');
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const params = new URLSearchParams();
+  for (const [key, value] of new FormData(form)) {
+    if (value) params.append(key, value);
+  }
+  table.setData(`${URLS.mainProjectGetURL}?${params}`);
+});
 
 function applyFilters() {
-  
   const filters = [];
 
   const filterDateStart = document.querySelector("#filter-input-date-start").value;
@@ -434,7 +456,7 @@ function applyFilters() {
   table.setFilter(filters);   // пустой массив = снять всё
 }
 
-document.getElementById("filter-panel-apply-button").addEventListener("click", applyFilters);
+// document.getElementById("filter-panel-apply-button").addEventListener("click", applyFilters);
 
 document.getElementById("filter-panel-reset-filter-button").addEventListener("click", function() {
   table.setFilter(); 

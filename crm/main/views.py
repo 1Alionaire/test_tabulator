@@ -43,9 +43,8 @@ def api_get_table_options(request):
             {'value': o.pk, 'label': o.name}
             for o in Company.objects.order_by('name')
         ],
+        'years':[]
     })
-
-
 
 @require_GET
 def api_get_main_projects_table(request):
