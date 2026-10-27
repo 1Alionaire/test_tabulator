@@ -38,7 +38,7 @@ class Command(BaseCommand):
         for year in ('2020', '2021', '2022', '2023', '2024', '2025', '2026'):
             for month in range(1, 13):
                 for day in range(1, 28):
-                    for work in range(1, 400):
+                    for work in range(1, options['count']):
                         with transaction.atomic():
                             current_date = datetime.datetime.strptime(f'{year}-{month}-{day}', "%Y-%m-%d")
                             main_project, plm_count, nob_count = self.create_project(current_date, companies)
