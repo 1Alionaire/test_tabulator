@@ -42,14 +42,29 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'main',
-    'finance', 
-    'users',
-    'plm',
-    'pcm',
-    'qc',
-    'tem'
 ]
+
+THIRD_PARTY_APPS = [
+    # 'rest_framework_simplejwt.token_blacklist',
+    'rest_framework',
+    # 'drf_spectacular',
+    # 'corsheaders',
+    # 'rosetta',
+    # 'django_summernote',
+    # 'django_filters',
+]
+
+LOCAL_APPS = [
+    'main.apps.MainConfig',
+    'finance.apps.FinanceConfig',
+    'users.apps.UsersConfig',
+    'plm.apps.PlmConfig',
+    'pcm.apps.PcmConfig',
+    'qc.apps.QcConfig',
+    'tem.apps.TemConfig',
+]
+
+INSTALLED_APPS += THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

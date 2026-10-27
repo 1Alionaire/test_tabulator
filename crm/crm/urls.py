@@ -26,4 +26,5 @@ urlpatterns = [
     path('finance/', include('finance.urls', namespace='finance')),
     path('users/', include('users.urls', namespace='users')),
     path('qc/', include('qc.urls', namespace='qc')),
+    path('api/', include('api.urls', namespace='api')),
 ]
