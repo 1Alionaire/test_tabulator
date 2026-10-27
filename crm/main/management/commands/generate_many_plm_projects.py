@@ -29,11 +29,12 @@ class Command(BaseCommand):
     help = "Create test PLM projects with 198.1 and 198.6 samples; every 198.6 sample gets a weight record"
 
     def add_arguments(self, parser):
-        parser.add_argument('--count', type=int, default=10, help='amount of projects to create')
+        parser.add_argument('--count', type=int, default=100, help='amount of projects to create')
+        parser.add_argument('--year_start', type=int, default=2025, help='start year range')
+        parser.add_argument('--year_end', type=int, default=2026, help='end year range')
 
     def handle(self, *args, **options):
         companies = list(Company.objects.all())
-        # today = timezone.localdate()
         if options['year_start'] is None or options['year_end'] is None or options['count'] is None:
             return
         for year in range(int(options['year_start']), int(options['year_end']) + 1):
