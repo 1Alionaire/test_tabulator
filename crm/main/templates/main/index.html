@@ -23,7 +23,7 @@
       </div>
       <div class="option-filter">
         <label>Company</label>
-        <select id="filter-input-company" size="10" name="company">
+        <select id="filter-input-company" size="10" name="company" multiple>
         </select>
       </div>
       <div class="option-filter">
@@ -48,7 +48,7 @@
     </div>
     </form>
 <!--    <button id="filter-panel-apply-button">Apply</button>-->
-    <button id="filter-panel-reset-filter-button">Reset</button>
+    <button id="filter-reset">Reset</button>
   </section>
   <section class="main-window">
     <section class="control-panel">
@@ -89,6 +89,7 @@
     // mainProjectGetURL: "{% url 'main:api_get_main_projects_table' %}",
     mainProjectGetURL: "{% url 'api:v1:main:api_get_main_projects_table' %}",
     mainProjectUpdateURL: "{% url 'main:api_update_main_projects_table' %}",
+    // mainProjectUpdateURL: "{% url 'api:v1:main:api_get_main_projects_table' %}",
   };
 </script>
 

@@ -11,8 +11,8 @@ ALLOWED_LIST = ALLOWED = {'lab_id', 'date_registered', 'project_type', 'company'
 
 class MainProjectFilter(df.FilterSet):
     # имя атрибута = имя query-параметра
-    date_registered__gte = df.DateFilter(field_name='date_registered', lookup_expr='date__gte')
-    date_registered__lte = df.DateFilter(field_name='date_registered', lookup_expr='date__lte')
+    date_registered__gte = df.DateFilter(field_name='date_registered', lookup_expr='gte')
+    date_registered__lte = df.DateFilter(field_name='date_registered', lookup_expr='lte')
 
     # ModelMultipleChoiceFilter читает getlist() — повторяющиеся ключи работают из коробки
     project_type      = df.TypedMultipleChoiceFilter(choices=MainTypeAnalysis.choices, coerce=int)

@@ -375,19 +375,6 @@ async function initFilterPanel() {
 
 initFilterPanel();
 
-// async function newFilterLogic() {
-//   e.preventDefault();
-//   const formData = new FormData(form);
-//   const response = await fetch('/api/samples/', {
-//     method: 'GET',
-//     headers: {
-//       'Content-Type': 'application/json',
-//       'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
-//     },
-//     body: JSON.stringify(data),
-//   });
-// }
-
 const form = document.getElementById('filter-form');
 
 form.addEventListener('submit', (e) => {
@@ -399,69 +386,12 @@ form.addEventListener('submit', (e) => {
   table.setData(`${URLS.mainProjectGetURL}?${params}`);
 });
 
-function applyFilters() {
-  const filters = [];
 
-  const filterDateStart = document.querySelector("#filter-input-date-start").value;
-  if (filterDateStart) filters.push({ field: "date_registered", type: ">=", value: filterDateStart });
 
-  const filterDateEnd = document.querySelector("#filter-input-date-end").value;
-  if (filterDateEnd) filters.push({ field: "date_registered", type: "<=", value: filterDateEnd });
-
-  const filterCompany = document.querySelector("#filter-input-company").value;
-  if (filterCompany) filters.push({ field: "company_id", type: "=", value: filterCompany });
-
-  // Status of work
-  const filterStatus = document.querySelector("#filter-input-status");
-  const filterStatusSelectedValues = Array.from(filterStatus.selectedOptions)
-    .map((option) => parseInt(option.value, 10));
-
-  if (filterStatusSelectedValues.length) {
-    if (!isNaN(filterStatusSelectedValues)) {
-      filters.push({ field: "status", type: "in", value: filterStatusSelectedValues });
-    };
-  };
-
-  // Sample type 
-  const filterSampleType = document.querySelector("#filter-input-sample-type");
-  const filterSampleTypeSelectedValues = Array.from(filterSampleType.selectedOptions)
-    .map((option) => parseInt(option.value, 10));
-
-  if (filterSampleTypeSelectedValues.length) {
-    if (!isNaN(filterSampleTypeSelectedValues)) {
-      filters.push({ field: "project_type", type: "in", value: filterSampleTypeSelectedValues });
-    }
-  }
-
-  // Turn around time
-  const filterTurnAroundTime = document.querySelector("#filter-input-turn-around-time");
-  const filterTurnAroundTimeSelectedValues = Array.from(filterTurnAroundTime.selectedOptions)
-    .map((option) => parseInt(option.value, 10));
-
-  if (filterTurnAroundTimeSelectedValues.length) {
-    if (!isNaN(filterTurnAroundTimeSelectedValues)) {
-      filters.push({ field: "turn_around_time", type: "in", value: filterTurnAroundTimeSelectedValues });
-    };
-  };
-
-  const filterLabId = document.querySelector("#filter-input-lab-id").value;
-  if (filterLabId) filters.push(likeIgnoreCase("lab_id", filterLabId));
-
-  const filterProjectName = document.querySelector("#filter-input-project-name").value;
-  if (filterProjectName) filters.push(likeIgnoreCase("project_name", filterProjectName));
-
-  const filterProjectAddress = document.querySelector("#filter-input-project-address").value;
-  if (filterProjectAddress) filters.push(likeIgnoreCase("project_address", filterProjectAddress));
-
-  table.setFilter(filters);   // пустой массив = снять всё
-}
-
-// document.getElementById("filter-panel-apply-button").addEventListener("click", applyFilters);
-
-document.getElementById("filter-panel-reset-filter-button").addEventListener("click", function() {
-  table.setFilter(); 
-    });
-    
+// document.getElementById("filter-panel-reset-filter-button").addEventListener("click", function() {
+//   table.setFilter();
+//     });
+//
 // ================== deleting rows =============
 
 document.getElementById("main-menu-delete-toggle").addEventListener("click", function () {
@@ -485,6 +415,52 @@ document.getElementById("main-menu-redo-toggle").addEventListener("click", funct
 
 document.getElementById("main-menu-test-toggle").addEventListener("click", function() {
   checkNOBType();
+});
+
+// const form = document.getElementById('filter-form');
+
+// единственный источник правды для значений по умолчанию
+function defaultFilters() {
+  const year = new Date().getFullYear();
+  return {
+    date_registered__gte: `${year}-01-01`,
+    date_registered__lte: `${year}-12-31`,
+  };
+}
+
+function applyDefaults() {
+  // 1. чистим все поля
+  for (const el of form.elements) {
+    if (!el.name) continue;                       // кнопки пропускаем
+    if (el.tagName === 'SELECT') {
+      for (const opt of el.options) opt.selected = false;
+    } else {
+      el.value = '';
+    }
+  }
+  // 2. раскладываем дефолты
+  for (const [name, value] of Object.entries(defaultFilters())) {
+    const field = form.elements[name];
+    if (field) field.value = value;
+  }
+}
+
+function loadTable() {
+  const params = new URLSearchParams();
+  for (const [key, value] of new FormData(form)) {
+    if (value) params.append(key, value);
+  }
+  table.setData(`${URLS.mainProjectGetURL}?${params}`);
+}
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  loadTable();
+});
+
+document.getElementById('filter-reset').addEventListener('click', () => {
+  applyDefaults();
+  loadTable();
 });
 
 

@@ -1,3 +1,4 @@
+from finance.models import Company
 from .models import MainProject, MainTypeAnalysis, MainProjectStatus, MainTurnAroundTime
 from django.db import transaction
 from plm.models import PlmProject, PlmSample, PlmSampleWeight
@@ -10,7 +11,7 @@ import math
 from django.shortcuts import get_object_or_404
 
 REQUIRED_ON_CREATE = {
-    'company_id', 'project_name', 'project_address', 'date_registered', 'time_registered',
+    'company', 'project_name', 'project_address', 'date_registered', 'time_registered',
     'project_type', 'number_samples', 'turn_around_time'
 }
 
@@ -129,7 +130,9 @@ class MainProjectTableManager():
         objects = []
         for data in self.data_to_create:
             fields = data.get('fields')
-            objects.append(MainProject(status=MainProjectStatus.New, deleted=False,  **fields))
+            company = Company.objects.get(pk=fields.get('company'))
+            fields.pop('company')
+            objects.append(MainProject(status=MainProjectStatus.New, deleted=False, company= company, **fields))
 
         for project in objects:
             project.full_clean()
