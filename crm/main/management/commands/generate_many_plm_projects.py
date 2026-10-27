@@ -34,10 +34,15 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         companies = list(Company.objects.all())
         # today = timezone.localdate()
-
-        for year in ('2020', '2021', '2022', '2023', '2024', '2025', '2026'):
+        if options['year_start'] is None or options['year_end'] is None or options['count'] is None:
+            return
+        for year in range(int(options['year_start']), int(options['year_end']) + 1):
             for month in range(1, 13):
-                for day in range(1, 28):
+                if month == 2:
+                    max_day = 28
+                else:
+                    max_day = 30
+                for day in range(1, max_day+1):
                     for work in range(1, options['count']):
                         with transaction.atomic():
                             current_date = datetime.datetime.strptime(f'{year}-{month}-{day}', "%Y-%m-%d")
