@@ -6,5 +6,5 @@ app_name = 'main'
 from . import views
 
 urlpatterns = [
-    path('', views.MainProjectAPIList.as_view(), name='api_get_main_projects_table'),
+    path('', views.MainProjectAPIList.as_view(), name='get_main_projects_table'),
 ]

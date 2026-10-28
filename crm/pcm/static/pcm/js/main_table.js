@@ -23,12 +23,10 @@ let table;
             hozAlign: "center", formatter: "rownum",
             cssClass: "range-header-col", editor: false
         },
+        footerElement: '<span id="main-rows-loaded"></span>' +
+          '<button type="button" id="main-load-more" class="tabulator-page">Load more</button>',
         height: "100%",
         layout:"fitColumns",
-        ajaxURL: URLS.PCMProjectGetURL,
-        pagination:"local",
-        paginationSize: 200,
-        paginationSizeSelector:[100, 200, 300],
         columnDefaults: {
           headerHozAlign: "center",
           hozAlign: "center",
@@ -49,7 +47,7 @@ let table;
             },
             {
               title:"Lab ID",
-              field: "pcm_project__id",
+              field: "pcm_project_id",
               width: 100,
               headerSort: false,
               formatter: "link",
@@ -75,7 +73,7 @@ let table;
             },
             {
               title: "Company",
-              field: "company_id",
+              field: "company",
               formatter: "lookup",
               formatterParams: Object.fromEntries(statusOptions['company'].map(o => [o.value, o.label])),
               headerSort: false,
@@ -129,12 +127,84 @@ let table;
             },
           ],
       });
+
+     table.on("tableBuilt", () => {
+       document.getElementById("main-load-more").addEventListener("click", loadNextPage);
+       loadFirstPage();
+     });
+
+     // infinite scroll: подгружаем следующую страницу, когда до низа осталось меньше SCROLL_LOAD_MARGIN
+     table.on("scrollVertical", (top) => {
+       const holder = table.element.querySelector(".tabulator-tableholder");
+       if (top + holder.clientHeight >= holder.scrollHeight - SCROLL_LOAD_MARGIN) loadNextPage();
+     });
   })();
+
+const PAGE_SIZE = 200;
+const SCROLL_LOAD_MARGIN = 300;
+let currentQuery = '';   // фильтры текущего набора данных
+let nextPageURL = null;  // null — последняя страница уже загружена
+let pageLoading = false;
+let loadGeneration = 0;  // ответы на запросы до смены фильтров отбрасываем
+
+async function fetchPage(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`load failed (${res.status})`);
+  return res.json();
+}
+
+async function loadFirstPage(query = currentQuery) {
+  const generation = ++loadGeneration;
+  currentQuery = query;
+  const params = new URLSearchParams(query);
+  params.set('page_size', PAGE_SIZE);
+  try {
+    const page = await fetchPage(`${URLS.PCMProjectGetURL}?${params}`);
+    if (generation !== loadGeneration) return;
+    nextPageURL = page.next;
+    await table.setData(page.results);
+    updatePageFooter();
+  } catch (e) {
+    showToast(`Error: ${e.message}`, "error");
+  }
+}
+
+function updatePageFooter() {
+  document.getElementById("main-rows-loaded").textContent =
+    `Loaded: ${table.getDataCount()}${nextPageURL ? '' : ' (all)'}`;
+  document.getElementById("main-load-more").style.display = nextPageURL ? '' : 'none';
+}
+
+async function loadNextPage() {
+  if (!nextPageURL || pageLoading) return;
+  pageLoading = true;
+  const generation = loadGeneration;
+  try {
+    const page = await fetchPage(nextPageURL);
+    if (generation !== loadGeneration) return;
+    nextPageURL = page.next;
+    // строка могла сместиться между запросами (сменили lab_id) — дубли не добавляем
+    const loadedIds = new Set(table.getData().map(r => r.id));
+    const rows = page.results.filter(r => !loadedIds.has(r.id));
+    if (rows.length) {
+      // addData, а не setData — несохранённые правки в уже загруженных строках остаются
+      await table.addData(rows, false);
+      // addData пишет каждую строку в историю — без очистки Undo удалял бы подгруженные строки
+      table.clearHistory();
+    }
+    updatePageFooter();
+  } catch (e) {
+    showToast(`Error: ${e.message}`, "error");
+  } finally {
+    pageLoading = false;
+  }
+}
 
 // =================== Refresh table ===================
 document.getElementById("main-menu-refresh-toggle").addEventListener("click", function() {
   table.setData(URLS.PCMProjectGetURL);
   showToast("Refreshed", "success");
+  loadFirstPage();
 });
 
 
@@ -159,53 +229,48 @@ async function initFilterPanel() {
 };
 
 initFilterPanel();
+const form = document.getElementById('filter-form');
 
-function applyFilters() {
-  const filters = [];
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  loadTable();
+});
 
-  const filterDateStart = document.querySelector("#filter-input-date-start").value;
-  if (filterDateStart) filters.push({ field: "date_registered", type: ">=", value: filterDateStart });
+document.getElementById('filter-reset').addEventListener('click', () => {
+  applyDefaults();
+  loadTable();
+});
 
-  const filterDateEnd = document.querySelector("#filter-input-date-end").value;
-  if (filterDateEnd) filters.push({ field: "date_registered", type: "<=", value: filterDateEnd });
-
-  const filterCompany = document.querySelector("#filter-input-company").value;
-  if (filterCompany) filters.push({ field: "company_id", type: "=", value: filterCompany });
-
-  // Status of work
-  const filterStatus = document.querySelector("#filter-input-status");
-  const filterStatusSelectedValues = Array.from(filterStatus.selectedOptions)
-    .filter((option) => option.value)   // skip "— all —"
-    .map((option) => parseInt(option.value, 10));
-
-  if (filterStatusSelectedValues.length) {
-    filters.push({ field: "status", type: "in", value: filterStatusSelectedValues });
-  }
-
-  // Turn around time
-  const filterTurnAroundTime = document.querySelector("#filter-input-turn-around-time");
-  const filterTurnAroundTimeSelectedValues = Array.from(filterTurnAroundTime.selectedOptions)
-    .filter((option) => option.value)   // skip "— all —"
-    .map((option) => parseInt(option.value, 10));
-
-  if (filterTurnAroundTimeSelectedValues.length) {
-    filters.push({ field: "turn_around_time", type: "in", value: filterTurnAroundTimeSelectedValues });
-  }
-
-  const filterLabId = document.querySelector("#filter-input-lab-id").value;
-  if (filterLabId) filters.push(likeIgnoreCase("lab_id", filterLabId));
-
-  const filterProjectName = document.querySelector("#filter-input-project-name").value;
-  if (filterProjectName) filters.push(likeIgnoreCase("project_name", filterProjectName));
-
-  const filterProjectAddress = document.querySelector("#filter-input-project-address").value;
-  if (filterProjectAddress) filters.push(likeIgnoreCase("project_address", filterProjectAddress));
-
-  table.setFilter(filters);   // empty array = clear all filters
+// единственный источник правды для значений по умолчанию
+function defaultFilters() {
+  const year = new Date().getFullYear();
+  return {
+    date_registered__gte: `${year}-01-01`,
+    date_registered__lte: `${year}-12-31`,
+  };
 }
 
-document.getElementById("filter-panel-apply-button").addEventListener("click", applyFilters);
+function applyDefaults() {
+  // 1. чистим все поля
+  for (const el of form.elements) {
+    if (!el.name) continue;                       // кнопки пропускаем
+    if (el.tagName === 'SELECT') {
+      for (const opt of el.options) opt.selected = false;
+    } else {
+      el.value = '';
+    }
+  }
+  // 2. раскладываем дефолты
+  for (const [name, value] of Object.entries(defaultFilters())) {
+    const field = form.elements[name];
+    if (field) field.value = value;
+  }
+}
 
-document.getElementById("filter-panel-reset-filter-button").addEventListener("click", function() {
-  table.setFilter();
-});
+function loadTable() {
+  const params = new URLSearchParams();
+  for (const [key, value] of new FormData(form)) {
+    if (value) params.append(key, value);
+  }
+  loadFirstPage(params);
+}

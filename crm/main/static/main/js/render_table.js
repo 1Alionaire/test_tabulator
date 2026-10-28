@@ -446,15 +446,6 @@ async function initFilterPanel() {
 initFilterPanel();
 
 const form = document.getElementById('filter-form');
-
-
-
-// document.getElementById("filter-panel-reset-filter-button").addEventListener("click", function() {
-//   table.setFilter();
-//     });
-//
-// ================== deleting rows =============
-
 document.getElementById("main-menu-delete-toggle").addEventListener("click", function () {
   const rows = table.getSelectedRows();
   for (const row of rows ) {
@@ -477,8 +468,6 @@ document.getElementById("main-menu-redo-toggle").addEventListener("click", funct
 document.getElementById("main-menu-test-toggle").addEventListener("click", function() {
   checkNOBType();
 });
-
-// const form = document.getElementById('filter-form');
 
 // единственный источник правды для значений по умолчанию
 function defaultFilters() {

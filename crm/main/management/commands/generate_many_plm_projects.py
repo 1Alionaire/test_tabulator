@@ -50,9 +50,6 @@ class Command(BaseCommand):
                             main_project, plm_count, nob_count = self.create_project(current_date, companies)
                         self.stdout.write(f'{main_project.lab_id}: {plm_count} x 198.1, {nob_count} x 198.6')
 
-    # dateparser.parse('1991-05-17')
-    # datetime.datetime(1991, 5, 17, 0, 0)
-
     def create_project(self, project_date, companies):
         plm_count = random.randint(*SAMPLES_RANGE)
         nob_count = random.randint(*SAMPLES_RANGE)

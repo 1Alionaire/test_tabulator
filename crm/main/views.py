@@ -22,11 +22,6 @@ from django.db import IntegrityError
 
 logger = logging.getLogger(__name__)
 
-def _serialize(obj):
-    return {
-        'lab_id': obj.lab_id,
-    }
-
 class MainTableView(LoginRequiredMixin, TemplateView):
     extra_context = {
         'title': 'Main'
@@ -45,27 +40,6 @@ def api_get_table_options(request):
         ],
         'years':[]
     })
-
-@require_GET
-def api_get_main_projects_table(request):
-    main_projects = MainProject.active_objects.all().order_by('-lab_id_sort').values(
-                                                     'id',
-                                                     'lab_id',
-                                                     'lab_id_sort',
-                                                     'date_registered',
-                                                     'time_registered',
-                                                     'company_id',
-                                                     'project_name',
-                                                     'project_address',
-                                                     'project_type',
-                                                     'number_samples',
-                                                     'turn_around_time',
-                                                     'nob_number_samples', 
-                                                     'technician', 
-                                                     'status', 
-                                                     'comment',
-                                                     'is_overdue')
-    return JsonResponse(list(main_projects), safe=False)
 
 @csrf_exempt
 @require_http_methods(["POST"])

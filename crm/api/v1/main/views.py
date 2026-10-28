@@ -2,13 +2,9 @@ from main.models import MainProject, MainTypeAnalysis, MainProjectStatus, MainTu
 from rest_framework import generics
 from rest_framework.pagination import CursorPagination
 from .serializers import MainProjectSerializer
-from datetime import datetime
 from django_filters.rest_framework import DjangoFilterBackend
 import django_filters as df
 from finance.models import Company
-
-ALLOWED_LIST = ALLOWED = {'lab_id', 'date_registered', 'project_type', 'company',
-                    'status', 'turn_around_time', 'project_name', 'project_address'}
 
 class MainProjectFilter(df.FilterSet):
     # имя атрибута = имя query-параметра

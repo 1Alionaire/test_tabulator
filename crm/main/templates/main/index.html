@@ -38,11 +38,11 @@
       </div>
       <div class="input-filter-field">
         <label>Project Name</label>
-        <input class = "input-filter-text" id="filter-input-project-name" type="input" name="project_name"></input>
+        <input class = "input-filter-text" id="filter-input-project-name" type="text" name="project_name"></input>
       </div>
       <div class="input-filter-field">
         <label>Project Address</label>
-        <input class = "input-filter-text" id="filter-input-project-address" type="input" name="project_address"></input>
+        <input class = "input-filter-text" id="filter-input-project-address" type="text" name="project_address"></input>
       </div>
       <button type="submit">Apply</button>
     </div>
@@ -86,10 +86,8 @@
   // Этот блок ВНУТРИ шаблона, поэтому Django-теги работают
   const URLS = {
     tableOptionsGetURL: "{% url 'main:api_get_table_options' %}",
-    // mainProjectGetURL: "{% url 'main:api_get_main_projects_table' %}",
-    mainProjectGetURL: "{% url 'api:v1:main:api_get_main_projects_table' %}",
+    mainProjectGetURL: "{% url 'api:v1:main:get_main_projects_table' %}",
     mainProjectUpdateURL: "{% url 'main:api_update_main_projects_table' %}",
-    // mainProjectUpdateURL: "{% url 'api:v1:main:api_get_main_projects_table' %}",
   };
 </script>
 

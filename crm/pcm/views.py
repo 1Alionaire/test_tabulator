@@ -62,27 +62,6 @@ class PCMTableView(LoginRequiredMixin, TemplateView):
         }
     template_name = 'pcm/pcm_main.html'
 
-
-# =============== getting all PCM projects ===============
-@require_GET
-def api_get_pcm_projects_table(request):
-    pcm_projects = MainProject.active_objects.filter(project_type=MainTypeAnalysis.PCM, pcm_project__isnull=False).order_by('-lab_id_sort').values(
-                                                     'id',
-                                                     'lab_id',
-                                                     'lab_id_sort',
-                                                     'date_registered',
-                                                     'time_registered',
-                                                     'company_id',
-                                                     'project_name',
-                                                     'project_address',
-                                                     'number_samples',
-                                                     'turn_around_time',
-                                                     'technician',
-                                                     'status',
-                                                     'comment',
-                                                     'pcm_project__id')
-    return JsonResponse(list(pcm_projects), safe=False)
-
 # =============== render PCM project page ===============
 class UpdateProjectView(LoginRequiredMixin, UpdateView):
     model = PcmProject
