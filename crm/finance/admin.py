@@ -8,4 +8,4 @@ class CompanyAdmin(admin.ModelAdmin):
     list_filter = ('name', 'representative', )
     search_fields = ('name', 'representative')
     ordering = ('name', 'representative')
-    list_per_page = 10
+    list_per_page = 100

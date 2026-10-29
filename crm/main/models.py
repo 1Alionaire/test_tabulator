@@ -54,6 +54,7 @@ class MainProject(BaseModel):
     date_registered = models.DateField(auto_now_add=False, default=timezone.now)  # date when project was registered
     time_registered = models.TimeField(auto_now_add=False, default=timezone.now) # time when project was registered
     company = models.ForeignKey('finance.Company', on_delete=models.PROTECT, related_name='companies') # client company
+    project_number = models.CharField(max_length=100)  # name of the project
     project_name = models.CharField(max_length=100) # name of the project
     project_address = models.CharField(max_length=200) # address of the project
     project_type = models.PositiveSmallIntegerField(choices=MainTypeAnalysis.choices, blank=False, null=False)
@@ -66,6 +67,7 @@ class MainProject(BaseModel):
     is_overdue = models.BooleanField(default=False)
     coc_file = models.FileField(upload_to='coc_files/', blank=True, null=True)
     deleted = models.BooleanField(blank=False, null=False, default=False,)
+    login_by = models.ForeignKey('users.User', on_delete=models.PROTECT, related_name='login_by')
 
     objects = models.Manager()
     active_objects = ActiveProject()
