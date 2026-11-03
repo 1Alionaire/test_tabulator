@@ -59,6 +59,9 @@ class MainProjectCreateSignal:
                 setattr(sample, 'weight', weight_item)
                 sample.save()
                 weight_item.save()
+        else:
+            weight_item = PlmSampleWeight.objects.create(plm_project=created_plm_project)
+            weight_item.save()
 
 class MainProjectUpdateSignal:
     def __init__(self, input_project):
@@ -84,7 +87,7 @@ class MainProjectDeleteSignal:
             self.delete_plm_secondary_info()
 
     def delete_plm_secondary_info(self):
-        deleted_plm_project = PlmProject.objects.get(project=self.main_project) # Create PCM project entity
+        deleted_plm_project = PlmProject.objects.get(project=self.main_project).id # Create PCM project entity
 
         # release TEM grid slots held by deleted projects (bulk_update doesn't fire save signals)
         PlmSample.objects.filter(plm_project__project_id=deleted_plm_project).update(

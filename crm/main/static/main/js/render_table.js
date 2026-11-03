@@ -299,12 +299,12 @@ const ENTRY_SAVE_FIELDS = ["lab_id", "date_registered", "time_registered", "comp
 // =================== Detecting changes ===================
 // saved rows deleted in the table and still gone (undo brings a deleted row back)
 function getDeletedIds() {
-  const presentIds = new Set(dataEntryTable.getRows().map(row => row.getData().id));
+  const presentIds = new Set(table.getRows().map(row => row.getData().id));
   return [...deletedIds].filter(id => !presentIds.has(id));
 }
 
 function entryHasChanges() {
-  const rows = dataEntryTable.getRows().map(row => row.getData());
+  const rows = table.getRows().map(row => row.getData());
   return rows.some(data => !data.id || entryDirtyRows.has(data)) || getDeletedIds().length > 0;
 }
 
