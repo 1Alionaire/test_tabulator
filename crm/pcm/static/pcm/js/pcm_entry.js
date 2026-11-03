@@ -99,7 +99,7 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
         height: "100%",
         layout:"fitColumns",
         editTriggerEvent: "dblclick",
-        ajaxURL: URLS.dataEntryGetURL,
+        ajaxURL: URLS.dataEntryURL,
         selectableRange: true,
         selectableRangeColumns: true,
         selectableRangeRows: true,
@@ -240,7 +240,7 @@ function reloadEntryTable() {
   entryDirtyRows.clear();
   entryDeletedIds.clear();
   updatedData.clear()
-  return dataEntryTable.setData(URLS.dataEntryGetURL);
+  return dataEntryTable.setData(URLS.dataEntryURL);
 }
 
 // =================== Refresh table ===================
@@ -272,13 +272,15 @@ async function entrySaveChanges() {
     if (!confirm("All previous samples results will be deleted, continue?")) {
       return;                                   // nothing is saved, the edits stay in the table
     }
-    await sendEntryChanges(URLS.dataEntryReplaceAllURL, {rows: rows.map(entryPayloadRow)}, true, // full replacement samples
+    await sendEntryChanges("PUT", URLS.dataEntryURL, rows.map(entryPayloadRow), true, // full replacement samples
                            (result) => `Table Saved: Replaced: ${result.created}`);
     return;
   }
   // Save scenario 2: edited saved rows and new rows at the end of the table
   const payload = {
-    updated: Object.fromEntries(updatedData), //take json with updated data
+    updated: Array.from(updatedData, ([id, fields]) => ({
+      id: Number(id), ...fields,
+    })),
     created: rows.filter(data => !data.id).map(entryPayloadRow), // take new samples
     deleted: [...entryDeletedIdsInEnd] // take only in the end deleted samples, they are not influence whole table
   };
@@ -286,15 +288,15 @@ async function entrySaveChanges() {
     showToast("No changes to save", "info");
     return;
   }
-  await sendEntryChanges(URLS.dataEntryUpdateURL, payload, false,
+  await sendEntryChanges("PATCH", URLS.dataEntryURL, payload, false,
                          (result) => `Table Saved: Updated: ${result.updated} Created: ${result.created}`);
 }
 
-async function sendEntryChanges(url, payload, replacesAll, successMessage) {
+async function sendEntryChanges(method, url, payload, replacesAll, successMessage) {
   entrySaveButton.disabled = true;              // a second click while saving would create the new rows twice
   try {
     const response = await fetch(url, {
-      method: "POST",
+      method: method,
       headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
       body: JSON.stringify(payload),
     });

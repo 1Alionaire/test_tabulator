@@ -83,7 +83,7 @@ class MainProjectChangesView(APIView):
         except IntegrityError:
             logger.exception("IntegrityError в projects-update")
             return Response(
-                {"detail": "Нарушено ограничение целостности данных."},
+                {"detail": "Data integrity constraint violation."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
