@@ -59,8 +59,7 @@ class MainProjectCursorPagination(CursorPagination):
     page_size_query_param = 'page_size'
     max_page_size = 500
 
-class MainProjectAPIList(generics.ListCreateAPIView):
-    # queryset = MainProject.active_objects.all().filter(date_registered__year=datetime.now().year)
+class MainProjectAPIList(generics.ListAPIView):
     serializer_class = MainProjectSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = MainProjectFilter
