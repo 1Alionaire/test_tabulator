@@ -61,7 +61,7 @@ class Command(BaseCommand):
                                                   company=random.choice(companies),
                                                   project_name=f"Project name {lab_id}",
                                                   project_address= f"Project address {lab_id}",
-                                                  project_type=MainTypeAnalysis.TEM,
+                                                  project_type=MainTypeAnalysis.EPT,
                                                   number_samples=plm_count,
                                                   turn_around_time=MainTurnAroundTime.Hour24,
                                                   nob_number_samples=nob_count,

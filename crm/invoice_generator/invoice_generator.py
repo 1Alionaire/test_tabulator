@@ -74,7 +74,7 @@ class DataForInvoiceGenerator:
     def build_total_info(self):
         result_array = []
         for project in self.projects:
-            if project.project_type in [MainTypeAnalysis.Bulk, MainTypeAnalysis.BulkTEM, MainTypeAnalysis.TEM]:
+            if project.project_type in [MainTypeAnalysis.Bulk, MainTypeAnalysis.BulkTEM, MainTypeAnalysis.EPT]:
                 result_array.extend(self.parse_info_from_plm_project(project))
                 # for sample in self.parse_info_from_plm_project(project):
                 #     result_array.append(sample)

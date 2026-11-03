@@ -61,7 +61,7 @@
 {% endblock%} {% block extra_js %}
 <script>
   const URLS = {
-    tableOptionsGetURL: "{% url 'main:api_get_table_options' %}",
+    tableOptionsGetURL: "{% url 'api:v1:main:get_main_project_table_options' %}",
     PLMProjectGetURL: "{% url 'plm:api_get_plm_projects_table' %}",
   };
 </script>

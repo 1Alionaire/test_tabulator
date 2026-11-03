@@ -12,6 +12,7 @@ class PcmMainProjectAPIList(generics.ListCreateAPIView):
     pagination_class = MainProjectCursorPagination
 
     def get_queryset(self):
-        return MainProject.active_objects.filter(project_type=MainTypeAnalysis.PCM).select_related(
-            'company'
-        ).annotate(pcm_project_id=F('pcm_project__id'))
+        return MainProject.active_objects.filter(project_type=MainTypeAnalysis.PCM,
+                                                 pcm_project__isnull=False).select_related(
+                                                'company'
+                                                ).annotate(pcm_project_id=F('pcm_project__id'))

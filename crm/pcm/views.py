@@ -20,7 +20,7 @@ from utils.utils import form_errors_to_text
 from qc.models import PcmZCriterionPerAnalystMonth, Month
 import django.utils
 from datetime import date, datetime
-from main.main_table_logic import MainProjectUpdateSignal
+from api.v1.signals import MainProjectUpdateSignal
 from django.db import transaction
 
 logger = logging.getLogger(__name__)

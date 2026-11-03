@@ -1,13 +1,11 @@
-# services.py
+# models
+from main.models import MainProject, MainProjectStatus
+# framework utils
 from django.db import transaction
 from django.utils import timezone
-
-from finance.models import Company
-from main.models import MainProject, MainProjectStatus
-import django.utils
-
-from api.v1.signals import MainProjectDeleteSignal, MainProjectCreateSignal
 from utils.utils import generate_rand_string_4
+# import files
+from api.v1.signals import MainProjectDeleteSignal, MainProjectCreateSignal
 
 class MainProjectError(Exception):
     pass
@@ -18,17 +16,17 @@ class MainProjectTableManager():
         self.data_to_update = input_data.get('updated', [])
         self.data_to_create = input_data.get('created', [])
         self.data_to_delete = input_data.get('deleted', [])
-        self.now_moment = django.utils.timezone.now()
+        self.now_moment = timezone.now()
         self.user = user
 
     def table_update_processing(self) -> dict:
         result = {'status': 'ok'}
         with transaction.atomic():
-            if bool(self.data_to_delete):
+            if self.data_to_delete:
                 result['deleted'] = self._delete_data()
-            if bool(self.data_to_update):
+            if self.data_to_update:
                 result['updated'] = self._update_data()
-            if bool(self.data_to_create):
+            if self.data_to_create:
                 result['created'] = self._create_data()
         return result
 

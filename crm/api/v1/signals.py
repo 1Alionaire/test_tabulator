@@ -12,11 +12,11 @@ class MainProjectCreateSignal:
 
     def create_project(self):
         if self.main_project.project_type == MainTypeAnalysis.PCM:
-            self.create_pcm_project()
+            self._create_pcm_project()
         if self.main_project.project_type in [MainTypeAnalysis.Bulk, MainTypeAnalysis.BulkTEM, MainTypeAnalysis.EPT]:
-            self.create_plm_project()
+            self._create_plm_project()
 
-    def create_pcm_project(self):
+    def _create_pcm_project(self):
         created_pcm_project = PcmProject.objects.create(project=self.main_project) # Create PCM project entity
         # bulk create PCM samples
         PcmSample.objects.bulk_create([
@@ -26,8 +26,8 @@ class MainProjectCreateSignal:
             for i in range(self.main_project.number_samples)
         ])
 
-    def create_plm_project(self):
-        created_plm_project =PlmProject.objects.create(project=self.main_project)
+    def _create_plm_project(self):
+        created_plm_project = PlmProject.objects.create(project=self.main_project)
         created_plm_project.save()
         amount_plm_samples = self.main_project.number_samples
         amount_nob_samples = self.main_project.nob_number_samples

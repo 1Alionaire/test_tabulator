@@ -1,19 +1,37 @@
+# from "vanilla" django
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+from django.db import IntegrityError
+# from models
 from main.models import MainProject, MainTypeAnalysis, MainProjectStatus, MainTurnAroundTime
+from finance.models import Company
+# from rest_framework
 from rest_framework import generics
 from rest_framework.pagination import CursorPagination
-from .serializers import MainProjectSerializer, MainProjectChangesSerializer, MainProjectCreateSerializer
-from django_filters.rest_framework import DjangoFilterBackend
-import django_filters as df
-from finance.models import Company
-from django.db import IntegrityError
-from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+# from service files
 from .services import MainProjectError, MainProjectTableManager
+from .serializers import MainProjectSerializer, MainProjectChangesSerializer
+# from django-filters
+from django_filters.rest_framework import DjangoFilterBackend
+import django_filters as df
 import logging
 
 logger = logging.getLogger(__name__)
+@require_GET
+def get_main_project_table_options(request):
+    return JsonResponse({
+        'status': [{'value': v, 'label': l} for v, l in MainProjectStatus.choices],
+        'project_type': [{'value': v, 'label': l} for v, l in MainTypeAnalysis.choices],
+        'turn_around_time': [{'value': v, 'label': l} for v, l in MainTurnAroundTime.choices],
+        'company': [
+            {'value': o.pk, 'label': o.name}
+            for o in Company.objects.order_by('name')
+        ],
+        'years':[]
+    })
 
 class MainProjectFilter(df.FilterSet):
     # имя атрибута = имя query-параметра
@@ -55,7 +73,6 @@ class MainProjectAPIList(generics.ListCreateAPIView):
 
 class MainProjectChangesView(APIView):
     def post(self, request):
-        print(request.user.username)
         serializer = MainProjectChangesSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -70,9 +87,5 @@ class MainProjectChangesView(APIView):
                 {"detail": "Нарушено ограничение целостности данных."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-            return Response({"detail": "Нарушено ограничение уникальности."},
-                            status=status.HTTP_400_BAD_REQUEST)
-
 
         return Response(result,status=status.HTTP_200_OK)

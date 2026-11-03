@@ -1,8 +1,6 @@
-from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.http import JsonResponse, FileResponse, Http404
-from main.models import MainProject
 from django.views.generic import UpdateView
 from .forms import UpdatePlmProject, PlmProjectDateCollect
 from django.shortcuts import  redirect, get_object_or_404
@@ -17,24 +15,17 @@ from plm.plm_table_logic import (PLMSamplesDataEntryManager,
                                  validate_plm_project,
                                  complete_qc_process,)
 import django.utils
-from datetime import datetime
-from users.models import User
-from django.db.models import Max
 from tem.models import TEMGridRecord
 from report_generator.plm.plm_report_generator import BulkSampleReportGenerator
 from invoice_generator.invoice_generator import InvoiceGenerator, DataForInvoiceGenerator
-from finance.models import Company
 import logging
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from main.models import MainTypeAnalysis
 from utils.utils import form_errors_to_text
-from main.main_table_logic import MainProjectUpdateSignal
+from api.v1.signals import MainProjectUpdateSignal
 from main.models import MainProject, MainTypeAnalysis, MainProjectStatus
 
 logger = logging.getLogger(__name__)
-
-
 from .models import (
     PlmProject,
     PlmSample,
@@ -72,7 +63,7 @@ class PLMTableView(LoginRequiredMixin, TemplateView):
 # =============== getting all PLM projects ===============
 @require_GET
 def api_get_plm_projects_table(request):
-    plm_projects = MainProject.active_objects.filter(project_type__in=[MainTypeAnalysis.Bulk, MainTypeAnalysis.BulkTEM, MainTypeAnalysis.TEM], plm_project__isnull=False).order_by('-lab_id_sort').values(
+    plm_projects = MainProject.active_objects.filter(project_type__in=[MainTypeAnalysis.Bulk, MainTypeAnalysis.BulkTEM, MainTypeAnalysis.EPT], plm_project__isnull=False).order_by('-lab_id_sort').values(
                                                      'id',
                                                      'lab_id',
                                                      'lab_id_sort',

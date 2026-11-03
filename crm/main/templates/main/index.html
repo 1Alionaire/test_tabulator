@@ -85,11 +85,9 @@
 <script>
   // Этот блок ВНУТРИ шаблона, поэтому Django-теги работают
   const URLS = {
-    tableOptionsGetURL: "{% url 'main:api_get_table_options' %}",
+    tableOptionsGetURL: "{% url 'api:v1:main:get_main_project_table_options' %}",
     mainProjectGetURL: "{% url 'api:v1:main:get_main_projects_table' %}",
-    // mainProjectUpdateURL: "{% url 'main:api_update_main_projects_table' %}",
     mainProjectUpdateURL: "{% url 'api:v1:main:update_main_projects_table' %}",
-  //   update_main_projects_table
   };
 </script>
 
