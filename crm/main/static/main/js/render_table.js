@@ -21,6 +21,7 @@ const ORIGINALS = new Map();
 let table;
 const deletedIds = new Set();
 
+
 function onlyOnCreate(cell) {
   return cell.getRow().getData()._isNew === true;
 }
@@ -37,6 +38,24 @@ function checkCOCFile(cell) {
     return 'Upload'
   }
 }
+
+const entryDirtyRows = new Set();
+// const entryDeletedIds = new Set();   // ids of saved rows deleted in the table
+const updatedData = new Map();
+
+function markRowDirty(row) {
+  entryDirtyRows.add(row.getData());
+}
+
+function markDirty(row, field) {
+  const id = row.getData().id;
+  if (!updatedData.has(id)) updatedData.set(id, {});
+  updatedData.get(id)[field] = row.getData()[field];
+}
+
+const ENTRY_SAVE_FIELDS = ["lab_id", "date_registered", "time_registered", "company", "project_number",
+                           "project_name", "project_address", "project_type", "number_samples", "turn_around_time",
+                            "nob_number_samples", 'technician', 'comment'];
 
 (async () => { 
   const response = await fetch(URLS.tableOptionsGetURL); // parse all options from database
@@ -114,12 +133,18 @@ function checkCOCFile(cell) {
               
             },
             {
+              title:"Project Number",
+              field:"project_number",
+              width:400,
+              editor: tabulatorTextEditor,
+              headerSort: false,
+            },
+            {
               title:"Project Name",  
               field:"project_name", 
               width:400, 
               editor: tabulatorTextEditor, 
               headerSort: false,
-              
             },
             {
               title:"Project Address",  
@@ -245,7 +270,48 @@ function checkCOCFile(cell) {
        const holder = table.element.querySelector(".tabulator-tableholder");
        if (top + holder.clientHeight >= holder.scrollHeight - SCROLL_LOAD_MARGIN) loadNextPage();
      });
+
+      // also fires when a selected range is cleared with Delete/Backspace
+      table.on("cellEdited", (cell) => { // in case cell edited
+        markRowDirty(cell.getRow()); // add to dirty Rows
+        if (cell.getRow().getData().id) { // if sample exists
+          markDirty(cell.getRow(), cell.getField()); // mark cell dirty
+        }
+      });
+
+      table.on("clipboardPasted", (clipboard, rowData, rows) => {
+        const fields = new Set(rowData.flatMap(Object.keys));
+
+        rows.forEach(row => {
+          // fields.forEach((field) => markDirty(row, field));
+          fields.forEach((field) => {
+            if (row.getData().id) {
+              markDirty(row, field);
+            }
+          });
+          markRowDirty(row.getComponent());
+        });
+      });
   })();
+
+
+// =================== Detecting changes ===================
+// saved rows deleted in the table and still gone (undo brings a deleted row back)
+function getDeletedIds() {
+  const presentIds = new Set(dataEntryTable.getRows().map(row => row.getData().id));
+  return [...deletedIds].filter(id => !presentIds.has(id));
+}
+
+function entryHasChanges() {
+  const rows = dataEntryTable.getRows().map(row => row.getData());
+  return rows.some(data => !data.id || entryDirtyRows.has(data)) || getDeletedIds().length > 0;
+}
+
+function entryPayloadRow(data) {
+  const row = {id: data.id};
+  for (const field of ENTRY_SAVE_FIELDS) row[field] = data[field];
+  return row;
+}
 
 // ==================== Cursor pagination ====================
 // API отдаёт {next, previous, results}; next — готовый URL следующей страницы (курсор + фильтры)
@@ -311,11 +377,18 @@ async function loadNextPage() {
 
   // =================== Refresh table ===================
 document.getElementById("main-menu-refresh-toggle").addEventListener("click", function() {
-  const changes = collectChanges(); // collecting all changes
-  const hasChanges = changes.updated.length || changes.created.length || changes.deleted.length //put all possible changes in const
-  if (hasChanges && !confirm("Unsaved changes will be lost. Continue?")) { //asking user for continue if we have changes
-        return;
-    }
+  // const changes = collectChanges(); // collecting all changes
+  // const hasChanges = changes.updated.length || changes.created.length || changes.deleted.length //put all possible changes in const
+  // if (hasChanges && !confirm("Unsaved changes will be lost. Continue?")) { //asking user for continue if we have changes
+  //       return;
+  //   }
+  if (entryHasChanges() && !confirm("Unsaved changes will be lost. Continue?")) {
+    return;
+  }
+  entryDirtyRows.clear();
+  deletedIds.clear();
+  updatedData.clear()
+  showToast("Refreshed", "success");
   loadFirstPage();
 });
 
@@ -324,64 +397,29 @@ document.getElementById("main-menu-create-toggle").addEventListener("click", fun
   table.addRow({ _isNew: true }, true);
 });
 
-  // =================== Save ===================
-function collectChanges() {
-  const updatedData = {};
-  const createdData = {};
-  
-  for (const cell of table.getEditedCells()) {  // going through all edited cells
-    const data = cell.getRow()?.getData();  //parse data from whole row?
-    
-    if (!data || !data.lab_id) continue; // if we dont have data -> continue
-
-    const labId = String(data.lab_id);          // единый тип ключа
-    const systemId = String(data.id); 
-
-    if (isEmpty(systemId)) {
-      if (labId in createdData) {
-        createdData[labId].fields[cell.getField()] = cell.getValue();
-        }
-      else {
-        entry = {lab_id: labId, fields: {}, version: ORIGINALS.get(labId)};
-        createdData[labId] = entry;
-        createdData[labId].fields[cell.getField()] = cell.getValue();
-      }
-    }
-    else {
-      if (systemId in updatedData) {
-        updatedData[systemId].fields[cell.getField()] = cell.getValue();
-      }
-      else {
-        entry = {id: systemId, fields: {}, version: ORIGINALS.get(systemId)};
-        updatedData[systemId] = entry;
-        updatedData[systemId].fields[cell.getField()] = cell.getValue();
-      }
-    };
-  }
-
-    const result = {
-      updated: Object.values(updatedData),
-      created: Object.values(createdData),
-      deleted: [...deletedIds]
-    };
-  return result;
-}
-
 document.getElementById("main-menu-save-toggle").addEventListener("click", saveChanges);
 
 async function saveChanges() {
-  const changes = collectChanges();
-  if (!changes.updated.length && !changes.created.length && !changes.deleted.length) {
+  const rows = table.getRows().map(row => row.getData());
+
+  const payload = {
+    updated: Array.from(updatedData, ([id, fields]) => ({
+      id: Number(id), ...fields,
+    })), //take json with updated data
+    created: rows.filter(data => !data.id).map(entryPayloadRow), // take new samples
+    deleted: [...deletedIds] // take only in the end deleted samples, they are not influence whole table
+  };
+
+  if (!payload.updated.length && !payload.created.length && !payload.deleted.length) {
+    showToast("No changes to save", "info");
     return;
   }
-
-  if (changes.deleted.length && !confirm("Projects will be deleted. Continue?")) return
 
   try {
     const res = await fetch(URLS.mainProjectUpdateURL, {
       method: "POST",
       headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
-      body: JSON.stringify(changes),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
@@ -389,10 +427,9 @@ async function saveChanges() {
       return;                                   // флаги не снимаем — правки живы
     }
 
-    table.getEditedCells().forEach(cell => {
-      cell.clearEdited();
-      cell.getElement().classList.remove("dirty");
-    });
+    entryDirtyRows.clear();
+    deletedIds.clear();
+    updatedData.clear()
 
     const resultJSON = await res.json();
 
@@ -403,10 +440,8 @@ async function saveChanges() {
     console.log(resultMessage)
     showToast(`Table Saved: ${resultMessage}`, "success");
 
-
   } catch (e) {
     showToast(`Error: ${e.message}`, "error");
-    console.log(e)
   } finally {
     deletedIds.clear();
     loadFirstPage();
@@ -449,10 +484,8 @@ const form = document.getElementById('filter-form');
 document.getElementById("main-menu-delete-toggle").addEventListener("click", function () {
   const rows = table.getSelectedRows();
   for (const row of rows ) {
-
     table.deleteRow(row.getIndex());
     deletedIds.add(row.getData().id);
-    
   }
 });
 
@@ -465,9 +498,9 @@ document.getElementById("main-menu-redo-toggle").addEventListener("click", funct
   table.redo();
     });
 
-document.getElementById("main-menu-test-toggle").addEventListener("click", function() {
-  checkNOBType();
-});
+// document.getElementById("main-menu-test-toggle").addEventListener("click", function() {
+//   checkNOBType();
+// });
 
 // единственный источник правды для значений по умолчанию
 function defaultFilters() {

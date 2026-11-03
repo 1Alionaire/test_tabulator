@@ -1,6 +1,9 @@
 asgiref==3.12.1
+cffi==2.1.1
 charset-normalizer==3.5.1
+cryptography==50.0.2
 Django==6.1
+django-debug-toolbar==8.0.0
 django-extensions==4.1
 django-filter==26.2
 django-stubs==6.1.2
@@ -10,10 +13,13 @@ djangorestframework-stubs==3.18.1
 dotenv==0.9.9
 et_xmlfile==2.0.0
 gunicorn==26.2.0
+msoffcrypto-tool==6.0.0
+olefile==0.47
 openpyxl==3.1.5
 pillow==12.3.0
 psycopg-binary==3.3.6
 psycopg2-binary==2.9.13
+pycparser==3.12
 python-dotenv==1.2.4
 reportlab==5.0.1
 sqlparse==0.6.0

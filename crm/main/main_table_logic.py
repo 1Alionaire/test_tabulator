@@ -58,6 +58,7 @@ class MainProjectTableManager():
             return {
                 'error': f'records dont exist: {sorted(missing)}'
             }
+
         if self.data_to_update:
             for record in self.data_to_update:
                 for field_name, value in record.get('fields').items():
@@ -195,17 +196,17 @@ class MainProjectCreateSignal:
         amount_plm_samples = self.main_project.number_samples
         amount_nob_samples = self.main_project.nob_number_samples
         sum_samples = amount_plm_samples + amount_nob_samples
-        for i in range(sum_samples):
-            sample = PlmSample.objects.create(plm_project = created_plm_project,
-                                            row_number=(i+1),
-                                            lab_sample=str(self.main_project.lab_id) + '-' + str(i+1), 
-                                            method = 1, 
-                                            )
-            sample.save()
+        PlmSample.objects.bulk_create([
+            PlmSample(plm_project = created_plm_project,
+                        row_number=(i+1),
+                        lab_sample=str(self.main_project.lab_id) + '-' + str(i+1),
+                        method = 1) for i in range(sum_samples)
+        ])
         if amount_nob_samples > 0:
-            for i in range(amount_nob_samples):
-                weight_item = PlmSampleWeight.objects.create(plm_project = created_plm_project)
-                weight_item.save()
+            PlmSampleWeight.objects.bulk_create([
+                PlmSampleWeight(plm_project = created_plm_project)
+                for i in range(amount_nob_samples)
+            ])
             amount_blanks = math.ceil(amount_nob_samples/100)
             for i in range(amount_blanks):
                 sample = PlmSample.objects.create(plm_project = created_plm_project,
@@ -236,3 +237,27 @@ class MainProjectUpdateSignal:
         else:
             return self.main_project_query.update(status = status)
 
+class MainProjectDeleteSignal:
+    def __init__(self, main_project):
+        self.main_project = main_project
+
+    def delete_secondary_info(self):
+        # if self.main_project.project_type == MainTypeAnalysis.PCM:
+        #     self.delete_pcm_secondary_info()
+        if self.main_project.project_type in [MainTypeAnalysis.Bulk, MainTypeAnalysis.BulkTEM, MainTypeAnalysis.TEM]:
+            self.delete_plm_secondary_info()
+
+    def delete_plm_secondary_info(self):
+        deleted_plm_project = PlmProject.objects.get(project=self.main_project) # Create PCM project entity
+
+        # release TEM grid slots held by deleted projects (bulk_update doesn't fire save signals)
+        PlmSample.objects.filter(plm_project__project_id=deleted_plm_project).update(
+            tem_grid_box=None,
+            tem_grid_box_id_1=None,
+            tem_grid_box_id_2=None,
+        )
+
+        TEMGridRecord.objects.filter(
+            Q(plm_tem_project__project_id=deleted_plm_project)
+            | Q(plm_tem_sample__plm_project__project_id=deleted_plm_project)
+        ).update(plm_tem_project=None, plm_tem_sample=None, filled=False)

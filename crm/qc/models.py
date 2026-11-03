@@ -43,7 +43,7 @@ class PlmTypeQCSample(models.IntegerChoices):
 class PlmTypeAnalysisSample(models.IntegerChoices):
     PLM = 1, 'PLM'
     NOB = 2, 'NOB'
-    TEM = 3, 'TEM'
+    EPT = 3, 'EPT'
 
 class PlmReplicates(models.Manager):
     def get_queryset(self):

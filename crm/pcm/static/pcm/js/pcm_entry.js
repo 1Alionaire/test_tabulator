@@ -57,6 +57,8 @@ const VOLUME_INPUT_FIELDS = ["time_in", "time_out", "flow_rate_before", "flow_ra
 const ENTRY_SAVE_FIELDS = ["client_sample", "iwa_owa", "location", "time_in", "time_out",
                            "flow_rate_before", "flow_rate_after", "sample_volume"];
 
+
+
 // row.getData() returns the same object until the table is reloaded,
 // table.getData() returns copies - so edited rows are looked up through getRows()
 const entryDirtyRows = new Set();
@@ -204,7 +206,6 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
         const fields = new Set(rowData.flatMap(Object.keys));
 
         rows.forEach(row => {
-          // fields.forEach((field) => markDirty(row, field));
           fields.forEach((field) => {
               if (row.getData().id) {
                 markDirty(row, field);
