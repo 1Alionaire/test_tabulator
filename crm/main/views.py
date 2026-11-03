@@ -33,7 +33,7 @@ def route_work(request, id):
     main_project = MainProject.objects.get(pk=id)
     if main_project.project_type == MainTypeAnalysis.PCM:
         pcm_project = get_object_or_404(PcmProject, project=main_project)
-        return redirect('pcm:pcm_detail', pcm_project.id)
+        return redirect('pcm:pcm_project', pcm_project.id)
     if main_project.project_type in [MainTypeAnalysis.Bulk, MainTypeAnalysis.BulkTEM, MainTypeAnalysis.EPT]:
         plm_project = get_object_or_404(PlmProject, project=main_project) 
         return redirect('plm:plm_detail', plm_project.id)

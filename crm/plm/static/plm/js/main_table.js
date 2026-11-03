@@ -60,7 +60,7 @@ let table;
             {
               title:"Lab ID", 
               field: "plm_project__id", 
-              width: 100, 
+              width: 120,
               headerSort: false,
               formatter: "link",
               formatterParams: {
@@ -73,7 +73,7 @@ let table;
               title:"Date", 
               field:"date_registered", 
               formatter:formatDateMDY, 
-              width:110, 
+              width: 130,
               headerSort: false,
               
             },
@@ -81,7 +81,7 @@ let table;
               title:"Time", 
               field:"time_registered", 
               formatter:"time",
-              width:80 , 
+              width: 100,
               headerSort: false, 
               
             },
@@ -92,8 +92,14 @@ let table;
               formatterParams: Object.fromEntries(statusOptions['company'].map(o => [o.value, o.label])),
               editorParams: { values: statusOptions['company'] },
               headerSort: false,
-              width: 150,
-              
+              width: 250,
+            },
+            {
+              title:"Project Number",
+              field:"project_number",
+              width:300,
+              editor: tabulatorTextEditor,
+              headerSort: false,
             },
             {
               title:"Project Name", 
@@ -105,7 +111,8 @@ let table;
             {
               title:"Project Address", 
               field:"project_address", 
-              hozAlign:"center", width:400, 
+              hozAlign:"center",
+              width:400,
               headerSort: false,
               
             },

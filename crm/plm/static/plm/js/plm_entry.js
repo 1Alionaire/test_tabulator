@@ -159,8 +159,6 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
     });
 })();
 
-
-
 // =================== Refresh table ===================
 document.getElementById("data-entry-refresh-toggle").addEventListener("click", function() {
   

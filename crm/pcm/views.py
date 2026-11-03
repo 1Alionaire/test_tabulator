@@ -78,12 +78,7 @@ class UpdateProjectView(LoginRequiredMixin, UpdateView):
         context['year'] = datetime.now().year
         return context
 
-# =============== getting all options ===============
-@require_GET
-def api_get_table_options(request):
-    return JsonResponse({
-        'sampleWorkArea': [{'value': v, 'label': l} for v, l in SampleWorkArea.choices if v is not None],
-    })
+
 
 # =============== updating project info ===============
 @require_POST

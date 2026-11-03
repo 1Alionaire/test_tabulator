@@ -99,7 +99,7 @@ const ENTRY_SAVE_FIELDS = ["lab_id", "date_registered", "time_registered", "comp
             {
               title:"Lab ID", 
               field:"lab_id", 
-              width: 100, 
+              width: 120,
               editor:"input", 
               headerSort: false,
               
@@ -109,14 +109,14 @@ const ENTRY_SAVE_FIELDS = ["lab_id", "date_registered", "time_registered", "comp
               field:"date_registered", 
               editor: "date", 
               formatter: formatDateMDY,  
-              width:120, 
+              width:130,
               headerSort: false,
               
             },
             {
               title:"Time",
               field:"time_registered",
-              width: 80,
+              width: 100,
               formatter: formatTimeHM,
               editor: tabulatorTimeEditor,
             },
@@ -129,13 +129,13 @@ const ENTRY_SAVE_FIELDS = ["lab_id", "date_registered", "time_registered", "comp
               editable: onlyOnCreate,
               editorParams: { values: statusOptions['company'] },
               headerSort: false,
-              width: 150,
+              width: 250,
               
             },
             {
               title:"Project Number",
               field:"project_number",
-              width:400,
+              width:300,
               editor: tabulatorTextEditor,
               headerSort: false,
             },
@@ -149,7 +149,8 @@ const ENTRY_SAVE_FIELDS = ["lab_id", "date_registered", "time_registered", "comp
             {
               title:"Project Address",  
               field:"project_address", 
-              hozAlign:"center", width:400, 
+              hozAlign:"center",
+              width:400,
               editor: tabulatorTextEditor, 
               headerSort: false,
               

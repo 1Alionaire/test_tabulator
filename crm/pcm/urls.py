@@ -5,8 +5,7 @@ app_name = 'pcm'
 
 urlpatterns = [
     path('', views.PCMTableView.as_view(), name='main'), #render page
-    path('detail/<int:id>/', views.UpdateProjectView.as_view(), name='pcm_detail'), #render single PCM project page
-    path('api/get-table-options/', views.api_get_table_options, name='api_get_table_options'),
+    path('project/<int:id>/', views.UpdateProjectView.as_view(), name='pcm_project'), #render single PCM project page
     # project info
     path('api/pcm-project/info/update/<int:id>/', views.api_update_project_info, name='api_update_project_info'),
     path('api/pcm-project/analyst/get/<int:id>/', views.api_get_projects_analyst, name='api_get_projects_analyst'),
