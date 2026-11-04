@@ -1,6 +1,9 @@
+from datetime import datetime
+
+import django
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
@@ -8,14 +11,19 @@ from api.v1.pcm.serializers import (PcmMainProjectSerializer,
                                     PcmDataEntryGetSerializer,
                                     PcmDataEntryUpdateSerializer,
                                     PcmSampleUpdateSerializer,
-                                    PcmSampleCreateSerializer)
+                                    PcmSampleCreateSerializer,
+                                    PcmAnalystSerializer)
 from django.db.models import F
 
-from main.models import MainProject, MainTypeAnalysis
+from main.models import MainProject, MainTypeAnalysis, MainProjectStatus
 from pcm.models import SampleWorkArea, PcmSample, PcmProject
 from api.v1.main.views import MainProjectAPIList
 from rest_framework.views import APIView
 from api.v1.pcm.services import PCMSamplesDataEntryManager
+from rest_framework.permissions import IsAuthenticated
+
+from qc.models import PcmZCriterionPerAnalystMonth
+from api.v1.signals import MainProjectUpdateSignal
 
 
 def get_active_pcm_project(id):
@@ -40,7 +48,7 @@ class PcmMainProjectAPIList(MainProjectAPIList):
                                                 'company'
                                                 ).annotate(pcm_project_id=F('pcm_project__id'))
 
-class PcmSampleDataEntryList(APIView):
+class PcmSampleDataEntry(APIView):
     def get(self, request, id):
         samples_data = PcmSample.objects.filter(pcm_project=get_active_pcm_project(id))
         serializer = PcmDataEntryGetSerializer(samples_data, many=True)
@@ -80,3 +88,29 @@ class PcmSampleDataEntryList(APIView):
 
         return Response(result, status=status.HTTP_200_OK)
 
+class PcmAnalystAPI(generics.RetrieveUpdateAPIView):
+    queryset = PcmProject.objects.all()
+    serializer_class = PcmAnalystSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_url_kwarg = "id"
+
+    def perform_update(self, serializer):
+        pcm_project = get_active_pcm_project(self.kwargs['id'])
+        pcm_analyst = self.request.user
+        now_time = django.utils.timezone.now()
+        z_record = PcmZCriterionPerAnalystMonth.objects.filter(month=datetime.now().month,
+                                     year=datetime.now().year,
+                                     analyst=pcm_analyst).first()
+        MainProjectUpdateSignal(pcm_project).update_status(MainProjectStatus.InProcess)
+        serializer.save(analyst=pcm_analyst,
+                        date_analyze=now_time,
+                        z_criterion_record=z_record,
+                        time_update=now_time,
+                        )
+
+
+class PcmSampleAnalysis(APIView):
+    def get(self, request, id):
+        samples_data = PcmSample.objects.filter(pcm_project=get_active_pcm_project(id))
+        serializer = PcmDataEntryGetSerializer(samples_data, many=True)
+        return Response(serializer.data)

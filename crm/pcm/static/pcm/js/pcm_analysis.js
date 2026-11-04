@@ -163,7 +163,7 @@ analysisOverlay.querySelector(".take-btn").addEventListener("click", analystTake
 
 async function checkProjectAnalyst() {
   try {
-    const response = await fetch(URLS.projectAnalystGetURL);
+    const response = await fetch(URLS.projectAnalyst);
     if (!response.ok) throw new Error(response.status);
 
     const data = await response.json();
@@ -176,8 +176,8 @@ async function checkProjectAnalyst() {
 
 async function analystTakeProject() {
   try {
-    const response = await fetch(URLS.projectAnalystUpdateURL, {
-      method: "POST",
+    const response = await fetch(URLS.projectAnalyst, {
+      method: "PATCH",
       headers: {"X-CSRFToken": csrftoken},
     });
 

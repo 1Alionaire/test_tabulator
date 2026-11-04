@@ -8,12 +8,6 @@ urlpatterns = [
     path('project/<int:id>/', views.UpdateProjectView.as_view(), name='pcm_project'), #render single PCM project page
     # project info
     path('api/pcm-project/info/update/<int:id>/', views.api_update_project_info, name='api_update_project_info'),
-    path('api/pcm-project/analyst/get/<int:id>/', views.api_get_projects_analyst, name='api_get_projects_analyst'),
-    path('api/pcm-project/analyst/update/<int:id>/', views.api_update_projects_analyst, name='api_update_projects_analyst'),
-    # data-entry
-    path('api/data-entry-table/get/<int:id>/', views.api_get_data_entry_table, name='api_get_data_entry_table'),
-    path('api/data-entry-table/update/<int:id>/', views.api_update_data_entry_table, name='api_update_data_entry_table'),
-    path('api/data-entry-table/replace-all/<int:id>/', views.api_replace_all_data_entry_table, name='api_replace_all_data_entry_table'),
     # analysis
     path('api/analysis-table/get/<int:id>/', views.api_get_analysis_table, name='api_get_analysis_table'),
     path('api/analysis-table/update/<int:id>/', views.api_update_analysis_table, name='api_update_analysis_table'),

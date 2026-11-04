@@ -8,6 +8,7 @@ PCM_DATA_ENTRY_CREATE_FIELDS = ['client_sample', 'row_number', 'lab_sample', 'iw
 PCM_DATA_ENTRY_UPDATE_FIELDS = ['id', 'client_sample', 'row_number', 'lab_sample', 'iwa_owa',
               'location', 'time_in', 'time_out', 'flow_rate_before', 'flow_rate_after']
 
+# Serializer for all PCM projects table
 class PcmMainProjectSerializer(serializers.ModelSerializer):
     pcm_project_id = serializers.IntegerField(source='pcm_project.id', read_only=True)
 
@@ -15,6 +16,12 @@ class PcmMainProjectSerializer(serializers.ModelSerializer):
         model = MainProject
         fields = '__all__'
 
+class PcmAnalystSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PcmProject
+        fields = ['analyst']
+
+# Serializer for getting all PCM samples in Data Entry Table
 class PcmDataEntryGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = PcmSample
@@ -22,11 +29,13 @@ class PcmDataEntryGetSerializer(serializers.ModelSerializer):
                   'location', 'time_in', 'time_out', 'flow_rate_before', 'flow_rate_after',
                   'sample_volume']
 
+# Serializer for creating one PCM sample in Data Entry Table
 class PcmSampleCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PcmSample
         fields = PCM_DATA_ENTRY_CREATE_FIELDS
 
+# Serializer for updating one PCM sample in Data Entry Table
 class PcmSampleUpdateSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(min_value=1)
     class Meta:
@@ -36,6 +45,7 @@ class PcmSampleUpdateSerializer(serializers.ModelSerializer):
             f: {"required": False} for f in PCM_DATA_ENTRY_UPDATE_FIELDS
         }
 
+# Nested Serializer for batch updating PCM samples in Data Entry Table
 class PcmDataEntryUpdateSerializer(serializers.Serializer):
     created = PcmSampleCreateSerializer(many=True, required=False)
     updated = PcmSampleUpdateSerializer(many=True, required=False)
@@ -73,3 +83,10 @@ class PcmDataEntryUpdateSerializer(serializers.Serializer):
 
         return attrs
 
+# Serializer for getting all PCM samples in Data Analysis Table
+class PcmSampleAnalysisSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PcmSample
+        fields = ['id', 'pcm_project', 'client_sample', 'row_number', 'lab_sample', 'iwa_owa',
+                  'location', 'time_in', 'time_out', 'flow_rate_before', 'flow_rate_after',
+                  'sample_volume']

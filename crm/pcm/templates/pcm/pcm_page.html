@@ -170,14 +170,12 @@
 <script>
   const URLS = {
     tableOptionsGetURL: "{% url 'api:v1:pcm:get_data_entry_options' %}",
-    dataEntryURL: "{% url 'api:v1:pcm:get_data_entry_table' work.id %}",
+    dataEntryURL: "{% url 'api:v1:pcm:data_entry_table' work.id %}",
 
     analysisGetURL: "{% url 'pcm:api_get_analysis_table' work.id %}",
     analysisUpdateURL: "{% url 'pcm:api_update_analysis_table' work.id %}",
 
-    projectAnalystGetURL: "{% url 'pcm:api_get_projects_analyst' work.id %}",
-    projectAnalystUpdateURL:
-      "{% url 'pcm:api_update_projects_analyst' work.id %}",
+    projectAnalyst : "{% url 'api:v1:pcm:analyst' work.id %}",
 
     pcmReportGenerateURL: "{% url 'pcm:generate_pcm_report' work.id %}",
   };

@@ -11,8 +11,7 @@ import logging
 from main.models import MainProject, MainTypeAnalysis, MainProjectStatus
 from .forms import UpdatePcmProject
 from .models import PcmProject, PcmSample, SampleWorkArea, PcmSampleTimeTableRecord
-from .pcm_table_logic import (PCMSamplesDataEntryManager, 
-                              PCMSamplesAnalysisManager, 
+from .pcm_table_logic import (PCMSamplesAnalysisManager,
                               PCMTimeTableManager, 
                               validate_pcm_project_for_report)
 from report_generator.pcm.pcm_report_generator import PcmReportGenerator
@@ -25,18 +24,16 @@ from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
-
 # =============== utility functions ===============
 def get_active_pcm_project(id):
     return get_object_or_404(PcmProject.objects.select_related('project', 'analyst'),
                              pk=id, project__deleted=False)
 
-
-def process_table_update(request, manager_class, pcm_project, log_message, **manager_options):
+def process_table_update(request, manager_class, pcm_project, log_message ):
     try:
         # parse_float=Decimal: 0.1 stays 0.1, a float would fail DecimalField validation
         payload_json = json.loads(request.body, parse_float=Decimal)
-        table_manager = manager_class(pcm_project=pcm_project, input_data=payload_json, **manager_options)
+        table_manager = manager_class(pcm_project=pcm_project, input_data=payload_json)
         error = table_manager.validate_whole_object()
 
         # validating whole object
@@ -78,8 +75,6 @@ class UpdateProjectView(LoginRequiredMixin, UpdateView):
         context['year'] = datetime.now().year
         return context
 
-
-
 # =============== updating project info ===============
 @require_POST
 def api_update_project_info(request, id):
@@ -88,13 +83,6 @@ def api_update_project_info(request, id):
         return JsonResponse({'status': '!ok', 'error': form_errors_to_text(form)}, status=400)
     form.save()
     return JsonResponse({'status': 'ok'})
-
-# =============== analyst ===============
-@require_GET
-def api_get_projects_analyst(request, id):
-    pcm_project = get_active_pcm_project(id)
-    analyst = pcm_project.analyst.username if pcm_project.analyst else None
-    return JsonResponse({'analyst': analyst})
 
 @require_POST
 def api_update_projects_analyst(request, id):
@@ -124,28 +112,6 @@ def api_update_projects_analyst(request, id):
     except Exception:
         logger.exception('update project analyst error')
         return JsonResponse({'error': 'internal server error'}, status=500)
-
-# =============== data entry ===============
-@require_GET
-def api_get_data_entry_table(request, id):
-    all_samples = PcmSample.objects.filter(pcm_project=get_active_pcm_project(id)).order_by('row_number').values(
-                                                    'id', 'row_number', 'lab_sample', 'client_sample',
-                                                    'iwa_owa', 'location', 'time_in', 'time_out',
-                                                    'flow_rate_before', 'flow_rate_after', 'sample_volume', 'segment_area')
-    return JsonResponse(list(all_samples), safe=False)
-
-@require_POST
-def api_update_data_entry_table(request, id):
-    payload_json = json.loads(request.body, parse_float=Decimal)
-    print(payload_json)
-    # return JsonResponse({'status':'ok'})
-    return process_table_update(request, PCMSamplesDataEntryManager, get_active_pcm_project(id),
-                                'pcm data entry table update failed', mode='update')
-
-@require_POST
-def api_replace_all_data_entry_table(request, id):
-    return process_table_update(request, PCMSamplesDataEntryManager, get_active_pcm_project(id),
-                                'pcm data entry table replace failed', mode='replace_all')
 
 # =============== analysis ===============
 @require_GET
