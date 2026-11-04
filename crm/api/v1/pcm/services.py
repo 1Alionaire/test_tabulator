@@ -160,3 +160,28 @@ class PCMSamplesDataEntryManager():
         set_sample_fields(sample, row, PCM_ENTRY_FIELDS)
         calculate_sample_results(sample)
         return sample
+
+class PCMSamplesAnalysisManager():
+    def __init__(self, pcm_project, input_data):
+        self.pcm_project = pcm_project
+        self.data = input_data
+        self.now_moment = timezone.now()
+
+    def table_update_processing(self) -> dict:
+        result = {'status': 'ok'}
+        with transaction.atomic():
+            update_ids = {int(row['id']) for row in self.data}
+            samples = {sample.id : sample for sample in
+                        PcmSample.objects.select_for_update().filter(pcm_project=self.pcm_project, pk__in=update_ids)}
+
+            now = timezone.now()
+            for row in self.data:
+                sample = samples[int(row['id'])]
+                set_sample_fields(sample, row, PCM_ANALYSIS_FIELDS)
+                calculate_sample_results(sample)
+                sample.time_update = self.now_moment
+
+            result['updated'] = PcmSample.objects.bulk_update(
+                samples.values(), sorted(PCM_ANALYSIS_FIELDS | PCM_RESULT_FIELDS | {'sample_volume', 'time_update'})
+            )
+        return result

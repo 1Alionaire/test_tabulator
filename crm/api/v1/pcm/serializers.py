@@ -17,26 +17,31 @@ class PcmMainProjectSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class PcmAnalystSerializer(serializers.ModelSerializer):
+    analyst_username = serializers.CharField(
+        source="analyst.username",
+        read_only=True,
+        allow_null=True,
+    )
     class Meta:
         model = PcmProject
-        fields = ['analyst']
+        fields = ['analyst', "analyst_username"]
 
 # Serializer for getting all PCM samples in Data Entry Table
-class PcmDataEntryGetSerializer(serializers.ModelSerializer):
+class PcmDataEntryGetListSerializer(serializers.ModelSerializer):
     class Meta:
         model = PcmSample
-        fields = ['id', 'pcm_project', 'client_sample', 'row_number', 'lab_sample', 'iwa_owa',
+        fields = ['id', 'client_sample', 'row_number', 'lab_sample', 'iwa_owa',
                   'location', 'time_in', 'time_out', 'flow_rate_before', 'flow_rate_after',
                   'sample_volume']
 
 # Serializer for creating one PCM sample in Data Entry Table
-class PcmSampleCreateSerializer(serializers.ModelSerializer):
+class PcmSampleDataEntryCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PcmSample
         fields = PCM_DATA_ENTRY_CREATE_FIELDS
 
 # Serializer for updating one PCM sample in Data Entry Table
-class PcmSampleUpdateSerializer(serializers.ModelSerializer):
+class PcmSampleDataEntryUpdateSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(min_value=1)
     class Meta:
         model = PcmSample
@@ -46,9 +51,9 @@ class PcmSampleUpdateSerializer(serializers.ModelSerializer):
         }
 
 # Nested Serializer for batch updating PCM samples in Data Entry Table
-class PcmDataEntryUpdateSerializer(serializers.Serializer):
-    created = PcmSampleCreateSerializer(many=True, required=False)
-    updated = PcmSampleUpdateSerializer(many=True, required=False)
+class PcmDataEntryManagerSerializer(serializers.Serializer):
+    created = PcmSampleDataEntryCreateSerializer(many=True, required=False)
+    updated = PcmSampleDataEntryUpdateSerializer(many=True, required=False)
     deleted = serializers.ListField(
         child=serializers.IntegerField(min_value=1),
         required=False,
@@ -56,7 +61,6 @@ class PcmDataEntryUpdateSerializer(serializers.Serializer):
     )
 
     def validate(self, attrs):
-        print(f'attrs.get("updated", []) : {attrs.get("updated", [])}')
         updated_ids = [item["id"] for item in attrs.get("updated", [])]
         deleted_ids = attrs.get("deleted", [])
 
@@ -84,9 +88,11 @@ class PcmDataEntryUpdateSerializer(serializers.Serializer):
         return attrs
 
 # Serializer for getting all PCM samples in Data Analysis Table
-class PcmSampleAnalysisSerializer(serializers.ModelSerializer):
+class PcmAnalysisGetListSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(min_value=1)
     class Meta:
         model = PcmSample
-        fields = ['id', 'pcm_project', 'client_sample', 'row_number', 'lab_sample', 'iwa_owa',
-                  'location', 'time_in', 'time_out', 'flow_rate_before', 'flow_rate_after',
-                  'sample_volume']
+        fields = ['id',  'lab_sample',  'client_sample', 'location', 'sample_volume',
+                  'amount_fibers', 'fields', 'fiber_per_mm', 'fiber_per_cub_cm',
+                  'qc_amount_fibers', 'qc_fields', 'qc_fiber_per_mm', 'qc_fiber_per_cub_cm']
+

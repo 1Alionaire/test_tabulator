@@ -7,19 +7,21 @@ from rest_framework import status, generics
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
+# serializers
 from api.v1.pcm.serializers import (PcmMainProjectSerializer,
-                                    PcmDataEntryGetSerializer,
-                                    PcmDataEntryUpdateSerializer,
-                                    PcmSampleUpdateSerializer,
-                                    PcmSampleCreateSerializer,
-                                    PcmAnalystSerializer)
+                                    PcmDataEntryGetListSerializer,
+                                    PcmDataEntryManagerSerializer,
+                                    PcmSampleDataEntryCreateSerializer,
+                                    PcmAnalystSerializer,
+                                    PcmAnalysisGetListSerializer,
+                                    )
 from django.db.models import F
 
 from main.models import MainProject, MainTypeAnalysis, MainProjectStatus
 from pcm.models import SampleWorkArea, PcmSample, PcmProject
 from api.v1.main.views import MainProjectAPIList
 from rest_framework.views import APIView
-from api.v1.pcm.services import PCMSamplesDataEntryManager
+from api.v1.pcm.services import PCMSamplesDataEntryManager, PCMSamplesAnalysisManager
 from rest_framework.permissions import IsAuthenticated
 
 from qc.models import PcmZCriterionPerAnalystMonth
@@ -32,6 +34,8 @@ def get_active_pcm_project(id):
 
 class PcmDataEntrySampleError(Exception):
     pass
+
+
 
 # =============== getting all options ===============
 @require_GET
@@ -47,47 +51,7 @@ class PcmMainProjectAPIList(MainProjectAPIList):
                                                  pcm_project__isnull=False).select_related(
                                                 'company'
                                                 ).annotate(pcm_project_id=F('pcm_project__id'))
-
-class PcmSampleDataEntry(APIView):
-    def get(self, request, id):
-        samples_data = PcmSample.objects.filter(pcm_project=get_active_pcm_project(id))
-        serializer = PcmDataEntryGetSerializer(samples_data, many=True)
-        return Response(serializer.data)
-
-    def patch(self, request, id):
-        serializer = PcmDataEntryUpdateSerializer(data=request.data, context={'id': id})
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-        try:
-            pcm_project = get_active_pcm_project(id)
-            result = PCMSamplesDataEntryManager(pcm_project = pcm_project, input_data=data, mode='update').table_update_processing()
-        except PcmDataEntrySampleError as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        except InterruptedError:
-            return Response(
-                {"detail": "Data integrity constraint violation."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        return Response(result, status=status.HTTP_200_OK)
-
-    def put(self, request, id):
-        serializer = PcmSampleCreateSerializer(data=request.data, many=True, required=True)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-        try:
-            pcm_project = get_active_pcm_project(id)
-            result = PCMSamplesDataEntryManager(pcm_project = pcm_project, input_data=data, mode='put').table_update_processing()
-        except PcmDataEntrySampleError as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        except InterruptedError:
-            return Response(
-                {"detail": "Data integrity constraint violation."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        return Response(result, status=status.HTTP_200_OK)
-
+# Analyst API
 class PcmAnalystAPI(generics.RetrieveUpdateAPIView):
     queryset = PcmProject.objects.all()
     serializer_class = PcmAnalystSerializer
@@ -108,9 +72,90 @@ class PcmAnalystAPI(generics.RetrieveUpdateAPIView):
                         time_update=now_time,
                         )
 
+# PCM Data Entry table API
+class PcmSampleDataEntry(APIView):
+    def get(self, request, id):
+        samples_data = PcmSample.objects.filter(pcm_project=get_active_pcm_project(id))
+        serializer = PcmDataEntryGetListSerializer(samples_data, many=True)
+        return Response(serializer.data)
+
+    def patch(self, request, id):
+        serializer = PcmDataEntryManagerSerializer(data=request.data, context={'id': id})
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        try:
+            pcm_project = get_active_pcm_project(id)
+            result = PCMSamplesDataEntryManager(pcm_project = pcm_project, input_data=data, mode='update').table_update_processing()
+        except PcmDataEntrySampleError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except InterruptedError:
+            return Response(
+                {"detail": "Data integrity constraint violation."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(result, status=status.HTTP_200_OK)
+
+    def put(self, request, id):
+        serializer = PcmSampleDataEntryCreateSerializer(data=request.data, many=True, required=True)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        try:
+            pcm_project = get_active_pcm_project(id)
+            result = PCMSamplesDataEntryManager(pcm_project = pcm_project, input_data=data, mode='put').table_update_processing()
+        except PcmDataEntrySampleError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except InterruptedError:
+            return Response(
+                {"detail": "Data integrity constraint violation."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(result, status=status.HTTP_200_OK)
+
 
 class PcmSampleAnalysis(APIView):
     def get(self, request, id):
         samples_data = PcmSample.objects.filter(pcm_project=get_active_pcm_project(id))
-        serializer = PcmDataEntryGetSerializer(samples_data, many=True)
+        serializer = PcmAnalysisGetListSerializer(samples_data, many=True)
         return Response(serializer.data)
+
+    def patch(self, request, id):
+        serializer = PcmAnalysisGetListSerializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        print(data)
+        try:
+            pcm_project = get_active_pcm_project(id)
+            result = PCMSamplesAnalysisManager(pcm_project = pcm_project, input_data=data).table_update_processing()
+        except PcmDataEntrySampleError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except InterruptedError:
+            return Response(
+                {"detail": "Data integrity constraint violation."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return Response(result, status=status.HTTP_200_OK)
+
+# class PcmSampleDataEntry(APIView):
+#     def get(self, request, id):
+#         samples_data = PcmSample.objects.filter(pcm_project=get_active_pcm_project(id))
+#         serializer = PcmDataEntryGetSerializer(samples_data, many=True)
+#         return Response(serializer.data)
+#
+#     def patch(self, request, id):
+#         serializer = PcmDataEntryUpdateSerializer(data=request.data, context={'id': id})
+#         serializer.is_valid(raise_exception=True)
+#         data = serializer.validated_data
+#         try:
+#             pcm_project = get_active_pcm_project(id)
+#             result = PCMSamplesDataEntryManager(pcm_project = pcm_project, input_data=data, mode='update').table_update_processing()
+#         except PcmDataEntrySampleError as e:
+#             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+#         except InterruptedError:
+#             return Response(
+#                 {"detail": "Data integrity constraint violation."},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+#
+#         return Response(result, status=status.HTTP_200_OK)

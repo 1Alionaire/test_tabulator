@@ -37,7 +37,7 @@ const analysisTable = new Tabulator("#samples-analysis-table", {
         height: "100%",
         layout:"fitColumns",
         editTriggerEvent: "dblclick",
-        ajaxURL: URLS.analysisGetURL,
+        ajaxURL: URLS.analysisURL,
         selectableRange: true,
         selectableRangeColumns: true,
         selectableRangeRows: true,
@@ -66,6 +66,11 @@ const analysisTable = new Tabulator("#samples-analysis-table", {
               title:"Lab Sample",
               field:"lab_sample",
               width: 140,
+            },
+            {
+              title:"Location",
+              field:"location",
+              width: 120,
             },
             {
               title:"Client ID",
@@ -116,7 +121,7 @@ document.getElementById("analysis-refresh-toggle").addEventListener("click", fun
   if (analysisHasChanges && !confirm("Unsaved changes will be lost. Continue?")) {
     return;
   }
-  analysisTable.setData(URLS.analysisGetURL);
+  analysisTable.setData(URLS.analysisURL);
   analysisHasChanges = false;
   showToast("Refreshed", "success");
 });
@@ -126,19 +131,26 @@ document.getElementById("analysis-save-toggle").addEventListener("click", analys
 
 async function analysisSaveChanges() {
   // results are recalculated on the server, only the counts are sent
-  const payload = {
-    rows: analysisTable.getData().map(row => ({
+  // const payload = {
+  //   rows: analysisTable.getData().map(row => ({
+  //     id: row.id,
+  //     amount_fibers: row.amount_fibers,
+  //     fields: row.fields,
+  //     qc_amount_fibers: row.qc_amount_fibers,
+  //     qc_fields: row.qc_fields,
+  //   })),
+  // };
+    const payload = analysisTable.getData().map(row => ({
       id: row.id,
       amount_fibers: row.amount_fibers,
       fields: row.fields,
       qc_amount_fibers: row.qc_amount_fibers,
       qc_fields: row.qc_fields,
-    })),
-  };
+    }));
 
   try {
-    const response = await fetch(URLS.analysisUpdateURL, {
-      method: "POST",
+    const response = await fetch(URLS.analysisURL, {
+      method: "PATCH",
       headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
       body: JSON.stringify(payload),
     });
@@ -149,7 +161,7 @@ async function analysisSaveChanges() {
     }
 
     analysisHasChanges = false;
-    analysisTable.setData(URLS.analysisGetURL);
+    analysisTable.setData(URLS.analysisURL);
     showToast("Table Saved", "success");
   }
   catch (e) {
@@ -168,7 +180,7 @@ async function checkProjectAnalyst() {
 
     const data = await response.json();
     analysisOverlay.hidden = !isEmpty(data.analyst);
-    document.getElementById("analysis-analyst-username").textContent = data.analyst ?? "";
+    document.getElementById("analysis-analyst-username").textContent = data.analyst_username ?? "";
   } catch (err) {
     console.error("checkProjectAnalyst:", err);
   }

@@ -8,12 +8,9 @@ urlpatterns = [
     path('project/<int:id>/', views.UpdateProjectView.as_view(), name='pcm_project'), #render single PCM project page
     # project info
     path('api/pcm-project/info/update/<int:id>/', views.api_update_project_info, name='api_update_project_info'),
-    # analysis
-    path('api/analysis-table/get/<int:id>/', views.api_get_analysis_table, name='api_get_analysis_table'),
-    path('api/analysis-table/update/<int:id>/', views.api_update_analysis_table, name='api_update_analysis_table'),
     # report
     path('report/generate/<int:id>/', views.generate_pcm_report, name='generate_pcm_report'),
-
+    #time table
     path('time-table/', views.PCMTimeTableByYearView.as_view(), name='time_table_by_year'),
     path('time-table/<int:year>/', views.PCMTimeTableByMonthView.as_view(), name='time_table_by_month'),
     path('time-table/<int:year>/<int:month>/<int:day>/', views.PCMTimeTableByDayView.as_view(), name='time_table_by_day'),

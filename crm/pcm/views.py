@@ -11,16 +11,12 @@ import logging
 from main.models import MainProject, MainTypeAnalysis, MainProjectStatus
 from .forms import UpdatePcmProject
 from .models import PcmProject, PcmSample, SampleWorkArea, PcmSampleTimeTableRecord
-from .pcm_table_logic import (PCMSamplesAnalysisManager,
-                              PCMTimeTableManager, 
+from .pcm_table_logic import (PCMTimeTableManager,
                               validate_pcm_project_for_report)
 from report_generator.pcm.pcm_report_generator import PcmReportGenerator
 from utils.utils import form_errors_to_text
-from qc.models import PcmZCriterionPerAnalystMonth, Month
-import django.utils
 from datetime import date, datetime
 from api.v1.signals import MainProjectUpdateSignal
-from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
@@ -83,49 +79,6 @@ def api_update_project_info(request, id):
         return JsonResponse({'status': '!ok', 'error': form_errors_to_text(form)}, status=400)
     form.save()
     return JsonResponse({'status': 'ok'})
-
-@require_POST
-def api_update_projects_analyst(request, id):
-    pcm_project = get_active_pcm_project(id)
-    try:
-        with transaction.atomic():
-            pcm_project.analyst = request.user
-            pcm_project.date_analyze = django.utils.timezone.now()
-            z_record = get_object_or_404(PcmZCriterionPerAnalystMonth, month=datetime.now().month,
-                                                                        year=datetime.now().year,
-                                                                        analyst=request.user)
-            pcm_project.z_criterion_record = z_record
-            pcm_project.save(update_fields=['analyst', 'time_update', 'date_analyze', 'z_criterion_record'])
-
-            MainProjectUpdateSignal(pcm_project).update_status(MainProjectStatus.InProcess)
-            return JsonResponse({'status': 'ok', 
-                                'analyst': request.user.username, 
-                                'low':z_record.relative_std_deviation_low,
-                                'medium':z_record.relative_std_deviation_medium,
-                                'high':z_record.relative_std_deviation_high})
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'invalid JSON'}, status=400)
-    except ValidationError as e:
-        return JsonResponse({'error': '; '.join(e.messages)}, status=400)
-    except IntegrityError as e:
-        return JsonResponse({'error': f'database constraint failed: {e}'}, status=400)
-    except Exception:
-        logger.exception('update project analyst error')
-        return JsonResponse({'error': 'internal server error'}, status=500)
-
-# =============== analysis ===============
-@require_GET
-def api_get_analysis_table(request, id):
-    all_samples = PcmSample.objects.filter(pcm_project=get_active_pcm_project(id)).order_by('row_number').values(
-                                                    'id', 'row_number', 'lab_sample', 'client_sample', 'sample_volume',
-                                                    'amount_fibers', 'fields', 'fiber_per_mm', 'fiber_per_cub_cm',
-                                                    'qc_amount_fibers', 'qc_fields', 'qc_fiber_per_mm', 'qc_fiber_per_cub_cm', 'segment_area')
-    return JsonResponse(list(all_samples), safe=False)
-
-@require_POST
-def api_update_analysis_table(request, id):
-    return process_table_update(request, PCMSamplesAnalysisManager, get_active_pcm_project(id),
-                                'pcm analysis table update failed')
 
 # =============== PDF report ===============
 @require_GET

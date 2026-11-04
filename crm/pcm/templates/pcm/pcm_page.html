@@ -171,12 +171,8 @@
   const URLS = {
     tableOptionsGetURL: "{% url 'api:v1:pcm:get_data_entry_options' %}",
     dataEntryURL: "{% url 'api:v1:pcm:data_entry_table' work.id %}",
-
-    analysisGetURL: "{% url 'pcm:api_get_analysis_table' work.id %}",
-    analysisUpdateURL: "{% url 'pcm:api_update_analysis_table' work.id %}",
-
+    analysisURL: "{% url 'api:v1:pcm:analysis_table' work.id %}",
     projectAnalyst : "{% url 'api:v1:pcm:analyst' work.id %}",
-
     pcmReportGenerateURL: "{% url 'pcm:generate_pcm_report' work.id %}",
   };
   const PROJECT_LAB_ID = "{{ work.lab_id|escapejs }}";

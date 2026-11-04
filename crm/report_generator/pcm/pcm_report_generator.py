@@ -20,7 +20,22 @@ from reportlab.lib.units import inch
 from reportlab.platypus import KeepTogether, Spacer
 
 from pcm.models import PcmSample
-from pcm.pcm_table_logic import FIELD_AREA_MM2, FILTER_COLLECTION_AREA_MM2, average_flow_rate, sampling_minutes
+
+FIELD_AREA_MM2 = Decimal('0.00785')           # Walton-Beckett graticule field area, mm²
+FILTER_COLLECTION_AREA_MM2 = Decimal('385')
+
+def average_flow_rate(sample):
+    if sample.flow_rate_before is None or sample.flow_rate_after is None:
+        return None
+    return (sample.flow_rate_before + sample.flow_rate_after) / 2
+
+def sampling_minutes(sample):
+    if sample.time_in is None or sample.time_out is None:
+        return None
+    minutes_in = sample.time_in.hour * 60 + sample.time_in.minute
+    minutes_out = sample.time_out.hour * 60 + sample.time_out.minute
+    return (minutes_out - minutes_in) % (24 * 60)   # sampling past midnight
+
 from report_generator.common import (
     LAB_INFO,
     ReportColumn,
