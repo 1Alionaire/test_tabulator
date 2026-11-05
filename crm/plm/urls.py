@@ -7,11 +7,10 @@ app_name = 'plm'
 urlpatterns = [
     # main table
     path('', views.PLMTableView.as_view(), name='main'),
-    path('api/plm-projects/get/', views.api_get_plm_projects_table, name='api_get_plm_projects_table'),
     # project page
     path('detail/<int:id>/', views.UpdateProjectView.as_view(), name='plm_detail'),
     # options
-    path('api/get-table-options/', views.api_get_table_options, name="api_get_table_options"),
+    # path('api/get-table-options/', views.api_get_table_options, name="api_get_table_options"),
     # data entry 
     path('api/plm-project/date-collect/update/<int:id>/', views.api_update_projects_date_collect, name = 'api_update_projects_date_collect'),
     path('data-entry-upload-excel/<int:id>/', views.data_entry_upload_excel, name='data_entry_upload_excel'),

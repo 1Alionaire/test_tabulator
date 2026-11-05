@@ -547,7 +547,7 @@ document.querySelectorAll(".take-btn").forEach(btn => {
 
 async function checkProjectAnalyst() {
   try {
-    const res = await fetch(URLS.projectAnalystGetURL);
+    const res = await fetch(URLS.projectAnalyst);
     if (!res.ok) throw new Error(res.status);
 
     const data = await res.json();
@@ -561,8 +561,8 @@ async function checkProjectAnalyst() {
 
 async function analystTakeProject() {
   try {
-    const res = await fetch(URLS.projectAnalystUpdateURL, {
-      method: "POST",
+    const res = await fetch(URLS.projectAnalyst, {
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         "X-CSRFToken": getCookie("csrftoken"),

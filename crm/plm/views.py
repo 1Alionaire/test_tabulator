@@ -60,28 +60,6 @@ class PLMTableView(LoginRequiredMixin, TemplateView):
         }
     template_name = 'plm/plm_main.html'
 
-# =============== getting all PLM projects ===============
-@require_GET
-def api_get_plm_projects_table(request):
-    plm_projects = MainProject.active_objects.filter(project_type__in=[MainTypeAnalysis.Bulk, MainTypeAnalysis.BulkTEM, MainTypeAnalysis.EPT], plm_project__isnull=False).order_by('-lab_id_sort').values(
-                                                     'id',
-                                                     'lab_id',
-                                                     'lab_id_sort',
-                                                     'date_registered',
-                                                     'time_registered',
-                                                     'company_id',
-                                                     'project_name',
-                                                     'project_address',
-                                                     'project_type',
-                                                     'number_samples',
-                                                     'turn_around_time',
-                                                     'nob_number_samples', 
-                                                     'technician', 
-                                                     'status', 
-                                                     'comment', 
-                                                     'plm_project__id')
-    return JsonResponse(list(plm_projects), safe=False)
-
 # =============== upload Excel-file for data-entry ===============
 @csrf_exempt
 @require_POST
@@ -155,21 +133,6 @@ def api_update_project_info(request, id):
     form.save()
     return JsonResponse({'status': 'ok'})
 
-# =============== getting all options ===============
-@require_GET
-def api_get_table_options(request):
-    return JsonResponse({
-        'sampleMethod': [{'value': v, 'label': l} for v, l in SampleMethod.choices],
-        'sampleAsbestosType' : [{'value': v, 'label': l} for v, l in SampleASbestosType.choices],
-        'sampleTexture' : [{'value': v, 'label': l} for v, l in SampleTexture.choices],
-        'sampleMorphology' : [{'value': v, 'label': l} for v, l in SampleMorphology.choices],
-        'sampleSignElong' : [{'value': v, 'label': l} for v, l in SampleSignElong.choices],
-        'sampleExtincAngle' : [{'value': v, 'label': l} for v, l in SampleExtincAngle.choices],
-        'samplePleochColor' : [{'value': v, 'label': l} for v, l in SamplePleochColor.choices],
-        'sampleBirefringence' : [{'value': v, 'label': l} for v, l in SampleBirefringence.choices],
-        'sampleOtherFiber' : [{'value': v, 'label': l} for v, l in SampleOtherFiber.choices],
-        'sampleOtherFiberProperty': [{'value': v, 'label': l} for v, l in SampleOtherFiberProperty.choices],
-    })
 
 # =============== getting all data for data entry ===============
 @require_GET

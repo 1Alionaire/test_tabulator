@@ -259,7 +259,12 @@
 {% endblock%} {% block extra_js %}
 <script>
   const URLS = {
-    tableOptionsGetURL: "{% url 'plm:api_get_table_options' %}",
+
+    projectAnalyst : "{% url 'api:v1:plm:analyst' work.id %}",
+    tableOptionsGetURL: "{% url 'api:v1:plm:get_table_options' %}",
+
+
+
     dataEntryGetURL: "{% url 'plm:api_get_data_entry_table' work.id %}",
     dataEntryUpdateURL: "{% url 'plm:api_update_data_entry_table' work.id %}",
     dataEntryReplaceAllURL:
@@ -273,10 +278,6 @@
     analysisUpdateURL: "{% url 'plm:api_update_analysis_table' work.id %}",
 
     temperatureGetURL: "{% url 'plm:api_get_temperature' work.id %}",
-
-    projectAnalystGetURL: "{% url 'plm:api_get_projects_analyst' work.id %}", //
-    projectAnalystUpdateURL:
-      "{% url 'plm:api_update_projects_analyst' work.id %}", //api_get_projects_reviewer
 
     qcGenerateSamplesURL: "{% url 'plm:api_generate_qc_samples' work.id %}", //
     qcCompleteURL: "{% url 'plm:api_complete_qc_process' work.id %}",

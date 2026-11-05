@@ -130,16 +130,6 @@ document.getElementById("analysis-refresh-toggle").addEventListener("click", fun
 document.getElementById("analysis-save-toggle").addEventListener("click", analysisSaveChanges);
 
 async function analysisSaveChanges() {
-  // results are recalculated on the server, only the counts are sent
-  // const payload = {
-  //   rows: analysisTable.getData().map(row => ({
-  //     id: row.id,
-  //     amount_fibers: row.amount_fibers,
-  //     fields: row.fields,
-  //     qc_amount_fibers: row.qc_amount_fibers,
-  //     qc_fields: row.qc_fields,
-  //   })),
-  // };
     const payload = analysisTable.getData().map(row => ({
       id: row.id,
       amount_fibers: row.amount_fibers,

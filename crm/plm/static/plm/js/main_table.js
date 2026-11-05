@@ -58,7 +58,7 @@ let table;
 
             {
               title:"Lab ID", 
-              field: "plm_project__id", 
+              field: "plm_project_id",
               width: 120,
               headerSort: false,
               formatter: "link",
