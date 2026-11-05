@@ -25,29 +25,6 @@ def get_active_pcm_project(id):
     return get_object_or_404(PcmProject.objects.select_related('project', 'analyst'),
                              pk=id, project__deleted=False)
 
-def process_table_update(request, manager_class, pcm_project, log_message ):
-    try:
-        # parse_float=Decimal: 0.1 stays 0.1, a float would fail DecimalField validation
-        payload_json = json.loads(request.body, parse_float=Decimal)
-        table_manager = manager_class(pcm_project=pcm_project, input_data=payload_json)
-        error = table_manager.validate_whole_object()
-
-        # validating whole object
-        if error is not None:
-            return JsonResponse({'status' : '!ok' , **error}, status=400)
-
-        return JsonResponse(table_manager.table_update_processing())
-
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'invalid JSON'}, status=400)
-    except ValidationError as e:
-        return JsonResponse({'error': '; '.join(e.messages)}, status=400)
-    except IntegrityError as e:
-        return JsonResponse({'error': f'database constraint failed: {e}'}, status=400)
-    except Exception:
-        logger.exception(log_message)
-        return JsonResponse({'error': 'internal server error'}, status=500)
-
 # =============== render PCM main page ===============
 class PCMTableView(LoginRequiredMixin, TemplateView):
     extra_context = {

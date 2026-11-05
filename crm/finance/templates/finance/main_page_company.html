@@ -28,8 +28,7 @@
 <script>
   // Этот блок ВНУТРИ шаблона, поэтому Django-теги работают
   const URLS = {
-    companyPriceGetURL: "{% url 'finance:api_get_company_price_table' %}",
-    companyPriceUpdateURL: "{% url 'finance:api_update_company_price_table' %}",
+    companyPriceURL: "{% url 'api:v1:finance:company_table' %}",
   };
 </script>
 

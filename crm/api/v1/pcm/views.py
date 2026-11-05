@@ -1,11 +1,21 @@
 from datetime import datetime
-
 import django
+from django.db.models import F
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from rest_framework import status, generics
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+
+from main.models import MainProject, MainTypeAnalysis, MainProjectStatus
+from pcm.models import SampleWorkArea, PcmSample, PcmProject
+from qc.models import PcmZCriterionPerAnalystMonth
+
+from api.v1.pcm.services import PCMSamplesDataEntryManager, PCMSamplesAnalysisManager
+from api.v1.signals import MainProjectUpdateSignal
+from api.v1.main.views import MainProjectAPIList
 
 # serializers
 from api.v1.pcm.serializers import (PcmMainProjectSerializer,
@@ -15,18 +25,6 @@ from api.v1.pcm.serializers import (PcmMainProjectSerializer,
                                     PcmAnalystSerializer,
                                     PcmAnalysisGetListSerializer,
                                     )
-from django.db.models import F
-
-from main.models import MainProject, MainTypeAnalysis, MainProjectStatus
-from pcm.models import SampleWorkArea, PcmSample, PcmProject
-from api.v1.main.views import MainProjectAPIList
-from rest_framework.views import APIView
-from api.v1.pcm.services import PCMSamplesDataEntryManager, PCMSamplesAnalysisManager
-from rest_framework.permissions import IsAuthenticated
-
-from qc.models import PcmZCriterionPerAnalystMonth
-from api.v1.signals import MainProjectUpdateSignal
-
 
 def get_active_pcm_project(id):
     return get_object_or_404(PcmProject.objects.select_related('project', 'analyst'),
@@ -34,8 +32,6 @@ def get_active_pcm_project(id):
 
 class PcmDataEntrySampleError(Exception):
     pass
-
-
 
 # =============== getting all options ===============
 @require_GET
@@ -136,26 +132,3 @@ class PcmSampleAnalysis(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         return Response(result, status=status.HTTP_200_OK)
-
-# class PcmSampleDataEntry(APIView):
-#     def get(self, request, id):
-#         samples_data = PcmSample.objects.filter(pcm_project=get_active_pcm_project(id))
-#         serializer = PcmDataEntryGetSerializer(samples_data, many=True)
-#         return Response(serializer.data)
-#
-#     def patch(self, request, id):
-#         serializer = PcmDataEntryUpdateSerializer(data=request.data, context={'id': id})
-#         serializer.is_valid(raise_exception=True)
-#         data = serializer.validated_data
-#         try:
-#             pcm_project = get_active_pcm_project(id)
-#             result = PCMSamplesDataEntryManager(pcm_project = pcm_project, input_data=data, mode='update').table_update_processing()
-#         except PcmDataEntrySampleError as e:
-#             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-#         except InterruptedError:
-#             return Response(
-#                 {"detail": "Data integrity constraint violation."},
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
-#
-#         return Response(result, status=status.HTTP_200_OK)
