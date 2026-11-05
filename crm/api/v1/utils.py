@@ -1,0 +1,12 @@
+from rest_framework.generics import get_object_or_404
+from pcm.models import PcmProject
+from plm.models import PlmProject
+
+def get_active_project(id, type):
+    if type == "pcm":
+        return get_object_or_404(PcmProject.objects.select_related('project', 'analyst'),
+                                 pk=id, project__deleted=False)
+
+    if type == "plm":
+        return get_object_or_404(PlmProject.objects.select_related('project', 'analyst'),
+                                 pk=id, project__deleted=False)

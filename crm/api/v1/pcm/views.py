@@ -4,7 +4,7 @@ from django.db.models import F
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from rest_framework import status, generics
-from rest_framework.generics import get_object_or_404
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -25,10 +25,8 @@ from api.v1.pcm.serializers import (PcmMainProjectSerializer,
                                     PcmAnalystSerializer,
                                     PcmAnalysisGetListSerializer,
                                     )
+from api.v1.utils import get_active_project
 
-def get_active_pcm_project(id):
-    return get_object_or_404(PcmProject.objects.select_related('project', 'analyst'),
-                             pk=id, project__deleted=False)
 
 class PcmDataEntrySampleError(Exception):
     pass
@@ -55,7 +53,7 @@ class PcmAnalystAPI(generics.RetrieveUpdateAPIView):
     lookup_url_kwarg = "id"
 
     def perform_update(self, serializer):
-        pcm_project = get_active_pcm_project(self.kwargs['id'])
+        pcm_project = get_active_project(self.kwargs['id'], "pcm")
         pcm_analyst = self.request.user
         now_time = django.utils.timezone.now()
         z_record = PcmZCriterionPerAnalystMonth.objects.filter(month=datetime.now().month,
@@ -71,7 +69,7 @@ class PcmAnalystAPI(generics.RetrieveUpdateAPIView):
 # PCM Data Entry table API
 class PcmSampleDataEntry(APIView):
     def get(self, request, id):
-        samples_data = PcmSample.objects.filter(pcm_project=get_active_pcm_project(id))
+        samples_data = PcmSample.objects.filter(pcm_project=get_active_project(id, "pcm"))
         serializer = PcmDataEntryGetListSerializer(samples_data, many=True)
         return Response(serializer.data)
 
@@ -80,7 +78,7 @@ class PcmSampleDataEntry(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         try:
-            pcm_project = get_active_pcm_project(id)
+            pcm_project = get_active_project(id, "pcm")
             result = PCMSamplesDataEntryManager(pcm_project = pcm_project, input_data=data, mode='update').table_update_processing()
         except PcmDataEntrySampleError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -97,7 +95,7 @@ class PcmSampleDataEntry(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         try:
-            pcm_project = get_active_pcm_project(id)
+            pcm_project = get_active_project(id, "pcm")
             result = PCMSamplesDataEntryManager(pcm_project = pcm_project, input_data=data, mode='put').table_update_processing()
         except PcmDataEntrySampleError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -112,7 +110,7 @@ class PcmSampleDataEntry(APIView):
 
 class PcmSampleAnalysis(APIView):
     def get(self, request, id):
-        samples_data = PcmSample.objects.filter(pcm_project=get_active_pcm_project(id))
+        samples_data = PcmSample.objects.filter(pcm_project=get_active_project(id, "pcm"))
         serializer = PcmAnalysisGetListSerializer(samples_data, many=True)
         return Response(serializer.data)
 
@@ -122,7 +120,7 @@ class PcmSampleAnalysis(APIView):
         data = serializer.validated_data
         print(data)
         try:
-            pcm_project = get_active_pcm_project(id)
+            pcm_project = get_active_project(id, "pcm")
             result = PCMSamplesAnalysisManager(pcm_project = pcm_project, input_data=data).table_update_processing()
         except PcmDataEntrySampleError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -5,8 +5,9 @@ from pcm.models import PcmProject, PcmSample
 PCM_DATA_ENTRY_CREATE_FIELDS = ['client_sample', 'row_number', 'lab_sample', 'iwa_owa',
               'location', 'time_in', 'time_out', 'flow_rate_before', 'flow_rate_after']
 
-PCM_DATA_ENTRY_UPDATE_FIELDS = ['id', 'client_sample', 'row_number', 'lab_sample', 'iwa_owa',
-              'location', 'time_in', 'time_out', 'flow_rate_before', 'flow_rate_after']
+PCM_DATA_ENTRY_UPDATE_FIELDS = [*PCM_DATA_ENTRY_CREATE_FIELDS, 'id']
+
+PCM_DATA_ENTRY_GET_LIST_FIELDS = [*PCM_DATA_ENTRY_CREATE_FIELDS, 'id', 'sample_volume']
 
 # Serializer for all PCM projects table
 class PcmMainProjectSerializer(serializers.ModelSerializer):
@@ -30,9 +31,7 @@ class PcmAnalystSerializer(serializers.ModelSerializer):
 class PcmDataEntryGetListSerializer(serializers.ModelSerializer):
     class Meta:
         model = PcmSample
-        fields = ['id', 'client_sample', 'row_number', 'lab_sample', 'iwa_owa',
-                  'location', 'time_in', 'time_out', 'flow_rate_before', 'flow_rate_after',
-                  'sample_volume']
+        fields = PCM_DATA_ENTRY_GET_LIST_FIELDS
 
 # Serializer for creating one PCM sample in Data Entry Table
 class PcmSampleDataEntryCreateSerializer(serializers.ModelSerializer):

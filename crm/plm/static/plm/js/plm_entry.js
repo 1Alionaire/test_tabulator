@@ -53,7 +53,7 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
         width: "100%", 
         layout:"fitColumns",
         editTriggerEvent: "dblclick",
-        ajaxURL: URLS.dataEntryGetURL,
+        ajaxURL: URLS.dataEntryURL,
         selectableRange: true,
         columnDefaults: {
           contextMenu: cellMenu,
@@ -166,7 +166,7 @@ document.getElementById("data-entry-refresh-toggle").addEventListener("click", f
   if (hasChanges && !confirm("Unsaved changes will be lost. Continue?")) { //asking user for continue if we have changes
         return;
     }
-  dataEntryTable.setData(URLS.dataEntryGetURL);
+  dataEntryTable.setData(URLS.dataEntryURL);
   dirtyRows.length = 0;
   entryDeletedIds.clear();
   showToast("Refreshed", "success");
@@ -190,8 +190,8 @@ async function entrySaveChanges() {
 // Save scenario 1: we have changes affects whole dataEntryTable(insert rows in middle, deleting existing rows)
   if ((entryDeletedIds.size || checkNewRows(dataEntryTable)) && (confirm("All previous samples results will be deleted, continue?"))) {
     try {
-      const response = await fetch(URLS.dataEntryReplaceAllURL, {
-        method: "POST",
+      const response = await fetch(URLS.dataEntryURL, {
+        method: "PUT",
         headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
         body: JSON.stringify(dataEntryTable.getData()),
       });
@@ -223,12 +223,14 @@ async function entrySaveChanges() {
     };
     let payload = {
       created: dirtyRows, 
-      updated: Object.fromEntries(updatedData),
+      updated: Array.from(updatedData, ([id, fields]) => ({
+      id: Number(id), ...fields,
+    })),
       deleted: [...entryDeletedIdsInEnd]
     } 
     try {
-      const response = await fetch(URLS.dataEntryUpdateURL, { // fetch data
-        method: "POST",
+      const response = await fetch(URLS.dataEntryURL, { // fetch data
+        method: "PATCH",
         headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
         body: JSON.stringify(payload),
       });
@@ -249,7 +251,7 @@ async function entrySaveChanges() {
       if (resultJSON.created) {resultMessage += `Created: ${resultJSON.created}`};
 
       let dirtyRows = []
-      dataEntryTable.setData(URLS.dataEntryGetURL);
+      dataEntryTable.setData(URLS.dataEntryURL);
       dirtyRows.length = 0;
       entryDeletedIds.clear();
       showToast("Refreshed", "success");

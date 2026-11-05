@@ -10,8 +10,11 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from api.v1.main.views import MainProjectAPIList
 
-from api.v1.plm.serializers import (PlmMainProjectSerializer,
-                                    PlmAnalystSerializer)
+from api.v1.plm.serializers import (PlmMainProjectSerializer, # Main project in main page
+                                    PlmAnalystSerializer,
+                                    PlmDataEntryGetListSerializer,
+                                    PlmSampleEntryCreateSerializer,
+                                    PlmEntryManagerSerializer)
 
 from main.models import MainProject, MainTypeAnalysis, MainProjectStatus
 from plm.models import (PlmProject,
@@ -24,14 +27,16 @@ from plm.models import (PlmProject,
                         SamplePleochColor,
                         SampleBirefringence,
                         SampleOtherFiber,
-                        SampleOtherFiberProperty)
+                        SampleOtherFiberProperty,
+                        PlmSample)
 
 from api.v1.signals import MainProjectUpdateSignal
+from api.v1.utils import get_active_project
 
+from api.v1.plm.services import PLMSamplesEntryManager
 
-def get_active_plm_project(id):
-    return get_object_or_404(PlmProject.objects.select_related('project', 'analyst'),
-                             pk=id, project__deleted=False)
+class PlmEntrySampleError(Exception):
+    pass
 
 class PlmMainProjectAPIList(MainProjectAPIList):
     serializer_class = PlmMainProjectSerializer
@@ -67,7 +72,7 @@ class PlmAnalystAPI(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
     lookup_url_kwarg = "id"
     def perform_update(self, serializer):
-        project = get_active_plm_project(self.kwargs['id'])
+        project = get_active_project(self.kwargs['id'], "plm")
         analyst = self.request.user
         now_time = django.utils.timezone.now()
 
@@ -76,3 +81,48 @@ class PlmAnalystAPI(generics.RetrieveUpdateAPIView):
                         date_analyze=now_time,
                         time_update=now_time,
                         )
+
+class PlmSampleDataEntry(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, id):
+        samples_data = PlmSample.objects.filter(plm_project=get_active_project(id, 'plm'))
+        serializer = PlmDataEntryGetListSerializer(samples_data, many=True)
+        return Response(serializer.data)
+
+    def patch(self, request, id):
+        serializer = PlmEntryManagerSerializer(data=request.data, context={'id': id})
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        try:
+            project = get_active_project(id, "plm")
+            result = PLMSamplesEntryManager(plm_project=project,
+                                            input_data=data,
+                                            mode='patch').table_update_processing()
+        except PlmEntrySampleError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except InterruptedError:
+            return Response(
+                {"detail": "Data integrity constraint violation."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(result, status=status.HTTP_200_OK)
+
+    def put(self, request, id):
+        serializer = PlmSampleEntryCreateSerializer(data=request.data, many=True, required=True)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        try:
+            project = get_active_project(id, "plm")
+            result = PLMSamplesEntryManager(plm_project=project,
+                                            input_data=data,
+                                            mode='put').table_update_processing()
+        except PlmEntrySampleError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except InterruptedError:
+            return Response(
+                {"detail": "Data integrity constraint violation."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(result, status=status.HTTP_200_OK)

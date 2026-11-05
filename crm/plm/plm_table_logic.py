@@ -1,9 +1,6 @@
 from .models import PlmSample, PlmSampleWeight, PlmProject, SampleMethod, SampleASbestosType
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
 from django.db import transaction
 import django.utils
-from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Max
 import math
 import random
