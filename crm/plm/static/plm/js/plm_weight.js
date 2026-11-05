@@ -98,30 +98,36 @@ weightTable = new Tabulator("#samples-weight-table", {
             },
             {
               title:"Row Number", 
-              field:"sample__row_number", 
+              field:"sample__row_number",
               width: 80, 
               headerSort: false,
               visible: false
             },
             {
               title:"Client ID", 
-              field:"client_sample", 
-              width: 160, 
+              field:"client_sample",
+              width: 100,
               editor: tabulatorTextEditor, 
               headerSort: false,
             },
             {
+              title:"Lab Sample Id",
+              field:"sample.lab_sample",
+              width: 160,
+              editable: false,
+            },
+            {
               title:"Crucible", 
               field:"w_crucible", 
-              width: 130, 
+              width: 120,
               editor: tabulatorNumberEditor, 
               headerSort: false,
             },
 
             {
-              title:"Crucible with sample", 
+              title:"Crucible</br>with sample",
               field:"w_crucible_with_sample", 
-              width: 160, 
+              width: 120,
               editor: tabulatorNumberEditor, 
               headerSort: false,
               
@@ -129,49 +135,49 @@ weightTable = new Tabulator("#samples-weight-table", {
             {
               title:"Sample Weight", 
               field:"w_sample", 
-              width: 130, 
+              width: 120,
               editable: false, 
               headerSort: false,
             },
             {
               title:"Sample Ashed", 
               field:"w_sample_ashed", 
-              width: 130, 
+              width: 120,
               editor: tabulatorNumberEditor, 
               headerSort: false,
             },
             {
               title:"Organic", 
               field:"org", 
-              width: 130, 
+              width: 120,
               editable: false, 
               headerSort: false,
             },
             {
               title:"Petri", 
               field:"w_petri", 
-              width: 130, 
+              width: 120,
               editor: tabulatorNumberEditor, 
               headerSort: false,
             },
             {
-              title:"Petri with Sample", 
+              title:"Petri<br>with Sample",
               field:"w_petri_with_sample", 
-              width: 130, 
+              width: 120,
               editor: tabulatorNumberEditor, 
               headerSort: false,
             },
             {
               title:"Residue", 
               field:"residue", 
-              width: 130, 
+              width: 120,
               editor: tabulatorNumberEditor, 
               headerSort: false,
             },
             {
               title:"CACO3", 
               field:"caco3", 
-              width: 130, 
+              width: 120,
               editable: false, 
               headerSort: false,
             },
@@ -214,7 +220,7 @@ function weightCollectChanges() {
 
   for (const cell of weightTable.getEditedCells()) {  // going through all edited cells
     const data = cell.getRow()?.getData();  //parse data from whole row?
-    
+    console.log(data.id)
     if (!data) continue; // if we dont have data -> continue
 
     const clientId = String(data.client_sample);           
@@ -232,7 +238,7 @@ function weightCollectChanges() {
                         caco3 : returnNull(data.caco3)};
 
     // in case its new cell
-    if (isEmpty(String(data.id))) { 
+    if (isEmpty(String(data.id)) || data.id === undefined || data.id === null ) {
         createdData[clientId] = all_data_row
     }
     // in case its already existing cell 
@@ -256,8 +262,8 @@ async function weightSaveChanges() {
         console.log('no data?')
         return;
         }
-      const response = await fetch(URLS.weightUpdateURL, {
-        method: "POST",
+      const response = await fetch(URLS.weightGetURL, {
+        method: "PATCH",
         headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
         body: JSON.stringify(changes),
       });

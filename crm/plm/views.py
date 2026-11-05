@@ -9,8 +9,7 @@ from openpyxl import load_workbook
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 import json
-from plm.plm_table_logic import (PLMSamplesDataEntryManager, 
-                                 PLMSamplesWeightManager, 
+from plm.plm_table_logic import (PLMSamplesWeightManager,
                                  generate_qc_entry_process,
                                  validate_plm_project,
                                  complete_qc_process,)
@@ -132,70 +131,6 @@ def api_update_project_info(request, id):
         return JsonResponse({'status': '!ok', 'error': form_errors_to_text(form)}, status=400)
     form.save()
     return JsonResponse({'status': 'ok'})
-
-
-# =============== getting all data for data entry ===============
-@require_GET
-def api_get_data_entry_table(request, id):
-    all_samples = PlmSample.original_samples.filter(plm_project=id).order_by('row_number').values('id', 'homo_area', 'client_sample', 'lab_sample',
-                                                                  'description', 'layer', 'location', 'method', 'row_number')
-    return JsonResponse(list(all_samples), safe=False)
-
-# =============== render PLM project ===============
-@require_POST
-def api_update_data_entry_table(request, id):
-    plm_project = get_active_plm_project(id)
-    try:
-        payload_json = json.loads(request.body)
-        print(payload_json)
-        data_entry_manager = PLMSamplesDataEntryManager(input_data=payload_json, 
-                                                        plm_project=plm_project, 
-                                                        type='update')
-
-        checking_error_code = data_entry_manager.validate_whole_object()
-
-        # validating whole object
-        if checking_error_code is not None:
-            return JsonResponse({'status' : '!ok' , **checking_error_code}, status=400)
-
-        return JsonResponse(data_entry_manager.table_update_processing())
-
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'invalid JSON'}, status=400)
-    except ValidationError as e:
-        return JsonResponse({'error': '; '.join(e.messages)}, status=400)
-    except IntegrityError as e:
-        return JsonResponse({'error': f'database constraint failed: {e}'}, status=400)
-    except Exception:
-        logger.exception('data entry table update failed')
-        return JsonResponse({'error': 'internal server error'}, status=500)
-
-@require_POST
-def api_replace_all_data_entry_table(request, id):
-    plm_project = get_active_plm_project(id)
-    try:
-        payload_json = json.loads(request.body)
-
-        data_entry_manager = PLMSamplesDataEntryManager(input_data=payload_json, 
-                                                        plm_project=plm_project, 
-                                                        type='replace_all')
-
-        checking_error_code = data_entry_manager.validate_whole_object()
-
-        if checking_error_code is not None:
-            return JsonResponse({'status' : '!ok' , **checking_error_code}, status=400)
-      
-        return JsonResponse(data_entry_manager.table_update_processing())
-
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'invalid JSON'}, status=400)
-    except ValidationError as e:
-        return JsonResponse({'error': '; '.join(e.messages)}, status=400)
-    except IntegrityError as e:
-        return JsonResponse({'error': f'database constraint failed: {e}'}, status=400)
-    except Exception:
-        logger.exception('data entry table update failed')
-        return JsonResponse({'error': 'internal server error'}, status=500)
 
 # =============== getting all data for weight ===============
 @require_GET

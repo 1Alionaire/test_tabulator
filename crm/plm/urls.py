@@ -12,9 +12,6 @@ urlpatterns = [
     # data entry 
     path('api/plm-project/date-collect/update/<int:id>/', views.api_update_projects_date_collect, name = 'api_update_projects_date_collect'),
     path('data-entry-upload-excel/<int:id>/', views.data_entry_upload_excel, name='data_entry_upload_excel'),
-    path('api/data-entry-table/get/<int:id>/', views.api_get_data_entry_table, name='api_get_data_entry_table'),
-    path('api/data-entry-table/update/<int:id>/', views.api_update_data_entry_table, name='api_update_data_entry_table'),
-    path('api/data-entry-table/replace-all/<int:id>/', views.api_replace_all_data_entry_table, name='api_replace_all_data_entry_table'),
     # weights 
     path('api/weight-table/get/<int:id>/', views.api_get_weight_table, name='api_get_weight_table'),
     path('api/weight-table/update/<int:id>/', views.api_update_weight_table, name='api_update_weight_table'),

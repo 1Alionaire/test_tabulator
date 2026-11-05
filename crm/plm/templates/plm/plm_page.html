@@ -259,12 +259,11 @@
 {% endblock%} {% block extra_js %}
 <script>
   const URLS = {
-
     projectAnalyst : "{% url 'api:v1:plm:analyst' work.id %}",
     tableOptionsGetURL: "{% url 'api:v1:plm:get_table_options' %}",
     dataEntryURL : "{% url 'api:v1:plm:data_entry_table' work.id %}",
 
-    weightGetURL: "{% url 'plm:api_get_weight_table' work.id %}",
+    weightGetURL: "{% url 'api:v1:plm:weight_table' work.id %}",
     weightUpdateURL: "{% url 'plm:api_update_weight_table' work.id %}",
 
     nobGetURL: "{% url 'plm:api_get_nob_analysis_table' work.id %}",

@@ -4,7 +4,6 @@ from django.db.models import F
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from rest_framework import status, generics
-from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -12,9 +11,11 @@ from api.v1.main.views import MainProjectAPIList
 
 from api.v1.plm.serializers import (PlmMainProjectSerializer, # Main project in main page
                                     PlmAnalystSerializer,
-                                    PlmDataEntryGetListSerializer,
+                                    PlmSampleEntryGetListSerializer,
                                     PlmSampleEntryCreateSerializer,
-                                    PlmEntryManagerSerializer)
+                                    PlmEntryManagerSerializer,
+                                    PlmWeightGetListSerializer,
+                                    PlmWeightManagerSerializer)
 
 from main.models import MainProject, MainTypeAnalysis, MainProjectStatus
 from plm.models import (PlmProject,
@@ -28,12 +29,13 @@ from plm.models import (PlmProject,
                         SampleBirefringence,
                         SampleOtherFiber,
                         SampleOtherFiberProperty,
-                        PlmSample)
+                        PlmSample,
+                        PlmSampleWeight)
 
 from api.v1.signals import MainProjectUpdateSignal
 from api.v1.utils import get_active_project
 
-from api.v1.plm.services import PLMSamplesEntryManager
+from api.v1.plm.services import PLMSamplesEntryManager, PLMSamplesWeightManager
 
 class PlmEntrySampleError(Exception):
     pass
@@ -86,7 +88,7 @@ class PlmSampleDataEntry(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, id):
         samples_data = PlmSample.objects.filter(plm_project=get_active_project(id, 'plm'))
-        serializer = PlmDataEntryGetListSerializer(samples_data, many=True)
+        serializer = PlmSampleEntryGetListSerializer(samples_data, many=True)
         return Response(serializer.data)
 
     def patch(self, request, id):
@@ -117,6 +119,31 @@ class PlmSampleDataEntry(APIView):
             result = PLMSamplesEntryManager(plm_project=project,
                                             input_data=data,
                                             mode='put').table_update_processing()
+        except PlmEntrySampleError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except InterruptedError:
+            return Response(
+                {"detail": "Data integrity constraint violation."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(result, status=status.HTTP_200_OK)
+
+class PlmSampleWeightAPI(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, id):
+        samples_data = PlmSampleWeight.objects.filter(plm_project=get_active_project(id, 'plm'))
+        serializer = PlmWeightGetListSerializer(samples_data, many=True)
+        return Response(serializer.data)
+
+    def patch(self, request, id):
+        serializer = PlmWeightManagerSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        try:
+            project = get_active_project(id, "plm")
+            result = PLMSamplesWeightManager(plm_project=project,
+                                            input_data=data).table_update_processing()
         except PlmEntrySampleError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except InterruptedError:

@@ -1,11 +1,23 @@
 from rest_framework import serializers
 from main.models import MainProject
-from plm.models import PlmProject, PlmSample
+from plm.models import PlmProject, PlmSample, PlmSampleWeight
 
 PLM_DATA_ENTRY_CREATE_FIELDS = ['row_number', 'client_sample', 'homo_area', 'layer',
                   'description', 'location', 'method', 'lab_sample' ]
 
 PLM_DATA_ENTRY_UPDATE_FIELDS = [*PLM_DATA_ENTRY_CREATE_FIELDS, 'id']
+
+PLM_WEIGHT_GET_LIST_FIELDS = ['id', 'sample',  'client_sample', 'w_crucible',
+                           'w_crucible_with_sample', 'w_sample', 'w_sample_ashed',
+                           'org',  'w_petri', 'w_petri_with_sample',
+                           'residue', 'caco3']
+
+PLM_WEIGHT_CREATE_FIELDS = ['client_sample', 'w_crucible',
+                           'w_crucible_with_sample', 'w_sample', 'w_sample_ashed',
+                           'org',  'w_petri', 'w_petri_with_sample',
+                           'residue', 'caco3']
+
+PLM_WEIGHT_UPDATE_FIELDS = [*PLM_WEIGHT_CREATE_FIELDS, 'id']
 
 # Serializer for all PLM projects table
 class PlmMainProjectSerializer(serializers.ModelSerializer):
@@ -26,7 +38,7 @@ class PlmAnalystSerializer(serializers.ModelSerializer):
         fields = ['analyst', "analyst_username"]
 
 # Serializer for getting all PCM samples in Data Entry Table
-class PlmDataEntryGetListSerializer(serializers.ModelSerializer):
+class PlmSampleEntryGetListSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlmSample
         fields = PLM_DATA_ENTRY_UPDATE_FIELDS
@@ -83,3 +95,38 @@ class PlmEntryManagerSerializer(serializers.Serializer):
             )
 
         return attrs
+
+class SampleForWeightSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlmSample
+        fields = ['id', 'row_number', 'lab_sample', 'is_blank', 'is_qc_sample']
+
+# Serializer for getting all PCM samples in Data Entry Table
+class PlmWeightGetListSerializer(serializers.ModelSerializer):
+    sample = SampleForWeightSerializer(read_only=True)
+
+    class Meta:
+        model = PlmSampleWeight
+        fields = PLM_WEIGHT_GET_LIST_FIELDS
+
+
+class PlmWeightCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlmSampleWeight
+        fields = PLM_WEIGHT_CREATE_FIELDS
+
+class PlmWeightUpdateSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(min_value=1)
+    class Meta:
+        model = PlmSampleWeight
+        fields = PLM_WEIGHT_UPDATE_FIELDS
+
+# Nested Serializer for batch updating PCM samples in Data Entry Table
+class PlmWeightManagerSerializer(serializers.Serializer):
+    created = PlmWeightCreateSerializer(many=True, required=False)
+    updated = PlmWeightUpdateSerializer(many=True, required=False)
+    deleted = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        required=False,
+        max_length=500,
+    )

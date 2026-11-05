@@ -42,124 +42,6 @@ def copy_weight_item(plm_project, sample_to_copy, prefix):
     else:
         return None
 
-class PLMSamplesDataEntryManager():
-    def __init__(self, plm_project, input_data, type):
-        self.plm_project = plm_project
-        self.input_data = input_data
-        self.type = type
-        if self.type == 'update':
-            self.data_to_update = input_data.get('updated', [])
-            self.data_to_create = input_data.get('created', [])
-            self.data_to_delete = input_data.get('deleted', [])
-
-        self.error = None
-
-    def validate_whole_object(self):
-        if self.type == 'update':
-            error = self.validate_updated_data()
-            if error is not None:
-                return error
-
-            error = self.validate_created_data()
-            if error is not None:
-                return error
-
-        elif self.type == 'replace_all':
-            for record in self.input_data:
-                missing = PLM_ENTRY_REQUIRED_ON_CREATE - set(record.keys())
-                if missing:
-                    return {'error': f"missing required fields"}
-
-    def validate_updated_data(self):
-        if self.data_to_update:
-            for id, data in self.data_to_update.items():
-                for field_name, value in data.items():
-                    if field_name  == 'lab_sample':
-                        if value is not None:
-                            if len(str(value)) < 6:
-                                return {'error': 'changed lab_id is too short'} 
-                        else:
-                            return {'error': 'lab_id is required'}
-
-    def validate_created_data(self):
-        if self.data_to_create:
-            for record in self.data_to_create:
-                if not record.get('lab_sample'):
-                    return {'error': 'lab_sample is required'} 
-                
-                missing = PLM_ENTRY_REQUIRED_ON_CREATE - set(record.keys())
-                if missing:
-                    return {'error': f"missing required fields {record.get('lab_id')} : {missing}"}
-                
-            lab_id_list = [element.get('lab_sample') for element in self.data_to_create]
-            if PlmSample.objects.filter(plm_project=self.plm_project, lab_sample__in=lab_id_list).exists():
-                return {'error': 'lab_id already exist'} 
-
-    def table_update_processing(self) -> dict:
-        if self.type == 'update':
-            result = {'status': 'ok'}
-            with transaction.atomic():
-                if self.data_to_delete:
-                    result['deleted'] = self._delete_data()
-                if self.data_to_update:
-                    result['updated'] = self._update_data()
-                if self.data_to_create:
-                    result['created'] = self._create_data()
-                
-
-        elif self.type == 'replace_all':
-            samples = []
-            with transaction.atomic():
-                PlmSample.objects.filter(plm_project=self.plm_project).delete()
-                for data in self.input_data:
-                    data['row_number'] = int(data['row_number'])
-                    samples.append(PlmSample(plm_project=self.plm_project, **data))
-
-                for sample in samples:
-                    sample.full_clean()
-                    sample.save()
-
-            result = {'status': 'ok'}
-
-        return result
-
-    def _update_data(self):
-        work_data = self.data_to_update
-        id_list = list(work_data.keys())
-        # id_list = [element.get('id') for element in work_data]
-        
-
-        touched_fields = set()
-
-        samples_to_update = {sample.id : sample for sample in 
-                                            PlmSample.objects.select_for_update().filter(pk__in=id_list)}
-
-        for id, data in work_data.items():
-            sample = samples_to_update[int(id)]
-            for field_name, value in data.items():
-                setattr(sample, field_name, value)
-                touched_fields.add(field_name)
-            sample.time_update = django.utils.timezone.now()
-
-        return PlmSample.objects.bulk_update(
-                        samples_to_update.values(), sorted(touched_fields | {'time_update'})
-                    )
-
-    def _create_data(self):
-        samples = []
-        for data in self.data_to_create:
-            samples.append(PlmSample(plm_project=self.plm_project, **data))
-
-        for sample in samples:
-            sample.full_clean()
-            sample.save()
-
-        return len(samples)
-
-    def _delete_data(self):
-        PlmSample.objects.filter(id__in=self.data_to_delete).delete()
-        return len(self.data_to_delete)
-
 class PLMSamplesWeightManager():
     def __init__(self, plm_project, input_data):
         self.plm_project = plm_project
@@ -204,7 +86,6 @@ class PLMSamplesWeightManager():
                 
         # Update all samples
         PlmSample.objects.bulk_update(samples_to_update.values(), sorted({'weight', 'time_update'}))
-
 
     def _update_data(self):
         work_data = self.data_to_update

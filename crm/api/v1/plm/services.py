@@ -1,8 +1,9 @@
-
+import django
 from django.utils import timezone
 from django.db import transaction
 
-from plm.models import PlmProject, PlmSample, PlmSampleWeight
+from plm.models import PlmProject, PlmSample, PlmSampleWeight, SampleMethod
+
 
 class PLMSamplesEntryManager():
     def __init__(self, plm_project, input_data, mode):
@@ -31,7 +32,6 @@ class PLMSamplesEntryManager():
             with transaction.atomic():
                 PlmSample.objects.filter(plm_project=self.plm_project).delete()
                 for data in self.input_data:
-                    data['row_number'] = int(data['row_number'])
                     samples.append(PlmSample(plm_project=self.plm_project, **data))
 
                 for sample in samples:
@@ -74,5 +74,95 @@ class PLMSamplesEntryManager():
 
     def _delete_data(self):
         PlmSample.objects.filter(id__in=self.data_to_delete).delete()
+        return len(self.data_to_delete)
+
+class PLMSamplesWeightManager():
+    def __init__(self, plm_project, input_data):
+        self.plm_project = plm_project
+        self.input_data = input_data
+        self.data_to_update = input_data.get('updated', [])
+        self.data_to_create = input_data.get('created', [])
+        self.data_to_delete = input_data.get('deleted', [])
+        self.now_moment = django.utils.timezone.now()
+
+    def table_update_processing(self) -> dict:
+        result = {}
+        with transaction.atomic():
+            if self.data_to_update:
+                result['updated'] = self._update_data()
+            if self.data_to_create:
+                result['created'] = self._create_data()
+            if self.data_to_delete:
+                result['deleted'] = self._delete_data()
+
+            self._update_plm_samples()
+
+        return result
+
+    def _update_plm_samples(self):
+        PlmSample.objects.filter(plm_project=self.plm_project).exclude(method=SampleMethod.Sample1981).update(
+            weight=None)
+
+        samples_to_update = {sample.client_sample: sample for sample in
+                             PlmSample.objects.select_for_update().filter(plm_project=self.plm_project).exclude(
+                                 method=SampleMethod.Sample1981)}
+
+        for client_id, sample_object in samples_to_update.items():
+            weight_record = PlmSampleWeight.objects.filter(plm_project=self.plm_project,
+                                                           client_sample=client_id).first()
+            if weight_record:
+                setattr(sample_object, 'weight', weight_record)  # Filling new value
+                setattr(sample_object, 'time_update', django.utils.timezone.now())  # new time update
+
+        # Update all samples
+        PlmSample.objects.bulk_update(samples_to_update.values(), sorted({'weight', 'time_update'}))
+
+    def _update_data(self):
+        work_data = self.data_to_update
+        id_list = [element.get('id') for element in work_data]
+        touched_fields = set()
+
+        samples_to_update = {sample.id : sample for sample in
+                            PlmSampleWeight.objects.select_for_update().filter(pk__in=id_list)}
+
+        for record_row in work_data:
+            sample = samples_to_update[int(record_row.get('id'))]
+            for name_field, value in record_row.items():
+                if name_field != 'id':
+                    setattr(sample, name_field, value)
+                    touched_fields.add(name_field)
+            setattr(sample, 'time_update', self.now_moment)
+
+        updated = PlmSampleWeight.objects.bulk_update(
+                        samples_to_update.values(), sorted(touched_fields | {'time_update'})
+                    )
+
+        return updated
+
+    def _create_data(self):
+        weights = []
+        for data in self.data_to_create:
+            weights.append(PlmSampleWeight(plm_project=self.plm_project, **data))
+
+        for weight in weights:
+            weight.save()
+
+        # Taking all samples for update
+        samples_to_update = {sample.client_sample : sample for sample in
+                            PlmSample.objects.select_for_update().filter(plm_project=self.plm_project)}
+
+        for data in self.data_to_create:
+            weight_record = PlmSampleWeight.objects.get(client_sample=data['client_sample']) # take weight with client id
+            sample_to_update = samples_to_update[data['client_sample']] #take sample with client id
+            setattr(sample_to_update, 'weight', weight_record) # Filling new value
+            setattr(sample_to_update, 'time_update', self.now_moment)
+
+        # Update all samples
+        PlmSample.objects.bulk_update(samples_to_update.values(), sorted({'weight', 'time_update'}))
+
+        return len(weights)
+
+    def _delete_data(self):
+        PlmSampleWeight.objects.filter(pk__in=self.data_to_delete).delete()
         return len(self.data_to_delete)
 
