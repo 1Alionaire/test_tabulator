@@ -1,47 +1,48 @@
 {% extends 'base.html' %} {% load static %} {% block content%}
 <main class="main">
   <section id="main-section-filter" class="side-filter-panel invisible">
+    <form id="filter-form" method="get">
     <div class="date-filter-input-box">
       <div class="input-filter-field">
         <label>Lab ID</label>
-        <input class = "input-filter-text" id="filter-input-lab-id" type="input"></input>
+        <input class = "input-filter-text" id="filter-input-lab-id" name="lab_id" type="input"></input>
       </div>
       <span>Date Range</span>
       <div class="date-filter">
         <label>Start</label>
-        <input id="filter-input-date-start" type="date"></input>
+        <input id="filter-input-date-start" type="date" name="date_registered__gte"></input>
       </div>
       <div class="date-filter">
         <label>End</label>
-        <input id="filter-input-date-end" type="date"></input>
+        <input id="filter-input-date-end" type="date" name="date_registered__lte"></input>
       </div>
       <div class="option-filter">
         <label>Company</label>
-        <select id="filter-input-company" size="10">
+        <select id="filter-input-company" size="10" name="company" multiple>
         </select>
       </div>
       <div class="option-filter">
         <label>Status</label>
-        <select id="filter-input-status" multiple>
+        <select id="filter-input-status" multiple name="status">
         </select>
       </div>
       <div class="option-filter">
         <label>Turn Time</label>
-        <select id="filter-input-turn-around-time" multiple>
+        <select id="filter-input-turn-around-time" multiple name="turn_around_time">
         </select>
       </div>
       <div class="input-filter-field">
         <label>Project Name</label>
-        <input class = "input-filter-text" id="filter-input-project-name" type="input"></input>
+        <input class = "input-filter-text" id="filter-input-project-name" type="input" name="project_name"></input>
       </div>
       <div class="input-filter-field">
         <label>Project Address</label>
-        <input class = "input-filter-text" id="filter-input-project-address" type="input"></input>
+        <input class = "input-filter-text" id="filter-input-project-address" type="input" name="project_address"></input>
       </div>
-      
+    <button type="submit">Apply</button>
     </div>
-    <button id="filter-panel-apply-button">Apply</button>
-    <button id="filter-panel-reset-filter-button">Reset</button>
+    </form>
+    <button id="filter-reset">Reset</button>
   </section>
   <section class="main-window">
     <section class="control-panel">
@@ -51,9 +52,6 @@
       <button type="button" id="main-menu-refresh-toggle" class="panel-btn">
         Refresh
       </button>
-      <button type="button" id="main-menu-test-toggle" class="panel-btn">
-        Test
-      </button>
     </section>
     <section id="plm-info"></section>
   </section>
@@ -62,7 +60,7 @@
 <script>
   const URLS = {
     tableOptionsGetURL: "{% url 'api:v1:main:get_main_project_table_options' %}",
-    PLMProjectGetURL: "{% url 'plm:api_get_plm_projects_table' %}",
+    PLMProjectGetURL: "{% url 'api:v1:plm:get_main_projects_table' %}",
   };
 </script>
 

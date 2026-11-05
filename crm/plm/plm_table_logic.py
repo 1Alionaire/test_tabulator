@@ -82,15 +82,7 @@ class PLMSamplesDataEntryManager():
                             if len(str(value)) < 6:
                                 return {'error': 'changed lab_id is too short'} 
                         else:
-                            return {'error': 'lab_id is required'} 
-            # for record in self.data_to_update:
-            #     for field_name, value in record.items():
-            #         if field_name == 'lab_sample':
-            #             if value is not None:
-            #                 if len(str(value)) < 6:
-            #                     return {'error': 'changed lab_id is too short'} 
-            #             else:
-            #                 return {'error': 'lab_id is required'} 
+                            return {'error': 'lab_id is required'}
 
     def validate_created_data(self):
         if self.data_to_create:
@@ -522,7 +514,7 @@ def generatePlmQCReplicateDuplicateItem(inp_qc_sample, inp_project, inp_all_samp
     if inp_qc_sample.method == SampleMethod.Sample1986:
         input_analysis_type = PlmTypeAnalysisSample.NOB
     if inp_qc_sample.method in [SampleMethod.Sample1984, SampleMethod.Sample1986, SampleMethod.Sample1986] and inp_qc_sample.is_tem_qc_sample:
-        input_analysis_type = PlmTypeAnalysisSample.TEM
+        input_analysis_type = PlmTypeAnalysisSample.EPT
 
     PlmQCReplicateDuplicateItem.objects.create(qc_type = input_qc_type,
                                             analysis_type=input_analysis_type,
@@ -550,7 +542,7 @@ def validate_plm_project(plm_project, for_what='report'):
         fields = qc_fields
 
     for field, text_error in fields.items():
-        if getattr(plm_project, field) == None:
+        if getattr(plm_project, field) is None:
             errors.append(text_error)
     
     return errors

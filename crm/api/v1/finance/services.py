@@ -18,11 +18,9 @@ class CompanyPriceTableManager():
                 result['updated'] = self._update_data()
             if self.data_to_create:
                 result['created'] = self._create_data()
-            if self.data_to_delete:
-                result['deleted'] = self._delete_data()
         return result
 
-    def _update_data(self):
+    def _update_data(self) -> int:
         work_data = self.data_to_update
         id_list = [element.get('id') for element in work_data]
         touched_fields = set()
@@ -42,7 +40,7 @@ class CompanyPriceTableManager():
             companies_to_update.values(), sorted(touched_fields | {'time_update'})
         )
 
-    def _create_data(self):
+    def _create_data(self) -> int:
         objects = []
         for data in self.data_to_create:
             objects.append(Company(**data, slug=slugify(data['name'])))
