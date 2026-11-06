@@ -88,7 +88,7 @@ nobTable = new Tabulator("#samples-nob-table", {
         width: "100%", 
         layout:"fitColumns",
         editTriggerEvent: "dblclick",
-        ajaxURL: URLS.nobGetURL,
+        ajaxURL: URLS.PLMNOBAnalysisURL,
         selectableRange: true,
         selectableRangeColumns: true,
         selectableRangeRows: true,
@@ -498,8 +498,8 @@ nobTable = new Tabulator("#samples-nob-table", {
 document.getElementById("nob-save-toggle").addEventListener("click", nobSaveChanges);
 async function nobSaveChanges() {
     try {
-      const response = await fetch(URLS.analysisUpdateURL, {
-        method: "POST",
+      const response = await fetch(URLS.PLMNOBAnalysisURL, {
+        method: "PATCH",
         headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
         body: JSON.stringify(nobTable.getData()),
       });

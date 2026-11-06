@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.db import transaction
 
 from plm.models import PlmProject, PlmSample, PlmSampleWeight, SampleMethod
+from tem.models import TEMGridRecord
 
 
 class PLMSamplesEntryManager():
@@ -166,3 +167,34 @@ class PLMSamplesWeightManager():
         PlmSampleWeight.objects.filter(pk__in=self.data_to_delete).delete()
         return len(self.data_to_delete)
 
+def update_plm_nob_tem_analysis(payload_json, selected_plm_project):
+    with transaction.atomic():
+        touched_fields = set()
+        samples_to_update = {sample.id: sample for sample in
+                             PlmSample.objects.select_for_update().filter(plm_project=selected_plm_project)}
+
+        for record_row in payload_json:
+            sample = samples_to_update[int(record_row.get('id'))]
+            for name_field, value in record_row.items():
+                if name_field not in ['id', 'weight__residue']:
+                    # Tabulator sends null for cleared cells; NOT NULL columns fall back to their model default
+                    if value is None and not PlmSample._meta.get_field(name_field).null:
+                        value = PlmSample._meta.get_field(name_field).get_default()
+                    setattr(sample, name_field, value)
+                    touched_fields.add(name_field)
+
+            if 'tem_grid_box' in record_row and 'tem_grid_box_id_1' in record_row and 'tem_grid_box_id_2' in record_row:
+                TEMGridRecord.objects.filter(grid_box=record_row['tem_grid_box'],
+                                             grid_id_1=record_row['tem_grid_box_id_1'],
+                                             grid_id_2=record_row['tem_grid_box_id_2'],
+                                             qc=False).update(
+                    plm_tem_project=selected_plm_project,
+                    plm_tem_sample=sample,
+                    filled=True,
+                )
+
+            setattr(sample, 'time_update', django.utils.timezone.now())
+
+        PlmSample.objects.bulk_update(samples_to_update.values(), sorted(touched_fields | {'time_update'}))
+
+        return {'updated':len(payload_json)}

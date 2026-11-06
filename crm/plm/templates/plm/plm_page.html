@@ -8,7 +8,7 @@
   <section class="main-window">
     <section class="toolbar">
       <!-- the label sits outside .tabs: plm_entry.js finds the tab index from .tabs children -->
-      <div class="toolbar-section toolbar-section--tabs">
+      <div class="too lbar-section toolbar-section--tabs">
         <span class="toolbar-section__label">Tabs</span>
         <div class="toolbar-section__body">
           <nav class="tabs">
@@ -262,14 +262,9 @@
     projectAnalyst : "{% url 'api:v1:plm:analyst' work.id %}",
     tableOptionsGetURL: "{% url 'api:v1:plm:get_table_options' %}",
     dataEntryURL : "{% url 'api:v1:plm:data_entry_table' work.id %}",
+    weightURL: "{% url 'api:v1:plm:weight_table' work.id %}",
 
-    weightGetURL: "{% url 'api:v1:plm:weight_table' work.id %}",
-    weightUpdateURL: "{% url 'plm:api_update_weight_table' work.id %}",
-
-    nobGetURL: "{% url 'plm:api_get_nob_analysis_table' work.id %}",
-    temGetURL: "{% url 'plm:api_get_tem_analysis_table' work.id %}",
-    analysisUpdateURL: "{% url 'plm:api_update_analysis_table' work.id %}",
-
+    PLMNOBAnalysisURL: "{% url 'api:v1:plm:plm_nob_analysis_table' work.id %}",
     temperatureGetURL: "{% url 'plm:api_get_temperature' work.id %}",
 
     qcGenerateSamplesURL: "{% url 'plm:api_generate_qc_samples' work.id %}", //

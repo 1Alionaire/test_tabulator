@@ -7,17 +7,14 @@ PLM_DATA_ENTRY_CREATE_FIELDS = ['row_number', 'client_sample', 'homo_area', 'lay
 
 PLM_DATA_ENTRY_UPDATE_FIELDS = [*PLM_DATA_ENTRY_CREATE_FIELDS, 'id']
 
-PLM_WEIGHT_GET_LIST_FIELDS = ['id', 'sample',  'client_sample', 'w_crucible',
-                           'w_crucible_with_sample', 'w_sample', 'w_sample_ashed',
-                           'org',  'w_petri', 'w_petri_with_sample',
-                           'residue', 'caco3']
-
 PLM_WEIGHT_CREATE_FIELDS = ['client_sample', 'w_crucible',
                            'w_crucible_with_sample', 'w_sample', 'w_sample_ashed',
                            'org',  'w_petri', 'w_petri_with_sample',
                            'residue', 'caco3']
 
 PLM_WEIGHT_UPDATE_FIELDS = [*PLM_WEIGHT_CREATE_FIELDS, 'id']
+
+PLM_WEIGHT_GET_LIST_FIELDS = [*PLM_WEIGHT_CREATE_FIELDS, 'id', 'sample']
 
 # Serializer for all PLM projects table
 class PlmMainProjectSerializer(serializers.ModelSerializer):
@@ -37,19 +34,20 @@ class PlmAnalystSerializer(serializers.ModelSerializer):
         model = PlmProject
         fields = ['analyst', "analyst_username"]
 
-# Serializer for getting all PCM samples in Data Entry Table
+# ============== Getting Data Entry Serializer ================
 class PlmSampleEntryGetListSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlmSample
         fields = PLM_DATA_ENTRY_UPDATE_FIELDS
 
+# ============== Updating Data Entry Serializer ================
 # Serializer for creating one PLM sample in Data Entry Table
 class PlmSampleEntryCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlmSample
         fields = PLM_DATA_ENTRY_CREATE_FIELDS
 
-# Serializer for updating one PCM sample in Data Entry Table
+# Serializer for updating one PLM sample in Data Entry Table
 class PlmSampleEntryUpdateSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(min_value=1)
     class Meta:
@@ -59,7 +57,7 @@ class PlmSampleEntryUpdateSerializer(serializers.ModelSerializer):
             f: {"required": False} for f in PLM_DATA_ENTRY_UPDATE_FIELDS
         }
 
-# Nested Serializer for batch updating PCM samples in Data Entry Table
+# Nested Serializer for batch updating PLM samples in Data Entry Table
 class PlmEntryManagerSerializer(serializers.Serializer):
     created = PlmSampleEntryCreateSerializer(many=True, required=False)
     updated = PlmSampleEntryUpdateSerializer(many=True, required=False)
@@ -96,12 +94,12 @@ class PlmEntryManagerSerializer(serializers.Serializer):
 
         return attrs
 
+# ================ Weight get serializer ====================
 class SampleForWeightSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlmSample
         fields = ['id', 'row_number', 'lab_sample', 'is_blank', 'is_qc_sample']
-
-# Serializer for getting all PCM samples in Data Entry Table
+# Nested Weight serializer
 class PlmWeightGetListSerializer(serializers.ModelSerializer):
     sample = SampleForWeightSerializer(read_only=True)
 
@@ -109,7 +107,7 @@ class PlmWeightGetListSerializer(serializers.ModelSerializer):
         model = PlmSampleWeight
         fields = PLM_WEIGHT_GET_LIST_FIELDS
 
-
+# ================ Weight update serializer ====================
 class PlmWeightCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlmSampleWeight
@@ -130,3 +128,18 @@ class PlmWeightManagerSerializer(serializers.Serializer):
         required=False,
         max_length=500,
     )
+
+class PlmNobAnalysisTableSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(min_value=1)
+    weight__residue = serializers.DecimalField(
+        source="weight.residue", max_digits=10, decimal_places=4,
+        read_only=True, default=None,
+    )
+    class Meta:
+        model = PlmSample
+        fields = ['id', 'row_number', 'tem_na_or_ps', 'client_sample', 'lab_sample',
+                  'layer', 'color', 'texture', 'homo_area', 'morphology',
+                  'ri_alpha_oil', 'ri_delta_oil', 'sign_of_elongation', 'extinction_angle', 'pleochroism_color',
+                  'birefringence', 'other_fiber', 'other_fiber_property', 'other_fiber_percent', 'asb_type',
+                  'asb_point_1', 'asb_point_2', 'asb_point_3', 'asb_point_4', 'asb_point_5', 'asb_point_6', 'asb_point_7', 'asb_point_8',
+                  'asb_percent', 'method', 'weight__residue' ]

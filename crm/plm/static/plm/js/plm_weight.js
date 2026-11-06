@@ -76,7 +76,7 @@ weightTable = new Tabulator("#samples-weight-table", {
         width: "100%", 
         layout:"fitColumns",
         editTriggerEvent: "dblclick",
-        ajaxURL: URLS.weightGetURL,
+        ajaxURL: URLS.weightURL,
         selectableRange: true,
         selectableRangeColumns: true,
         selectableRangeRows: true,
@@ -262,7 +262,7 @@ async function weightSaveChanges() {
         console.log('no data?')
         return;
         }
-      const response = await fetch(URLS.weightGetURL, {
+      const response = await fetch(URLS.weightURL, {
         method: "PATCH",
         headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
         body: JSON.stringify(changes),
@@ -294,7 +294,7 @@ document.getElementById("weight-refresh-toggle").addEventListener("click", funct
   if (hasChanges && !confirm("Unsaved changes will be lost. Continue?")) { //asking user for continue if we have changes
         return;
     }
-  weightTable.setData(URLS.weightGetURL);
+  weightTable.setData(URLS.weightURL);
   showToast(`Refreshed`, "success");
 });
 

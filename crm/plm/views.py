@@ -9,8 +9,7 @@ from openpyxl import load_workbook
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 import json
-from plm.plm_table_logic import (PLMSamplesWeightManager,
-                                 generate_qc_entry_process,
+from plm.plm_table_logic import (generate_qc_entry_process,
                                  validate_plm_project,
                                  complete_qc_process,)
 import django.utils
@@ -28,19 +27,8 @@ logger = logging.getLogger(__name__)
 from .models import (
     PlmProject,
     PlmSample,
-    PlmSampleWeight,
     SampleMethod,
-    SampleASbestosType,
-    SampleTexture,
-    SampleMorphology,
-    SampleSignElong,
-    SampleExtincAngle,
-    SamplePleochColor,
-    SampleBirefringence,
-    SampleOtherFiber,
-    SampleOtherFiberProperty,
 )
-
 
 # =============== utility functions ===============
 def return_int_value_sample_method(input_str):
@@ -131,40 +119,6 @@ def api_update_project_info(request, id):
         return JsonResponse({'status': '!ok', 'error': form_errors_to_text(form)}, status=400)
     form.save()
     return JsonResponse({'status': 'ok'})
-
-# =============== getting all data for weight ===============
-@require_GET
-def api_get_weight_table(request, id):
-    all_weights = PlmSampleWeight.objects.filter(plm_project=id).order_by('sample__row_number').values('id', 'sample__row_number', 'sample__lab_sample', 'client_sample', 'w_crucible', 
-                                                                                                       'w_crucible_with_sample', 'w_sample', 'w_sample_ashed', 
-                                                                                                       'org',  'w_petri', 'w_petri_with_sample', 
-                                                                                                       'residue', 'caco3', 'sample__is_blank', 'sample__is_blank', 'sample__is_qc_sample')
-
-    return JsonResponse(list(all_weights), safe=False)
-
-# =============== updating weight table ===============
-@require_POST
-def api_update_weight_table(request, id):
-    try:
-        plm_project = get_active_plm_project(id)
-        payload_json = json.loads(request.body)
-
-        weight_manager = PLMSamplesWeightManager(plm_project=plm_project,input_data=payload_json)
-        checking_error_code = weight_manager.validate_whole_object()
-
-        if checking_error_code is not None:
-            return JsonResponse({'status' : '!ok' , **checking_error_code}, status=400)
-
-        return JsonResponse(weight_manager.table_update_processing())
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'invalid JSON'}, status=400)
-    except ValidationError as e:
-        return JsonResponse({'error': '; '.join(e.messages)}, status=400)
-    except IntegrityError as e:
-        return JsonResponse({'error': f'database constraint failed: {e}'}, status=400)
-    except Exception:
-        logger.exception('weight update failed')
-        return JsonResponse({'error': 'internal server error'}, status=500)
 
 # =============== getting all data for NOB analysis ===============
 @require_GET
