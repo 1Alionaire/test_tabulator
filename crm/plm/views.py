@@ -120,16 +120,6 @@ def api_update_project_info(request, id):
     form.save()
     return JsonResponse({'status': 'ok'})
 
-
-@require_GET
-def api_get_temperature(request, id):
-    try:
-        temperature = PlmSample.objects.filter(plm_project=id)[0].analysis_temperature
-        return JsonResponse(temperature, safe=False)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
-
 @require_POST
 def api_generate_qc_samples(request, id):
     try:

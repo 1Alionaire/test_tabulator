@@ -348,24 +348,24 @@ btn.addEventListener('click', () => {
   btn.querySelector('.arrow').textContent = isOpen ? '▶' : '▼';
 });
 
-// ==================== Project Date collected ====================
-document.getElementById("project-date-collect-form").addEventListener("submit", async function (e) {
-  e.preventDefault();
-  try {
-    const response = await fetch(this.action, {
-      method: "POST",
-      headers: {"X-CSRFToken": csrftoken},
-      body: new FormData(this),
-    });
-
-    if (!response.ok) {
-      await showResponseError(response);
-      return;
+async function initProjectFormPanel() {
+  const response = await fetch(URLS.projectFormURL);
+  const result = await response.json();
+  document.querySelector('#date-collect').value = result.date_collect;
+  document.querySelector('#date-analyze').value = result.date_analyze;
+  document.querySelector('#date-report').value = result.date_report;
+  document.querySelector('#date-review').value = result.date_review;
+  const select = document.querySelector('#select-reviewer');
+  select.innerHTML = '<option value="">— all —</option>';
+  for (const item of result.reviewer_choices) {
+    const opt = document.createElement("option");
+    if (item.id === result.reviewed_by) {
+        opt.selected = true;
     }
+    opt.value = item.id;
+    opt.label = item.username;
+    select.append(opt);
+  }
+};
 
-    showToast("Project saved", "success");
-  }
-  catch (err) {
-    showToast(`Error: ${err.message}`, "error");
-  }
-});
+initProjectFormPanel();

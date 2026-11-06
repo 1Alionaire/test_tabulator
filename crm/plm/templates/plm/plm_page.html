@@ -51,17 +51,10 @@
             <span class="toolbar-section__label">Project</span>
             <div class="toolbar-section__body">
               <div class="data-entry-date-collected-container">
-                <form
-                  id="project-date-collect-form"
-                  class="project-date-collect-form"
-                  action="{% url 'plm:api_update_projects_date_collect' work.id %}"
-                  method="post"
-                >
-                  {% csrf_token %} {{ date_collect_form.as_p }}
-                  <button type="submit" name="date_collect_form">
-                    Save Date Collect
-                  </button>
-                </form>
+                <div class="project-info-field">
+                  <label>Date Collect</label>
+                  <input class = "input-filter-text" id="date-collect" name="date_collect" type="date"></input>
+                </div>
               </div>
               <div id="excel-upload-section">
                 <form
@@ -218,19 +211,22 @@
             <span>Analyst:</span>
             <span id="project-analyst-username">{{work.analyst.username}}</span>
           </div>
-          <form
-            id="project-info-form"
-            class="project-info-form"
-            action="{% url 'plm:api_update_project_info' work.id %}"
-            method="POST"
-          >
-            {% csrf_token %} {% for field in form %}
-            <div class="project-info-field">
-              {{ field.label_tag }} {{ field }}
-            </div>
-            {% endfor %}
-            <button type="submit" class="panel-btn">Save</button>
-          </form>
+          <div class="project-info-field">
+            <label>Date Analysis</label>
+            <input class = "input-filter-text" id="date-analyze" name="date_analyze" type="date"></input>
+          </div>
+          <div class="project-info-field">
+            <label>Date Report</label>
+            <input class = "input-filter-text" id="date-report" name="date_report" type="date"></input>
+          </div>
+          <div class="project-info-field">
+            <label>Reviewer</label>
+            <select id="select-reviewer" name="reviewed_by"></select>
+          </div>
+          <div class="project-info-field">
+            <label>Date Review</label>
+            <input class = "input-filter-text" id="date-review" name="date_review" type="date"></input>
+          </div>
         </div>
         <section class="section-table">
           <section id="samples-nob-table"></section>
@@ -266,8 +262,8 @@
     PLMNOBAnalysisURL: "{% url 'api:v1:plm:plm_nob_analysis_table' work.id %}",
     PLMTEMAnalysisURL: "{% url 'api:v1:plm:plm_tem_analysis_table' work.id %}",
     temperatureGetURL : "{% url 'api:v1:plm:temperature' work.id %}",
+    projectFormURL : "{% url 'api:v1:plm:project_form' work.id %}",
 
-    
 
     qcGenerateSamplesURL: "{% url 'plm:api_generate_qc_samples' work.id %}", //
     qcCompleteURL: "{% url 'plm:api_complete_qc_process' work.id %}",

@@ -18,7 +18,8 @@ from api.v1.plm.serializers import (PlmMainProjectSerializer, # Main project in 
                                     PlmWeightManagerSerializer,
                                     PlmNobAnalysisTableSerializer,
                                     PlmTemAnalysisTableSerializer,
-                                    PlmTemperatureSerializer)
+                                    PlmTemperatureSerializer,
+                                    PlmProjectFormSerializer)
 
 from main.models import MainProject, MainTypeAnalysis, MainProjectStatus
 from pcm.models import PcmSample
@@ -235,3 +236,9 @@ class PlmTemperature(generics.RetrieveAPIView):
             raise Http404("В проекте нет сэмплов.")
         self.check_object_permissions(self.request, sample)
         return sample
+
+class PlmProjectInfoAPI(generics.RetrieveUpdateAPIView):
+    serializer_class = PlmProjectFormSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_url_kwarg = "id"
+    queryset = PlmProject.objects.all()

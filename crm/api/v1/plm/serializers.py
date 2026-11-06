@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from main.models import MainProject
+from plm.forms import PlmProjectDateCollect
 from plm.models import PlmProject, PlmSample, PlmSampleWeight
+from users.models import User
 
 PLM_DATA_ENTRY_CREATE_FIELDS = ['row_number', 'client_sample', 'homo_area', 'layer',
                   'description', 'location', 'method', 'lab_sample' ]
@@ -161,3 +163,28 @@ class PlmTemperatureSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlmSample
         fields = ['analysis_temperature']
+
+def reviewer_queryset():
+    # ваш критерий, кто может быть ревьюером
+    return User.objects.filter(is_active=True).order_by("username")
+
+class UserChoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username"]
+
+class PlmProjectFormSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(min_value=1)
+    reviewed_by = serializers.PrimaryKeyRelatedField(
+        queryset=reviewer_queryset(),  # валидация при PATCH по тому же списку
+        allow_null=True,
+    )
+
+    reviewer_choices = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PlmProject
+        fields = ['id', 'date_collect', 'date_analyze', 'date_report', 'reviewed_by', 'date_review', 'reviewer_choices']
+
+    def get_reviewer_choices(self, obj):
+        return UserChoiceSerializer(reviewer_queryset(), many=True).data
