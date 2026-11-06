@@ -369,3 +369,42 @@ async function initProjectFormPanel() {
 };
 
 initProjectFormPanel();
+
+// ==================== Project form: save one field ====================
+// PATCH sends only the changed field; input name = serializer field, e.g. {"date_collect": "2026-11-06"}
+async function projectFormSave(element) {
+  const field = element.name;
+  const value = element.value === '' ? null : element.value;  // cleared date -> null (dates are nullable)
+
+  try {
+    const response = await fetch(URLS.projectFormURL, {
+      method: "PATCH",
+      headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
+      body: JSON.stringify({[field]: value}),
+    });
+
+    if (!response.ok) {
+      // DRF errors: {"date_collect": ["..."]} or {"detail": "..."}
+      const body = await response.json().catch(() => ({}));
+      showToast(`Error: ${body[field]?.join(' ') ?? body.detail ?? response.status}`, "error");
+      return;
+    }
+
+    const result = await response.json();
+    element.value = result[field] ?? '';  // show what the server saved
+    showToast("Saved", "success");
+  } catch (e) {
+    showToast(`Error: ${e}`, "error");
+  }
+}
+
+// each field saves itself on change; element name = serializer field (#select-reviewer -> reviewed_by)
+const PROJECT_FORM_FIELDS = ['#date-collect', '#date-analyze', '#date-report', '#date-review', '#select-reviewer'];
+
+for (const selector of PROJECT_FORM_FIELDS) {
+  document.querySelector(selector).addEventListener('change', function(e) {
+    projectFormSave(e.target);
+  });
+}
+
+
