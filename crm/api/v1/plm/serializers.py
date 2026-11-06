@@ -143,3 +143,16 @@ class PlmNobAnalysisTableSerializer(serializers.ModelSerializer):
                   'birefringence', 'other_fiber', 'other_fiber_property', 'other_fiber_percent', 'asb_type',
                   'asb_point_1', 'asb_point_2', 'asb_point_3', 'asb_point_4', 'asb_point_5', 'asb_point_6', 'asb_point_7', 'asb_point_8',
                   'asb_percent', 'method', 'weight__residue' ]
+
+class PlmTemAnalysisTableSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(min_value=1)
+    weight__residue = serializers.DecimalField(
+        source="weight.residue", max_digits=10, decimal_places=4,
+        read_only=True, default=None,
+    )
+    class Meta:
+        model = PlmSample
+        fields = ['id', 'row_number', 'is_tem_qc_sample', 'is_blank', 'client_sample',
+                  'lab_sample', 'layer', 'homo_area', 'weight__residue', 'tem_asb_type',
+                  'tem_asb_point', 'tem_asb_percent', 'method', 'tem_microscope_alignment', 'tem_eccentricity_adjusted',
+                  'tem_grid_pre_acceptability', 'tem_grid_box', 'tem_grid_box_id_1', 'tem_grid_box_id_2', 'tem_na_or_ps']

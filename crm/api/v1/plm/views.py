@@ -16,7 +16,8 @@ from api.v1.plm.serializers import (PlmMainProjectSerializer, # Main project in 
                                     PlmEntryManagerSerializer,
                                     PlmWeightGetListSerializer,
                                     PlmWeightManagerSerializer,
-                                    PlmNobAnalysisTableSerializer)
+                                    PlmNobAnalysisTableSerializer,
+                                    PlmTemAnalysisTableSerializer)
 
 from main.models import MainProject, MainTypeAnalysis, MainProjectStatus
 from pcm.models import PcmSample
@@ -187,3 +188,35 @@ class PlmNobAnalysisApi(generics.ListAPIView):
             )
 
         return Response(result, status=status.HTTP_200_OK)
+
+class PlmTemAnalysisApi(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = PlmTemAnalysisTableSerializer
+    pagination_class = None  # если в settings задана пагинация по умолчанию, а таблица нужна целиком
+
+    def get_queryset(self):
+        return (
+            PlmSample.objects
+            .filter(plm_project_id=self.kwargs["id"])  # подставь своё имя FK на проект
+            .select_related("weight")
+            .order_by("row_number")
+        )
+
+    def patch(self, request, id):
+        serializer = PlmTemAnalysisTableSerializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        try:
+            project = get_active_project(id, "plm")
+            result = update_plm_nob_tem_analysis(data, project)
+        except PlmEntrySampleError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except InterruptedError:
+            return Response(
+                {"detail": "Data integrity constraint violation."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(result, status=status.HTTP_200_OK)
+
+    

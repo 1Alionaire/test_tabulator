@@ -37,7 +37,7 @@ temTable = new Tabulator("#samples-tem-table", {
         width: "100%", 
         layout:"fitColumns",
         editTriggerEvent: "dblclick",
-        ajaxURL: URLS.temGetURL,
+        ajaxURL: URLS.PLMTEMAnalysisURL,
         selectableRange: true,
         selectableRangeColumns: true,
         selectableRangeRows: true,
@@ -250,8 +250,8 @@ document.getElementById("tem-save-toggle").addEventListener("click", temSaveChan
 
 async function temSaveChanges() {
     try {
-      const response = await fetch(URLS.analysisUpdateURL, {
-        method: "POST",
+      const response = await fetch(URLS.PLMTEMAnalysisURL, {
+        method: "PATCH",
         headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
         body: JSON.stringify(temTable.getData()),
       });
