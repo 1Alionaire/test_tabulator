@@ -120,80 +120,6 @@ def api_update_project_info(request, id):
     form.save()
     return JsonResponse({'status': 'ok'})
 
-# =============== getting all data for NOB analysis ===============
-@require_GET
-def api_get_nob_analysis_table(request, id):
-    all_samples = PlmSample.objects.filter(plm_project=id, is_tem_qc_sample=False).order_by('row_number').values('row_number', 'id', 'homo_area', 
-                                                                                                                'client_sample', 'lab_sample', 'layer', 'method', 
-                                                                                                                'color', 'weight__residue', 'is_qc_sample', 
-                                                                                                                'analysis_temperature', 'texture', 'morphology', 
-                                                                                                                'ri_alpha_oil', 'ri_delta_oil', 'sign_of_elongation', 
-                                                                                                                'extinction_angle', 'pleochroism_color', 'birefringence', 
-                                                                                                                'other_fiber', 'other_fiber_property', 'other_fiber_percent', 'asb_type',
-                                                                                                                'asb_point_1', 'asb_point_2', 'asb_point_3', 'asb_point_4',
-                                                                                                                'asb_point_5', 'asb_point_6', 'asb_point_7', 'asb_point_8', 
-                                                                                                                'asb_percent', 'is_blank', 'is_qc_sample', 'tem_na_or_ps')
-    return JsonResponse(list(all_samples), safe=False)
-
-@require_POST
-def api_update_analysis_table(request, id):
-    selected_plm_project = get_active_plm_project(id)
-    payload_json = json.loads(request.body)
-    touched_fields = set()
-    try:
-        with transaction.atomic():
-            samples_to_update = {sample.id : sample for sample in 
-                                            PlmSample.objects.select_for_update().filter(plm_project=selected_plm_project)}
-
-            for record_row in payload_json:
-                sample = samples_to_update[int(record_row.get('id'))]
-                for name_field, value in record_row.items():
-                    if name_field not in ['id', 'weight__residue']:
-                        # Tabulator sends null for cleared cells; NOT NULL columns fall back to their model default
-                        if value is None and not PlmSample._meta.get_field(name_field).null:
-                            value = PlmSample._meta.get_field(name_field).get_default()
-                        setattr(sample, name_field, value)
-                        touched_fields.add(name_field)
-
-                print(f'record_row : {record_row}')
-                if 'tem_grid_box' in record_row and 'tem_grid_box_id_1' in record_row and 'tem_grid_box_id_2' in record_row :
-                    TEMGridRecord.objects.filter(grid_box=record_row['tem_grid_box'], 
-                                                grid_id_1=record_row['tem_grid_box_id_1'], 
-                                                grid_id_2=record_row['tem_grid_box_id_2'],
-                                                qc=False).update(
-                                                    plm_tem_project=selected_plm_project,
-                                                    plm_tem_sample=sample,
-                                                    filled=True,
-                                                )
-
-                setattr(sample, 'time_update', django.utils.timezone.now())
-
-            PlmSample.objects.bulk_update(samples_to_update.values(), sorted(touched_fields | {'time_update'}))
-                        
-            return JsonResponse({'status':'ok'})
-        
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'invalid JSON'}, status=400)
-    except ValidationError as e:
-        return JsonResponse({'error': '; '.join(e.messages)}, status=400)
-    except IntegrityError as e:
-        return JsonResponse({'error': f'database constraint failed: {e}'}, status=400)
-    except Exception:
-        logger.exception('main table update failed')
-        return JsonResponse({'error': 'internal server error'}, status=500)
-
-
-# =============== getting all data for NOB analysis ===============
-@require_GET
-def api_get_tem_analysis_table(request, id):
-    all_samples = PlmSample.objects.filter(plm_project=id, 
-                                           method__in=[SampleMethod.Sample1984, SampleMethod.Sample1986, SampleMethod.Sample1994],
-                                           is_qc_sample=False).order_by('row_number').values('id', 'row_number', 'client_sample', 'method', 
-                                                                                            'lab_sample', 'layer', 'homo_area', 'weight__residue', 
-                                                                                            'tem_asb_type', 'tem_asb_point', 'tem_asb_percent', 'tem_microscope_alignment',
-                                                                                            'tem_eccentricity_adjusted', 'tem_grid_pre_acceptability', 'tem_grid_box', 
-                                                                                            'tem_grid_box_id_1', 'tem_grid_box_id_2', 'tem_na_or_ps', 'is_tem_qc_sample', 'is_blank')
-    return JsonResponse(list(all_samples), safe=False)
 
 @require_GET
 def api_get_temperature(request, id):
@@ -203,37 +129,6 @@ def api_get_temperature(request, id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
-# =============== Analyst get and update info ===============
-@require_GET
-def api_get_projects_analyst(request, id):
-    try:
-        if PlmProject.objects.get(pk=id).analyst:
-            analyst = PlmProject.objects.get(pk=id).analyst.username
-        else:
-            analyst = None
-        return JsonResponse({'analyst': analyst}, safe=False)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
-@require_POST
-def api_update_projects_analyst(request, id):
-    try:
-        with transaction.atomic():
-            project = get_object_or_404(PlmProject, id=id)
-            project.analyst = request.user
-            project.save()
-            MainProjectUpdateSignal(project).update_status(MainProjectStatus.InProcess)
-            return JsonResponse({'status': 'ok', 'analyst':request.user.username})
-        
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'invalid JSON'}, status=400)
-    except ValidationError as e:
-        return JsonResponse({'error': '; '.join(e.messages)}, status=400)
-    except IntegrityError as e:
-        return JsonResponse({'error': f'database constraint failed: {e}'}, status=400)
-    except Exception:
-        logger.exception('update project analyst error')
-        return JsonResponse({'error': 'internal server error'}, status=500)
 
 @require_POST
 def api_generate_qc_samples(request, id):

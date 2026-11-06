@@ -11,5 +11,6 @@ urlpatterns = [
     path('plm-nob-analysis-table/<int:id>/', views.PlmNobAnalysisApi.as_view(), name='plm_nob_analysis_table'),
     path('plm-tem-analysis-table/<int:id>/', views.PlmTemAnalysisApi.as_view(), name='plm_tem_analysis_table'),
     path('analyst/<int:id>/', views.PlmAnalystAPI.as_view(), name='analyst'),
+    path('temperature-get/<int:id>/', views.PlmTemperature.as_view(), name='temperature'),
 ]
 

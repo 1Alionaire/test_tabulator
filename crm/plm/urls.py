@@ -14,14 +14,6 @@ urlpatterns = [
     path('data-entry-upload-excel/<int:id>/', views.data_entry_upload_excel, name='data_entry_upload_excel'),
     # Analysis 
     path('api/plm-project/update/<int:id>/', views.api_update_project_info, name='api_update_project_info'),
-    path('api/nob-analysis-table/get/<int:id>/', views.api_get_nob_analysis_table, name='api_get_nob_analysis_table'),
-    path('api/tem-analysis-table/get/<int:id>/', views.api_get_tem_analysis_table, name='api_get_tem_analysis_table'),
-    path('api/analysis-table/update/<int:id>/', views.api_update_analysis_table, name='api_update_analysis_table'),
-    # parse temperature
-    path('api/temperature-get/<int:id>/', views.api_get_temperature, name = 'api_get_temperature'),
-    #analyst API
-    path('api/plm-project/analyst/get/<int:id>/', views.api_get_projects_analyst, name = 'api_get_projects_analyst'),
-    path('api/plm-project/analyst/update/<int:id>/', views.api_update_projects_analyst, name = 'api_update_projects_analyst'),
     # QC
     path('api/qc/generate-samples/<int:id>/', views.api_generate_qc_samples, name = 'api_generate_qc_samples'),
     path('api/qc/complete/<int:id>/', views.api_complete_qc_process, name = 'api_complete_qc_process'),

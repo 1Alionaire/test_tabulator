@@ -265,9 +265,9 @@
     weightURL: "{% url 'api:v1:plm:weight_table' work.id %}",
     PLMNOBAnalysisURL: "{% url 'api:v1:plm:plm_nob_analysis_table' work.id %}",
     PLMTEMAnalysisURL: "{% url 'api:v1:plm:plm_tem_analysis_table' work.id %}",
+    temperatureGetURL : "{% url 'api:v1:plm:temperature' work.id %}",
 
-
-    temperatureGetURL: "{% url 'plm:api_get_temperature' work.id %}",
+    
 
     qcGenerateSamplesURL: "{% url 'plm:api_generate_qc_samples' work.id %}", //
     qcCompleteURL: "{% url 'plm:api_complete_qc_process' work.id %}",

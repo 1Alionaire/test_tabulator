@@ -529,11 +529,15 @@ document.querySelector('.plm-analysis-temperature-select').addEventListener("cha
 
 // ========================== Parse Temperature from server ====================
 fetch(URLS.temperatureGetURL)
-    .then(r => r.json())
-    .then(temperature => {
-        document.querySelector(".plm-analysis-temperature-select").value = +temperature;
-    });
-    
+    .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();              // Promise с распарсенным объектом
+    })
+    .then(data => {
+        // data = { analysis_temperature: 23 }
+        document.querySelector(".plm-analysis-temperature-select").value = data.analysis_temperature;
+    })
+    .catch(err => console.error("Не удалось получить температуру:", err));
 
 function isEmpty(value) {
   return value === null || value === undefined || String(value).trim() === "";

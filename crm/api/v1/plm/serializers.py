@@ -156,3 +156,8 @@ class PlmTemAnalysisTableSerializer(serializers.ModelSerializer):
                   'lab_sample', 'layer', 'homo_area', 'weight__residue', 'tem_asb_type',
                   'tem_asb_point', 'tem_asb_percent', 'method', 'tem_microscope_alignment', 'tem_eccentricity_adjusted',
                   'tem_grid_pre_acceptability', 'tem_grid_box', 'tem_grid_box_id_1', 'tem_grid_box_id_2', 'tem_na_or_ps']
+
+class PlmTemperatureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlmSample
+        fields = ['analysis_temperature']
