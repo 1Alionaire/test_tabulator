@@ -1,8 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.http import JsonResponse, FileResponse, Http404
-from django.views.generic import UpdateView
-from .forms import UpdatePlmProject, PlmProjectDateCollect
+from django.views.generic import DetailView
 from django.shortcuts import  redirect, get_object_or_404
 from django.views.decorators.http import require_GET, require_POST
 from openpyxl import load_workbook
@@ -12,16 +11,13 @@ import json
 from plm.plm_table_logic import (generate_qc_entry_process,
                                  validate_plm_project,
                                  complete_qc_process,)
-import django.utils
-from tem.models import TEMGridRecord
 from report_generator.plm.plm_report_generator import BulkSampleReportGenerator
 from invoice_generator.invoice_generator import InvoiceGenerator, DataForInvoiceGenerator
 import logging
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from utils.utils import form_errors_to_text
 from api.v1.signals import MainProjectUpdateSignal
-from main.models import MainProject, MainTypeAnalysis, MainProjectStatus
+from main.models import MainProject, MainProjectStatus
 
 logger = logging.getLogger(__name__)
 from .models import (
@@ -89,9 +85,8 @@ def data_entry_upload_excel(request, id):
     return redirect('plm:plm_detail', id=id)  
 
 # =============== render PLM project page  ===============
-class UpdateProjectView(LoginRequiredMixin, UpdateView):
+class UpdateProjectView(LoginRequiredMixin, DetailView):
     model = PlmProject
-    form_class = UpdatePlmProject
     template_name = 'plm/plm_page.html'
     context_object_name = 'work'
     
@@ -101,24 +96,8 @@ class UpdateProjectView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = f'{self.object}'
-        context.setdefault("date_collect_form", PlmProjectDateCollect(instance=self.object))
         return context
 
-@require_POST
-def api_update_projects_date_collect(request, id):
-    form = PlmProjectDateCollect(request.POST, instance=get_active_plm_project(id))
-    if not form.is_valid():
-        return JsonResponse({'status': '!ok', 'error': form_errors_to_text(form)}, status=400)
-    form.save()
-    return JsonResponse({'status': 'ok'})
-
-@require_POST
-def api_update_project_info(request, id):
-    form = UpdatePlmProject(request.POST, instance=get_active_plm_project(id))
-    if not form.is_valid():
-        return JsonResponse({'status': '!ok', 'error': form_errors_to_text(form)}, status=400)
-    form.save()
-    return JsonResponse({'status': 'ok'})
 
 @require_POST
 def api_generate_qc_samples(request, id):
@@ -174,7 +153,6 @@ def generate_plm_report(request, id):
 def generate_invoice(request, id):
     main_project = MainProject.active_objects.filter(plm_project__id=id)
     plm_project = get_object_or_404(PlmProject, id=id)
-    #validate whole project
     errors = validate_plm_project(plm_project, for_what='report')
     if errors:
         return JsonResponse({'status' : '!ok' , 'error': errors}, status=400)

@@ -92,6 +92,12 @@ class PcmAnalysisGetListSerializer(serializers.ModelSerializer):
     class Meta:
         model = PcmSample
         fields = ['id',  'lab_sample',  'client_sample', 'location', 'sample_volume',
-                  'amount_fibers', 'fields', 'fiber_per_mm', 'fiber_per_cub_cm',
-                  'qc_amount_fibers', 'qc_fields', 'qc_fiber_per_mm', 'qc_fiber_per_cub_cm']
+                  'amount_fibers', 'fields', 'segment_area', 'fiber_per_mm', 'fiber_per_cub_cm',]
 
+class PcmQCGetListSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(min_value=1)
+    class Meta:
+        model = PcmSample
+        fields = ['id',  'lab_sample',  'client_sample',
+                  'amount_fibers', 'fields', 'fiber_per_mm', 'fiber_per_cub_cm',
+                  'qc_amount_fibers', 'segment_area', 'qc_fields', 'qc_fiber_per_mm', 'qc_fiber_per_cub_cm']

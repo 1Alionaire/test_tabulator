@@ -122,6 +122,28 @@
             </div>
           </div>
         </div>
+        <div class="action-group" id="panel-tab-3">
+          <div class="toolbar-section toolbar-section--project">
+            <span class="toolbar-section__label">Table</span>
+            <div class="table-control-buttons">
+                <button
+                  type="button"
+                  id="qc-save-toggle"
+                  class="panel-btn"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  id="qc-refresh-toggle"
+                  class="panel-btn"
+                >
+                  Refresh
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
     <section class="work-space">
@@ -162,7 +184,19 @@
           </div>
         </section>
       </div>
-      <div class="tab-content" id="tab-2"></div>
+      <div class="tab-content" id="tab-2">
+
+      </div>
+      <div class="tab-content" id="tab-3">
+        <section class="section-table">
+          <section id="samples-qc-table"></section>
+          <div class="table-overlay" id="take-analysis-overlay1" >
+            <div class="table-overlay__box">
+              <p>No analyst in project</p>
+            </div>
+          </div>
+        </section>
+      </div>
     </section>
   </section>
 </main>
@@ -172,6 +206,7 @@
     tableOptionsGetURL: "{% url 'api:v1:pcm:get_data_entry_options' %}",
     dataEntryURL: "{% url 'api:v1:pcm:data_entry_table' work.id %}",
     analysisURL: "{% url 'api:v1:pcm:analysis_table' work.id %}",
+    qcURL: "{% url 'api:v1:pcm:qc_table' work.id %}",
     projectAnalyst : "{% url 'api:v1:pcm:analyst' work.id %}",
     pcmReportGenerateURL: "{% url 'pcm:generate_pcm_report' work.id %}",
   };

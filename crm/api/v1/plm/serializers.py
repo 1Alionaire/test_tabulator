@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from main.models import MainProject
-from plm.forms import PlmProjectDateCollect
 from plm.models import PlmProject, PlmSample, PlmSampleWeight
 from users.models import User
 

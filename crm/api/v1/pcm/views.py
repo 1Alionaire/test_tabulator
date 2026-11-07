@@ -24,6 +24,7 @@ from api.v1.pcm.serializers import (PcmMainProjectSerializer,
                                     PcmSampleDataEntryCreateSerializer,
                                     PcmAnalystSerializer,
                                     PcmAnalysisGetListSerializer,
+                                    PcmQCGetListSerializer
                                     )
 from api.v1.utils import get_active_project
 
@@ -119,6 +120,28 @@ class PcmSampleAnalysis(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         print(data)
+        try:
+            pcm_project = get_active_project(id, "pcm")
+            result = PCMSamplesAnalysisManager(pcm_project = pcm_project, input_data=data).table_update_processing()
+        except PcmDataEntrySampleError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except InterruptedError:
+            return Response(
+                {"detail": "Data integrity constraint violation."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return Response(result, status=status.HTTP_200_OK)
+
+class PcmSampleQc(APIView):
+    def get(self, request, id):
+        samples_data = PcmSample.objects.filter(pcm_project=get_active_project(id, "pcm"))
+        serializer = PcmQCGetListSerializer(samples_data, many=True)
+        return Response(serializer.data)
+
+    def patch(self, request, id):
+        serializer = PcmQCGetListSerializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
         try:
             pcm_project = get_active_project(id, "pcm")
             result = PCMSamplesAnalysisManager(pcm_project = pcm_project, input_data=data).table_update_processing()

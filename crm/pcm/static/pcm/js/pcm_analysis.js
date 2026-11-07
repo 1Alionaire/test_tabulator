@@ -1,31 +1,25 @@
 // ==================== Analysis table ====================
-const ANALYSIS_INPUT_FIELDS = ["amount_fibers", "fields", "qc_amount_fibers", "qc_fields"];
+const ANALYSIS_INPUT_FIELDS = ["amount_fibers", "fields"];
 
 let analysisHasChanges = false;
 
 // returns [fibers/mm², fibers/cc], without blank correction
-function calculateFiberResults(amountFibers, fields, sampleVolume) {
+function calculateFiberResults(amountFibers, fields, sampleVolume, segment_area) {
   if (isEmpty(amountFibers) || !Number(fields)) return [null, null];
-  const fiberDensity = Number(amountFibers) / (Number(fields) * FIELD_AREA_MM2);
+  const fiberDensity = Number(amountFibers) / (Number(fields) * segment_area);
   if (!Number(sampleVolume)) return [roundTo(fiberDensity, 2), null];
   const fiberConcentration = fiberDensity * FILTER_COLLECTION_AREA_MM2 / (Number(sampleVolume) * 1000);
   return [roundTo(fiberDensity, 2), roundTo(fiberConcentration, 3)];
 }
 
-// calculateFiberResults in pcm_entry.js
 function updateFiberResults(row) {
   const data = row.getData();
-  const [fiberPerMm, fiberPerCubCm] = calculateFiberResults(data.amount_fibers, data.fields, data.sample_volume);
-  const [qcFiberPerMm, qcFiberPerCubCm] = calculateFiberResults(data.qc_amount_fibers, data.qc_fields, data.sample_volume);
+  const [fiberPerMm, fiberPerCubCm] = calculateFiberResults(data.amount_fibers, data.fields, data.sample_volume, data.segment_area);
   row.update({
     fiber_per_mm: fiberPerMm,
     fiber_per_cub_cm: fiberPerCubCm,
-    qc_fiber_per_mm: qcFiberPerMm,
-    qc_fiber_per_cub_cm: qcFiberPerCubCm,
   });
 }
-
-
 
 const analysisTable = new Tabulator("#samples-analysis-table", {
         rowHeader: {
@@ -68,19 +62,25 @@ const analysisTable = new Tabulator("#samples-analysis-table", {
               width: 140,
             },
             {
-              title:"Location",
-              field:"location",
-              width: 120,
-            },
-            {
               title:"Client ID",
               field:"client_sample",
-              width: 120,
+              width: 80,
+            },
+            {
+              title:"Location",
+              field:"location",
+              width: 500,
             },
             {
               title:"Volume<br>L",
               field:"sample_volume",
               width: 100,
+            },
+            {
+              title:"Segment<br>Area",
+              field:"segment_area",
+              width: 100,
+            editor: tabulatorNumberEditor
             },
             {
               title: "Original count",
@@ -91,15 +91,7 @@ const analysisTable = new Tabulator("#samples-analysis-table", {
                 { title:"F/cc", field:"fiber_per_cub_cm", width: 100 },
               ],
             },
-            {
-              title: "QC count",
-              columns: [
-                { title:"Fibers", field:"qc_amount_fibers", width: 90, editor: tabulatorNumberEditor },
-                { title:"Fields", field:"qc_fields", width: 90, editor: tabulatorNumberEditor },
-                { title:"F/mm²", field:"qc_fiber_per_mm", width: 100 },
-                { title:"F/cc", field:"qc_fiber_per_cub_cm", width: 100 },
-              ],
-            },
+
           ],
       });
 
@@ -134,8 +126,6 @@ async function analysisSaveChanges() {
       id: row.id,
       amount_fibers: row.amount_fibers,
       fields: row.fields,
-      qc_amount_fibers: row.qc_amount_fibers,
-      qc_fields: row.qc_fields,
     }));
 
   try {
@@ -161,6 +151,7 @@ async function analysisSaveChanges() {
 
 // ==================== Analyst ====================
 const analysisOverlay = document.getElementById("take-analysis-overlay");
+const analysisOverlay1 = document.getElementById("take-analysis-overlay1");
 analysisOverlay.querySelector(".take-btn").addEventListener("click", analystTakeProject);
 
 async function checkProjectAnalyst() {
@@ -170,6 +161,7 @@ async function checkProjectAnalyst() {
 
     const data = await response.json();
     analysisOverlay.hidden = !isEmpty(data.analyst);
+    analysisOverlay1.hidden = !isEmpty(data.analyst);
     document.getElementById("analysis-analyst-username").textContent = data.analyst_username ?? "";
   } catch (err) {
     console.error("checkProjectAnalyst:", err);
