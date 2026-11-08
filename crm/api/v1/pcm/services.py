@@ -1,9 +1,10 @@
+import math
 from decimal import Decimal, ROUND_HALF_UP
 from django.db import transaction
 from django.db.models import Max
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
-from pcm.models import PcmProject, PcmSample
+from pcm.models import PcmProject, PcmSample, SampleQCAcceptOrReject
 
 PCM_ENTRY_FIELDS = {'client_sample', 'iwa_owa', 'location', 'time_in', 'time_out',
                     'flow_rate_before', 'flow_rate_after', 'sample_volume', 'segment_area'}
@@ -11,7 +12,8 @@ PCM_ENTRY_FIELDS = {'client_sample', 'iwa_owa', 'location', 'time_in', 'time_out
 PCM_ANALYSIS_FIELDS = {'amount_fibers', 'fields', 'qc_amount_fibers', 'qc_fields', 'segment_area'}
 
 # always calculated on the server, values from the client are ignored
-PCM_RESULT_FIELDS = {'fiber_per_mm', 'fiber_per_cub_cm', 'qc_fiber_per_mm', 'qc_fiber_per_cub_cm'}
+PCM_RESULT_FIELDS = {'fiber_per_mm', 'fiber_per_cub_cm', 'qc_fiber_per_mm', 'qc_fiber_per_cub_cm',
+                     'qc_accept_or_reject'}
 
 
 def _round(value, places):
@@ -61,6 +63,19 @@ def calculate_sample_results(sample):
 
     sample.qc_fiber_per_mm, sample.qc_fiber_per_cub_cm = calculate_fiber_results(
         sample.qc_amount_fibers, sample.qc_fields, sample.sample_volume, sample.segment_area)
+
+def calculate_qc_accept_or_reject(fiber_per_mm, qc_fiber_per_mm, sr):
+    # |√X₁ − √X₂| <= 2.77 × ((√X₁ + √X₂) / 2) × Sr -> Accept, otherwise Reject
+    # X₁ = original F/mm², X₂ = QC F/mm²; no QC count or no Sr (empty or 0) -> no verdict
+    if fiber_per_mm is None or not qc_fiber_per_mm or not sr:
+        return None
+    # float math in the same order as qcUpdateResult in pcm_qc.js, so browser and server agree
+    sqrt_original = math.sqrt(float(fiber_per_mm))
+    sqrt_qc = math.sqrt(float(qc_fiber_per_mm))
+    limit = 2.77 * ((sqrt_original + sqrt_qc) / 2) * float(sr)
+    if abs(sqrt_original - sqrt_qc) <= limit:
+        return SampleQCAcceptOrReject.Accept
+    return SampleQCAcceptOrReject.Reject
 
 
 # updating sample function
@@ -174,11 +189,16 @@ class PCMSamplesAnalysisManager():
             samples = {sample.id : sample for sample in
                         PcmSample.objects.select_for_update().filter(pcm_project=self.pcm_project, pk__in=update_ids)}
 
+            z_criterion = self.pcm_project.z_criterion_record
+            sr = z_criterion.relative_std_deviation_low if z_criterion else None
+
             now = timezone.now()
             for row in self.data:
                 sample = samples[int(row['id'])]
                 set_sample_fields(sample, row, PCM_ANALYSIS_FIELDS)
                 calculate_sample_results(sample)
+                sample.qc_accept_or_reject = calculate_qc_accept_or_reject(
+                    sample.fiber_per_mm, sample.qc_fiber_per_mm, sr)
                 sample.time_update = self.now_moment
 
             result['updated'] = PcmSample.objects.bulk_update(

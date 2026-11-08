@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
 from main.models import MainProject, MainTypeAnalysis, MainProjectStatus
-from pcm.models import SampleWorkArea, PcmSample, PcmProject
+from pcm.models import SampleWorkArea, PcmSample, PcmProject, SampleQCAcceptOrReject
 from qc.models import PcmZCriterionPerAnalystMonth
 
 from api.v1.pcm.services import PCMSamplesDataEntryManager, PCMSamplesAnalysisManager
@@ -37,6 +37,7 @@ class PcmDataEntrySampleError(Exception):
 def get_data_entry_options(request):
     return JsonResponse({
         'sampleWorkArea': [{'value': v, 'label': l} for v, l in SampleWorkArea.choices if v is not None],
+        'SampleQCAcceptOrReject' : [{'value': v, 'label': l} for v, l in SampleQCAcceptOrReject.choices if v is not None],
     })
 
 class PcmMainProjectAPIList(MainProjectAPIList):

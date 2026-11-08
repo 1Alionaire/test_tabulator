@@ -81,7 +81,7 @@ class PcmSample(BaseModel):
     qc_fields = models.PositiveSmallIntegerField(default=100)
     qc_fiber_per_cub_cm = models.DecimalField(max_digits=6, decimal_places=3, blank=True, null=True)
     qc_fiber_per_mm = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
-    time_analysis = models.TimeField(auto_now_add=False, default=timezone.now)
+    time_analysis = models.TimeField(blank=True, null=True)
     segment_area = models.DecimalField(max_digits=6, decimal_places=5, default=Decimal("0.00785"))
     qc_accept_or_reject = models.PositiveSmallIntegerField(choices=SampleQCAcceptOrReject.choices, null=True, blank=True)
 

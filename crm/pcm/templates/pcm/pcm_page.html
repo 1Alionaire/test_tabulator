@@ -1,4 +1,4 @@
-{% extends 'base.html' %} {% load static %} {% block extra_css %}
+{% extends 'base.html' %} {% load static l10n %} {% block extra_css %}
 <link
   type="text/css"
   href="{% static 'pcm/css/pcm_page.css' %}"
@@ -91,6 +91,7 @@
               </div>
               <div class="analyst-info-container">
                 <span id="z-criterion-low"
+                  data-sr="{{ work.z_criterion_record.relative_std_deviation_low|default_if_none:''|unlocalize }}"
                   >Low :
                   {{work.z_criterion_record.relative_std_deviation_low}}</span
                 >
