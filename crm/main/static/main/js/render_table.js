@@ -27,7 +27,7 @@ function onlyOnCreate(cell) {
 }
 
 function checkNOBType(cell) {
-  if (cell.getRow().getData().project_type === '3' || cell.getRow().getData().project_type === '4') return true
+  if (cell.getRow().getData().project_type === 3 || cell.getRow().getData().project_type === 4) return true
 }
 
 function checkCOCFile(cell) {

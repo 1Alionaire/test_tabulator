@@ -60,6 +60,7 @@ class SampleWorkArea(models.IntegerChoices):
 class SampleQCAcceptOrReject(models.IntegerChoices):
     Accept = 1, 'Accept'
     Reject = 2, 'Reject'
+    Note = 3, 'Note'
 
 class PcmSample(BaseModel):
     pcm_project = models.ForeignKey('pcm.PcmProject', on_delete=models.CASCADE, related_name='pcm_samples')

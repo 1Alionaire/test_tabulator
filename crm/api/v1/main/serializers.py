@@ -2,16 +2,12 @@ from rest_framework import serializers
 from main.models import MainProject
 from users.models import User
 
-MAIN_PROJECT_UPDATE_FIELDS = ['id', 'lab_id_sort', 'lab_id', 'date_registered', 'time_registered',
-                  'company', 'project_number', 'project_name', 'project_address', 'project_type', 'number_samples',
-                  'turn_around_time', 'nob_number_samples', 'status', 'technician', 'comment',
-                  'is_overdue',]
-
 MAIN_PROJECT_CREATE_FIELDS = ['lab_id_sort', 'lab_id', 'date_registered', 'time_registered',
                   'company', 'project_number', 'project_name', 'project_address', 'project_type', 'number_samples',
                   'turn_around_time', 'nob_number_samples', 'status', 'technician', 'comment',
-                  'is_overdue']
+                  'is_overdue', 'version']
 
+MAIN_PROJECT_UPDATE_FIELDS = [*MAIN_PROJECT_CREATE_FIELDS, 'id']
 
 class MainProjectSerializer(serializers.ModelSerializer):
     class Meta:

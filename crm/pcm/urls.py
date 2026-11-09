@@ -15,5 +15,4 @@ urlpatterns = [
 
     path('api/time-table/get/<int:year>/<int:month>/<int:day>/', views.api_get_time_table, name='api_get_time_table'),
     path('api/time-table/update/<int:year>/<int:month>/<int:day>/', views.api_update_time_table, name='api_update_time_table'),
-
 ]

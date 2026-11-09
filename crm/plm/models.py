@@ -22,13 +22,13 @@ class PlmProject(BaseModel):
     date_analyze = models.DateField(auto_now_add=False, blank=True, null=True)
     date_report = models.DateField(auto_now_add=False, blank=True, null=True)
     date_review = models.DateField(auto_now_add=False,  blank=True, null=True)
-    prepared_by = models.ForeignKey(
+    preparer = models.ForeignKey( # prepared_by
             settings.AUTH_USER_MODEL,
             on_delete=models.SET_NULL,
             null=True,
             blank=True,
-            related_name='prepared_by',
-            verbose_name='Prepare',
+            related_name='preparer',
+            verbose_name='Preparer',
         )
     analyst = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -48,7 +48,7 @@ class PlmProject(BaseModel):
         verbose_name='Who update',
     )
 
-    reviewed_by = models.ForeignKey(
+    reviewer = models.ForeignKey( #reviewed_by
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
@@ -130,7 +130,6 @@ class SampleOtherFiberProperty(models.IntegerChoices):
     Cylindrical = 4, 'Cylindrical'
 
 class PlmSample(BaseModel):
-    # status = models.IntegerField(choices=StatusWork.choices, default=StatusWork.NEW, blank=True, null=True)
     #general data
     plm_project = models.ForeignKey('plm.PlmProject', on_delete=models.CASCADE, related_name='plm_samples')
     homo_area = models.CharField(max_length=7, default='', blank=True)
@@ -179,21 +178,6 @@ class PlmSample(BaseModel):
     asb_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True, null=True)
 
     rest_percent = models.DecimalField(max_digits=5, decimal_places=2, default=100, blank=True, null=True)
-
-    tem_asb_type = models.PositiveSmallIntegerField(choices=SampleASbestosType, default = SampleASbestosType.NAD, null=True, blank=True)
-    tem_asb_point = models.PositiveSmallIntegerField(default=0)
-    tem_asb_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True, null=True)
-
-    tem_microscope_alignment = models.CharField(max_length=7, default = 'Y', blank=True, null=True)
-    tem_eccentricity_adjusted = models.CharField(max_length=7, default = 'Y', blank=True, null=True)
-    tem_grid_pre_acceptability = models.CharField(max_length=7, default = 'Y', blank=True, null=True)
-
-    tem_grid_box = models.CharField(max_length=7, blank=True, null=True)
-    tem_grid_box_id_1 = models.CharField(max_length=7, blank=True, null=True)
-    tem_grid_box_id_2 = models.CharField(max_length=7, blank=True, null=True)
-    tem_na_or_ps = models.CharField(max_length=3, blank=True, null=True)
-    is_tem_qc_sample = models.BooleanField(default=False)
-
     is_blank = models.BooleanField(default=False)
 
     objects = models.Manager()
@@ -201,6 +185,37 @@ class PlmSample(BaseModel):
 
     def __str__(self):
         return self.lab_sample
+
+class TemSample(BaseModel):
+    sample = models.OneToOneField(
+        "plm.PlmSample", on_delete=models.CASCADE,
+        primary_key=True, related_name="tem",
+    )
+
+    plm_project = models.ForeignKey('plm.PlmProject', on_delete=models.CASCADE, related_name='tem_samples')
+
+    asb_type_grid_1 = models.PositiveSmallIntegerField(choices=SampleASbestosType, default=SampleASbestosType.NAD,
+                                                           null=True, blank=True)
+    asb_point_grid_1 = models.PositiveSmallIntegerField(default=0)
+    asb_percent_grid_1 = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True, null=True)
+
+    asb_type_grid_2 = models.PositiveSmallIntegerField(choices=SampleASbestosType, default=SampleASbestosType.NAD,
+                                                           null=True, blank=True)
+    asb_point_grid_2 = models.PositiveSmallIntegerField(default=0)
+    asb_percent_grid_2 = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True, null=True)
+
+    asb_type_total = models.CharField(max_length=100, blank=True, null=True)
+    asb_percent_total = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True, null=True)
+
+    microscope_alignment = models.CharField(max_length=7, default='Y', blank=True, null=True)
+    eccentricity_adjusted = models.CharField(max_length=7, default='Y', blank=True, null=True)
+    grid_pre_acceptability = models.CharField(max_length=7, default='Y', blank=True, null=True)
+
+    grid_box = models.CharField(max_length=7, blank=True, null=True)
+    grid_box_id_1 = models.CharField(max_length=7, blank=True, null=True)
+    grid_box_id_2 = models.CharField(max_length=7, blank=True, null=True)
+    na_or_ps = models.CharField(max_length=3, blank=True, null=True)
+    is_qc_sample = models.BooleanField(default=False)
 
 # Weights
 class PlmSampleWeight(BaseModel):

@@ -47,15 +47,6 @@ class PcmProjectView(LoginRequiredMixin, DetailView):
         context['year'] = datetime.now().year
         return context
 
-# =============== updating project info ===============
-@require_POST
-def api_update_project_info(request, id):
-    form = UpdatePcmProject(request.POST, instance=get_active_pcm_project(id))
-    if not form.is_valid():
-        return JsonResponse({'status': '!ok', 'error': form_errors_to_text(form)}, status=400)
-    form.save()
-    return JsonResponse({'status': 'ok'})
-
 # =============== PDF report ===============
 @require_GET
 def generate_pcm_report(request, id):

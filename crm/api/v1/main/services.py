@@ -10,6 +10,17 @@ from api.v1.signals import MainProjectDeleteSignal, MainProjectCreateSignal
 class MainProjectError(Exception):
     pass
 
+class VersionConflictError(Exception):
+    def __init__(self, message="Someone already update data. Please reload page"):
+        super().__init__(message)
+
+
+def check_version(entity, record):
+    if entity.version != int(record.get('version')):
+        raise VersionConflictError()
+    else:
+        return
+
 class MainProjectTableManager():
     def __init__(self, input_data, user):
         self.input_data = input_data
@@ -41,23 +52,25 @@ class MainProjectTableManager():
             setattr(project, 'lab_id_sort', MainProject._make_sort_key(new_lab_id))
             setattr(project, 'deleted', True)
             setattr(project, 'time_update', self.now_moment)
+            setattr(project, 'version', project.version+1) #version change by alibek
             MainProjectDeleteSignal(project).delete_secondary_info()
 
         return MainProject.active_objects.bulk_update(
-            projects_to_delete.values(), sorted({'lab_id', 'lab_id_sort', 'deleted', 'time_update'})
+            projects_to_delete.values(), sorted({'lab_id', 'lab_id_sort', 'deleted', 'time_update', 'version'})
         )
 
     def _update_data(self):
-        work_data = self.data_to_update
-        id_list = [element.get('id') for element in work_data]
-        touched_fields = set()
+        work_data = self.data_to_update # getting data to update from frontend
+        id_list = [element.get('id') for element in work_data] # parse ids from data
+        touched_fields = set() # init touched field set for bulk update
 
         projects_to_update = {project.id: project for project in
-                              MainProject.active_objects.select_for_update().filter(pk__in=id_list)}
+                              MainProject.active_objects.select_for_update().filter(pk__in=id_list)} #taking all projects, that we will update
 
-        for record_row in work_data:
-            project = projects_to_update[int(record_row.get('id'))]
-            for name_field, value in record_row.items():
+        for record_row in work_data: # going through loop
+            project = projects_to_update[int(record_row.get('id'))] # taking project from queryset
+            check_version(project, record_row) # check version row
+            for name_field, value in record_row.items(): # updating every field
                 if name_field != 'id':
                     setattr(project, name_field, value)
                     touched_fields.add(name_field)
@@ -66,9 +79,10 @@ class MainProjectTableManager():
                     setattr(project, 'lab_id_sort', new_lab_id_sort)
                     touched_fields.add('lab_id_sort')
             setattr(project, 'time_update', self.now_moment)
+            setattr(project, 'version', project.version+1)
 
         return MainProject.active_objects.bulk_update(
-            projects_to_update.values(), sorted(touched_fields | {'time_update'})
+            projects_to_update.values(), sorted(touched_fields | {'time_update', 'version'})
         )
 
     def _create_data(self):
@@ -82,6 +96,7 @@ class MainProjectTableManager():
                                               deleted=False,
                                               login_by=self.user,
                                               lab_id_sort = lab_id_sort,
+                                              version = 1,
                                               **data))
 
         MainProject.objects.bulk_create(saved_projects)

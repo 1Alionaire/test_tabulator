@@ -6,9 +6,20 @@ import re
 class BaseModel(models.Model):
     time_create = models.DateTimeField(auto_now_add=True,  verbose_name='Time create')
     time_update = models.DateTimeField(auto_now=True, verbose_name='Time update')
+    version = models.PositiveIntegerField(default=1)
 
     class Meta:
         abstract = True
+
+    def save(self, *args, **kwargs):
+        # Если объект уже существует в БД (обновление, а не создание)
+        if self.pk is not None:
+            self.version += 1
+            update_fields = kwargs.get("update_fields")
+            if update_fields is not None:
+                kwargs["update_fields"] = set(update_fields) | {"version", "updated_at"}
+
+        super().save(*args, **kwargs)
 
 class MainTypeAnalysis(models.IntegerChoices):
     PCM = 1, 'PCM'

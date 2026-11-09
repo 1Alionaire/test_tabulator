@@ -10,6 +10,7 @@ const QC_SR = Number(document.getElementById("z-criterion-low")?.dataset.sr) || 
 // X₁ = original F/mm², X₂ = QC F/mm²; the server repeats this check on save
 function qcUpdateResult(fiberPerMm, qcFiberPerMm) {
   if (isEmpty(fiberPerMm) || QC_SR === null) return null;
+  if (Number(fiberPerMm) > 20) return 3;
   const sqrtOriginal = Math.sqrt(Number(fiberPerMm));
   const sqrtQc = Math.sqrt(Number(qcFiberPerMm));
   const limit = 2.77 * ((sqrtOriginal + sqrtQc) / 2) * QC_SR;
