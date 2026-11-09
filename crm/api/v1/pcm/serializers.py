@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from main.models import MainProject
-from pcm.models import PcmProject, PcmSample
+from pcm.models import PcmProject, PcmSample, TypeSamplingPCM
+from api.v1.main.serializers import UserChoiceSerializer
+from users.models import User
 
 PCM_DATA_ENTRY_CREATE_FIELDS = ['client_sample', 'row_number', 'lab_sample', 'iwa_owa',
               'location', 'time_in', 'time_out', 'flow_rate_before', 'flow_rate_after']
@@ -103,3 +105,32 @@ class PcmQCGetListSerializer(serializers.ModelSerializer):
                   'qc_amount_fibers', 'segment_area', 'qc_fields', 'qc_fiber_per_mm', 'qc_fiber_per_cub_cm' , 'qc_accept_or_reject']
         # QC table needs the volume for F/cc, but must not change it; accept/reject is calculated on the server
         read_only_fields = ['sample_volume', 'qc_accept_or_reject']
+
+def pcm_reviewer_queryset():
+    # ваш критерий, кто может быть ревьюером
+    return User.objects.filter(is_active=True).order_by("username")
+
+# def type_sampling_queryset():
+#     return TypeSamplingPCM.objects.filter(type_sampling__isnull=False)
+
+class PcmProjectFormSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(min_value=1)
+    reviewer = serializers.PrimaryKeyRelatedField(
+        queryset=pcm_reviewer_queryset(),  # валидация при PATCH по тому же списку
+        allow_null=True,
+    )
+    type_sampling_choices = serializers.SerializerMethodField()
+    reviewer_choices = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PcmProject
+        fields = ['id', 'date_collect', 'date_analyze',
+                  'work_area', 'technician', 'rotometer', 'reviewer',
+                  'type_sampling', 'date_review', 'reviewer_choices', 'type_sampling_choices']
+
+    def get_reviewer_choices(self, obj):
+        return UserChoiceSerializer(pcm_reviewer_queryset(), many=True).data
+
+    def get_type_sampling_choices(self, obj):
+        return [{"value": value, "label": str(label)} for value, label in TypeSamplingPCM.choices]
+

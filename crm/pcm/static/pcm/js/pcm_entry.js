@@ -404,26 +404,66 @@ btn.addEventListener('click', () => {
   btn.querySelector('.arrow').textContent = isOpen ? '▶' : '▼';
 });
 
-// ==================== Project info ====================
-document.getElementById("project-info-form").addEventListener("submit", async function (e) {
-  e.preventDefault();
+async function initProjectFormPanel() {
+  const response = await fetch(URLS.projectFormURL);
+  const result = await response.json();
+  document.querySelector('#date-collect').value = result.date_collect;
+  document.querySelector('#date-analyze').value = result.date_analyze;
+  document.querySelector('#work-area').value = result.work_area;
+  document.querySelector('#technician').value = result.technician;
+  document.querySelector('#rotometer').value = result.rotometer;
+  const select = document.querySelector('#type-sampling');
+  select.innerHTML = '<option value="">— all —</option>';
+  for (const item of result.type_sampling_choices) {
+    const opt = document.createElement("option");
+    if (item.id === result.type_sampling) {
+        opt.selected = true;
+    }
+    opt.value = item.value;
+    opt.label = item.label;
+    select.append(opt);
+  }
+};
+
+initProjectFormPanel();
+
+// PATCH sends only the changed field; input name = serializer field, e.g. {"date_collect": "2026-11-06"}
+async function projectFormSave(element) {
+  const field = element.name;
+  const value = element.value === '' ? null : element.value;  // cleared date -> null (dates are nullable)
+
   try {
-    const response = await fetch(this.action, {
-      method: "POST",
-      headers: {"X-CSRFToken": csrftoken},
-      body: new FormData(this),
+    const response = await fetch(URLS.projectFormURL, {
+      method: "PATCH",
+      headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
+      body: JSON.stringify({[field]: value}),
     });
 
     if (!response.ok) {
-      await showResponseError(response);
+      // DRF errors: {"date_collect": ["..."]} or {"detail": "..."}
+      const body = await response.json().catch(() => ({}));
+      showToast(`Error: ${body[field]?.join(' ') ?? body.detail ?? response.status}`, "error");
       return;
     }
 
-    showToast("Project saved", "success");
+    const result = await response.json();
+    element.value = result[field] ?? '';  // show what the server saved
+    showToast("Saved", "success");
+  } catch (e) {
+    showToast(`Error: ${e}`, "error");
   }
-  catch (err) {
-    showToast(`Error: ${err.message}`, "error");
-  }
-});
+}
 
+// each field saves itself on change; element name = serializer field (#select-reviewer -> reviewed_by)
+const PROJECT_FORM_FIELDS = ['#date-collect',
+                                    '#date-analyze',
+                                    '#work-area',
+                                    '#technician',
+                                    '#rotometer',
+                                    '#type-sampling'];
 
+for (const selector of PROJECT_FORM_FIELDS) {
+  document.querySelector(selector).addEventListener('change', function(e) {
+    projectFormSave(e.target);
+  });
+}

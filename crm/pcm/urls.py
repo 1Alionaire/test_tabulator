@@ -5,9 +5,7 @@ app_name = 'pcm'
 
 urlpatterns = [
     path('', views.PCMTableView.as_view(), name='main'), #render page
-    path('project/<int:id>/', views.UpdateProjectView.as_view(), name='pcm_project'), #render single PCM project page
-    # project info
-    path('api/pcm-project/info/update/<int:id>/', views.api_update_project_info, name='api_update_project_info'),
+    path('project/<int:id>/', views.PcmProjectView.as_view(), name='pcm_project'), #render single PCM project page
     # report
     path('report/generate/<int:id>/', views.generate_pcm_report, name='generate_pcm_report'),
     #time table

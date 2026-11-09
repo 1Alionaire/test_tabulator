@@ -24,8 +24,8 @@ from api.v1.pcm.serializers import (PcmMainProjectSerializer,
                                     PcmSampleDataEntryCreateSerializer,
                                     PcmAnalystSerializer,
                                     PcmAnalysisGetListSerializer,
-                                    PcmQCGetListSerializer
-                                    )
+                                    PcmQCGetListSerializer,
+                                    PcmProjectFormSerializer)
 from api.v1.utils import get_active_project
 
 
@@ -109,7 +109,6 @@ class PcmSampleDataEntry(APIView):
 
         return Response(result, status=status.HTTP_200_OK)
 
-
 class PcmSampleAnalysis(APIView):
     def get(self, request, id):
         samples_data = PcmSample.objects.filter(pcm_project=get_active_project(id, "pcm"))
@@ -154,3 +153,9 @@ class PcmSampleQc(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         return Response(result, status=status.HTTP_200_OK)
+
+class PcmProjectInfoAPI(generics.RetrieveUpdateAPIView):
+    serializer_class = PcmProjectFormSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_url_kwarg = "id"
+    queryset = PcmProject.objects.all()

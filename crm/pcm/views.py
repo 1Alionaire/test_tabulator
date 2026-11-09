@@ -1,5 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView, UpdateView
+from django.views.generic import TemplateView, UpdateView, DetailView
 from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_GET, require_POST
@@ -33,9 +33,8 @@ class PCMTableView(LoginRequiredMixin, TemplateView):
     template_name = 'pcm/pcm_main.html'
 
 # =============== render PCM project page ===============
-class UpdateProjectView(LoginRequiredMixin, UpdateView):
+class PcmProjectView(LoginRequiredMixin, DetailView):
     model = PcmProject
-    form_class = UpdatePcmProject
     template_name = 'pcm/pcm_page.html'
     context_object_name = 'work'
 

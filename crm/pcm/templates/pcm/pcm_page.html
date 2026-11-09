@@ -152,21 +152,30 @@
         <div id="project-info" class="project-info-panel" hidden>
           <section class="section-control-panel" id="data-entry-control-panel">
             <div class="project-info">
-              <form
-                id="project-info-form"
-                class="project-info-form"
-                action="{% url 'pcm:api_update_project_info' work.id %}"
-                method="POST"
-              >
-                {% csrf_token %} {% for field in form %}
-                <div class="project-info-field">
-                  {{ field.label_tag }} {{ field }}
-                </div>
-                {% endfor %}
-                <div class="project-info-actions">
-                  <button type="submit" class="panel-btn">Save</button>
-                </div>
-              </form>
+              <div class="project-info-field">
+                <label>Date Collect</label>
+                <input class = "input-filter-text" id="date-collect" name="date_collect" type="date"></input>
+              </div>
+              <div class="project-info-field">
+                <label>Date Analysis</label>
+                <input class = "input-filter-text" id="date-analyze" name="date_analyze" type="date"></input>
+              </div>
+              <div class="project-info-field">
+                <label>Work Area</label>
+                <input id="work-area" name="work_area" type="text"></input>
+              </div>
+              <div class="project-info-field">
+                <label>Technician</label>
+                <input id="technician" name="technician" type="text"></input>
+              </div>
+              <div class="project-info-field">
+                <label>Rotometer</label>
+                <input id="rotometer" name="rotometer" type="text"></input>
+              </div>
+              <div class="project-info-field">
+                <label>Type Sampling</label>
+                <select id="type-sampling" name="type_sampling"></select>
+              </div>
             </div>
           </section>
         </div>
@@ -209,6 +218,7 @@
     analysisURL: "{% url 'api:v1:pcm:analysis_table' work.id %}",
     qcURL: "{% url 'api:v1:pcm:qc_table' work.id %}",
     projectAnalyst : "{% url 'api:v1:pcm:analyst' work.id %}",
+    projectFormURL : "{% url 'api:v1:pcm:project_form' work.id %}",
     pcmReportGenerateURL: "{% url 'pcm:generate_pcm_report' work.id %}",
   };
   const PROJECT_LAB_ID = "{{ work.lab_id|escapejs }}";

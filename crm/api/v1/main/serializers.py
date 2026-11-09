@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from main.models import MainProject
+from users.models import User
 
 MAIN_PROJECT_UPDATE_FIELDS = ['id', 'lab_id_sort', 'lab_id', 'date_registered', 'time_registered',
                   'company', 'project_number', 'project_name', 'project_address', 'project_type', 'number_samples',
@@ -72,3 +73,8 @@ class MainProjectChangesSerializer(serializers.Serializer):
                 {"non_field_errors": [f"Do not found: {sorted(missing)}"]}
             )
         return attrs
+
+class UserChoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username"]

@@ -29,14 +29,13 @@ function qcUpdateFiberResults(row) {
     qc_accept_or_reject: qcAcceptOrReject,
   });
 }
+let qcTable;
 
 (async () => {
 
 const response = await fetch(URLS.tableOptionsGetURL); // parse all options from database
 const statusOptions = await response.json(); //collect into status dict
-    console.log(statusOptions);
-
-const qcTable = new Tabulator("#samples-qc-table", {
+    qcTable = new Tabulator("#samples-qc-table", {
         rowHeader: {
             resizable: false, frozen: true, width: 40,
             hozAlign: "center", formatter: "rownum",
@@ -104,7 +103,6 @@ const qcTable = new Tabulator("#samples-qc-table", {
               field:"qc_accept_or_reject",
               width: 80,
               editor: "list",
-              // formatterParams: Object.fromEntries(statusOptions['SampleQCAcceptOrReject'].map(o => [o.value, o.label])),
               formatter: (cell) => Object.fromEntries(statusOptions['SampleQCAcceptOrReject'].map(o => [o.value, o.label]))[cell.getValue()] ?? "",
             },
             {
