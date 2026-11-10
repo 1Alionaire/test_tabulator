@@ -11,7 +11,7 @@ def get_default_reviewer():
 
 class OriginalSamples(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(is_qc_sample=False, is_tem_qc_sample=False, is_blank=False)
+        return super().get_queryset().filter(is_qc_sample=False, tem_is_qc_sample=False, is_blank=False)
 
 # Create your models here.
 class PlmProject(BaseModel):
@@ -183,39 +183,30 @@ class PlmSample(BaseModel):
     objects = models.Manager()
     original_samples = OriginalSamples()
 
+    tem_asb_type_grid_1 = models.PositiveSmallIntegerField(choices=SampleASbestosType, null=True, blank=True)
+    tem_asb_point_grid_1 = models.PositiveSmallIntegerField(default=0)
+    tem_asb_percent_grid_1 = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True, null=True)
+
+    tem_asb_type_grid_2 = models.PositiveSmallIntegerField(choices=SampleASbestosType, null=True, blank=True)
+    tem_asb_point_grid_2 = models.PositiveSmallIntegerField(default=0)
+    tem_asb_percent_grid_2 = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True, null=True)
+
+    tem_asb_type_total = models.CharField(max_length=100, blank=True, null=True)
+    tem_asb_percent_total = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True, null=True)
+
+    tem_microscope_alignment = models.CharField(max_length=7, blank=True, null=True)
+    tem_eccentricity_adjusted = models.CharField(max_length=7, blank=True, null=True)
+    tem_grid_pre_acceptability = models.CharField(max_length=7, blank=True, null=True)
+
+    tem_grid_box = models.CharField(max_length=7, blank=True, null=True)
+    tem_grid_box_id_1 = models.CharField(max_length=7, blank=True, null=True)
+    tem_grid_box_id_2 = models.CharField(max_length=7, blank=True, null=True)
+    tem_na_or_ps = models.CharField(max_length=3, blank=True, null=True)
+    tem_is_qc_sample = models.BooleanField(default=False)
+
     def __str__(self):
         return self.lab_sample
 
-class TemSample(BaseModel):
-    sample = models.OneToOneField(
-        "plm.PlmSample", on_delete=models.CASCADE,
-        primary_key=True, related_name="tem",
-    )
-
-    plm_project = models.ForeignKey('plm.PlmProject', on_delete=models.CASCADE, related_name='tem_samples')
-
-    asb_type_grid_1 = models.PositiveSmallIntegerField(choices=SampleASbestosType, default=SampleASbestosType.NAD,
-                                                           null=True, blank=True)
-    asb_point_grid_1 = models.PositiveSmallIntegerField(default=0)
-    asb_percent_grid_1 = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True, null=True)
-
-    asb_type_grid_2 = models.PositiveSmallIntegerField(choices=SampleASbestosType, default=SampleASbestosType.NAD,
-                                                           null=True, blank=True)
-    asb_point_grid_2 = models.PositiveSmallIntegerField(default=0)
-    asb_percent_grid_2 = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True, null=True)
-
-    asb_type_total = models.CharField(max_length=100, blank=True, null=True)
-    asb_percent_total = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True, null=True)
-
-    microscope_alignment = models.CharField(max_length=7, default='Y', blank=True, null=True)
-    eccentricity_adjusted = models.CharField(max_length=7, default='Y', blank=True, null=True)
-    grid_pre_acceptability = models.CharField(max_length=7, default='Y', blank=True, null=True)
-
-    grid_box = models.CharField(max_length=7, blank=True, null=True)
-    grid_box_id_1 = models.CharField(max_length=7, blank=True, null=True)
-    grid_box_id_2 = models.CharField(max_length=7, blank=True, null=True)
-    na_or_ps = models.CharField(max_length=3, blank=True, null=True)
-    is_qc_sample = models.BooleanField(default=False)
 
 # Weights
 class PlmSampleWeight(BaseModel):

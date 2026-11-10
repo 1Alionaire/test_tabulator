@@ -18,6 +18,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from api.v1.signals import MainProjectUpdateSignal
 from main.models import MainProject, MainProjectStatus
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 from .models import (
@@ -51,6 +52,7 @@ def data_entry_upload_excel(request, id):
 
     samples_info_from_excel = []
     try:
+        now_moment = timezone.now()
         project_lab_id = MainProject.objects.get(plm_project__id=id).lab_id
         plm_project = get_active_plm_project(id)
         wb = load_workbook(excel_file, data_only=True)
@@ -68,15 +70,16 @@ def data_entry_upload_excel(request, id):
                                                     description = str(ws_entry[f'C{excel_row}'].value),
                                                     location = str(ws_entry[f'D{excel_row}'].value),
                                                     method = return_int_value_sample_method(str(ws_entry[f'E{excel_row}'].value)),
-                                                    lab_sample = (project_lab_id + '-' + str(excel_row - 3))) )
+                                                    lab_sample = (project_lab_id + '-' + str(excel_row - 3)),
+                                                    version = 1,
+                                                    time_create = now_moment,
+                                                    time_update = now_moment))
             excel_row += 1
 
         with transaction.atomic():
             if PlmSample.objects.filter(plm_project__id=id).exists():
                 PlmSample.objects.filter(plm_project__id=id).delete()
-            for project in samples_info_from_excel:
-                project.full_clean()
-                project.save()
+            PlmSample.objects.bulk_create(samples_info_from_excel)
 
         return redirect('plm:plm_detail', id=id)  
             

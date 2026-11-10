@@ -6,20 +6,10 @@ from django.utils import timezone
 from utils.utils import generate_rand_string_4
 # import files
 from api.v1.signals import MainProjectDeleteSignal, MainProjectCreateSignal
+from api.v1.utils import check_version
 
 class MainProjectError(Exception):
     pass
-
-class VersionConflictError(Exception):
-    def __init__(self, message="Someone already update data. Please reload page"):
-        super().__init__(message)
-
-
-def check_version(entity, record):
-    if entity.version != int(record.get('version')):
-        raise VersionConflictError()
-    else:
-        return
 
 class MainProjectTableManager():
     def __init__(self, input_data, user):

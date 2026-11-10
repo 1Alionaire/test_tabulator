@@ -49,7 +49,7 @@ def generate_qc_sample(inp_project, copy_of_sample, copy_of_weight, max_row_numb
                         lab_sample=(prefix + copy_of_sample.lab_sample),
                         weight=copy_of_weight,
                         is_qc_sample = is_nob_qb, 
-                        is_tem_qc_sample = is_tem_qc, 
+                        tem_is_qc_sample = is_tem_qc,
                         asb_type = copy_of_sample.asb_type,
                         homo_area= copy_of_sample.homo_area,
                         layer= copy_of_sample.layer,
@@ -269,7 +269,7 @@ def complete_qc_process(plm_project):
     all_qc_records = None
     counter = 0
     all_samples = PlmSample.objects.filter(plm_project=plm_project)
-    qc_samples = all_samples.filter(Q(is_qc_sample=True) | Q(is_tem_qc_sample=True))
+    qc_samples = all_samples.filter(Q(is_qc_sample=True) | Q(tem_is_qc_sample=True))
 
     if PlmQCReplicateDuplicateItem.objects.filter(project=plm_project).exists():
         all_qc_records = PlmQCReplicateDuplicateItem.objects.filter(project=plm_project).values('qc_sample__lab_sample', 'original_sample__method')
@@ -295,7 +295,7 @@ def generatePlmQCReplicateDuplicateItem(inp_qc_sample, inp_project, inp_all_samp
         input_analysis_type = PlmTypeAnalysisSample.PLM
     if inp_qc_sample.method == SampleMethod.Sample1986:
         input_analysis_type = PlmTypeAnalysisSample.NOB
-    if inp_qc_sample.method in [SampleMethod.Sample1984, SampleMethod.Sample1986, SampleMethod.Sample1986] and inp_qc_sample.is_tem_qc_sample:
+    if inp_qc_sample.method in [SampleMethod.Sample1984, SampleMethod.Sample1986, SampleMethod.Sample1986] and inp_qc_sample.tem_is_qc_sample:
         input_analysis_type = PlmTypeAnalysisSample.EPT
 
     PlmQCReplicateDuplicateItem.objects.create(qc_type = input_qc_type,

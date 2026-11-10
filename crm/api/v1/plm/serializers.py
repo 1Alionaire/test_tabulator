@@ -34,7 +34,7 @@ class PlmAnalystSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = PlmProject
-        fields = ['analyst', "analyst_username"]
+        fields = ['analyst', "analyst_username", 'version']
 
 # ============== Getting Data Entry Serializer ================
 class PlmSampleEntryGetListSerializer(serializers.ModelSerializer):
@@ -154,7 +154,7 @@ class PlmTemAnalysisTableSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = PlmSample
-        fields = ['id', 'row_number', 'is_tem_qc_sample', 'is_blank', 'client_sample',
+        fields = ['id', 'row_number', 'tem_is_qc_sample', 'is_blank', 'client_sample',
                   'lab_sample', 'layer', 'homo_area', 'weight__residue', 'tem_asb_type',
                   'tem_asb_point', 'tem_asb_percent', 'method', 'tem_microscope_alignment', 'tem_eccentricity_adjusted',
                   'tem_grid_pre_acceptability', 'tem_grid_box', 'tem_grid_box_id_1', 'tem_grid_box_id_2', 'tem_na_or_ps']

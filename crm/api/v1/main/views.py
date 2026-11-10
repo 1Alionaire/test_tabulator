@@ -18,6 +18,8 @@ from .serializers import MainProjectSerializer, MainProjectChangesSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 import django_filters as df
 import logging
+# from utils
+from api.v1.utils import VersionConflictError
 
 logger = logging.getLogger(__name__)
 @require_GET
@@ -79,11 +81,13 @@ class MainProjectChangesView(APIView):
         try:
             result = MainProjectTableManager(data, request.user).table_update_processing()
         except MainProjectError as e:
-            return Response({"detail": str(e)}, status=status.HTTP_409_CONFLICT)
+            return Response({"error": str(e)}, status=status.HTTP_409_CONFLICT)
+        except VersionConflictError as e:
+            return Response({"error": str(e)}, status=status.HTTP_409_CONFLICT)
         except IntegrityError:
             logger.exception("IntegrityError в projects-update")
             return Response(
-                {"detail": "Data integrity constraint violation."},
+                {"error": "Data integrity constraint violation."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

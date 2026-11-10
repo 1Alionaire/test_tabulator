@@ -84,12 +84,10 @@ class PlmAnalystAPI(generics.RetrieveUpdateAPIView):
         project = get_active_project(self.kwargs['id'], "plm")
         analyst = self.request.user
         now_time = django.utils.timezone.now()
-
         MainProjectUpdateSignal(project).update_status(MainProjectStatus.InProcess)
         serializer.save(analyst=analyst,
                         date_analyze=now_time,
-                        time_update=now_time,
-                        )
+                        time_update=now_time)
 
 class PlmSampleDataEntry(APIView):
     permission_classes = [IsAuthenticated]

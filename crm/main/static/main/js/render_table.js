@@ -51,6 +51,7 @@ function markDirty(row, field) {
   const id = row.getData().id;
   if (!updatedData.has(id)) updatedData.set(id, {});
   updatedData.get(id)[field] = row.getData()[field];
+  updatedData.get(id)['version'] = row.getData()['version'];
 }
 
 const ENTRY_SAVE_FIELDS = ["lab_id", "date_registered", "time_registered", "company", "project_number",
@@ -437,6 +438,9 @@ async function saveChanges() {
     showToast(`Table Saved: ${resultMessage}`, "success");
 
   } catch (e) {
+    if (error.status === 409) {
+      showResponseError(error.message, "error");
+    } else
     showToast(`Error: ${e.message}`, "error");
   } finally {
     deletedIds.clear();

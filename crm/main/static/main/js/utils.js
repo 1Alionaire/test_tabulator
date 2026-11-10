@@ -52,7 +52,7 @@ function showToast(message, type = "info", duration = 3000) {
 async function showResponseError(response) {
   // сервер отдаёт {"error": "..."}; если тело не JSON (например, HTML-страница 500) — показываем код
   const body = await response.json().catch(() => ({}));
-  showToast(`Error: ${body.error ?? response.status}`, "error");
+  showToast(`Error: ${body.error ?? response.status}`, "error", 6000);
 }
 
 // ================= custom function for input tabulator ================

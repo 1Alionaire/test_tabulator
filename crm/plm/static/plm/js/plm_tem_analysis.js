@@ -67,7 +67,7 @@ temTable = new Tabulator("#samples-tem-table", {
             },
             {
               title:"IS QC", 
-              field:"is_tem_qc_sample", 
+              field:"tem_is_qc_sample",
               width: 80, 
               headerSort: false,
               visible: false

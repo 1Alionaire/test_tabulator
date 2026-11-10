@@ -4,7 +4,7 @@ from django.db import transaction
 
 from plm.models import PlmProject, PlmSample, PlmSampleWeight, SampleMethod
 from tem.models import TEMGridRecord
-
+from api.v1.utils import check_version
 
 class PLMSamplesEntryManager():
     def __init__(self, plm_project, input_data, mode):
@@ -51,16 +51,17 @@ class PLMSamplesEntryManager():
                              PlmSample.objects.select_for_update().filter(pk__in=update_ids)}
 
         for element in work_data:
-            print(f'element : {element}')
             sample = samples_to_update[int(element['id'])]
+            check_version(sample, element)
             for field_name, value in element.items():
                 if field_name != 'id':
                     setattr(sample, field_name, value)
                     touched_fields.add(field_name)
             setattr(sample, 'time_update', self.now_moment)
+            sample.version += 1
 
         return PlmSample.objects.bulk_update(
-            samples_to_update.values(), sorted(touched_fields | {'time_update'})
+            samples_to_update.values(), sorted(touched_fields | {'time_update', 'version'})
         )
 
     def _create_data(self):
@@ -114,9 +115,10 @@ class PLMSamplesWeightManager():
             if weight_record:
                 setattr(sample_object, 'weight', weight_record)  # Filling new value
                 setattr(sample_object, 'time_update', django.utils.timezone.now())  # new time update
+                sample_object.version += 1
 
         # Update all samples
-        PlmSample.objects.bulk_update(samples_to_update.values(), sorted({'weight', 'time_update'}))
+        PlmSample.objects.bulk_update(samples_to_update.values(), sorted({'weight', 'time_update', 'version'}))
 
     def _update_data(self):
         work_data = self.data_to_update
@@ -133,9 +135,10 @@ class PLMSamplesWeightManager():
                     setattr(sample, name_field, value)
                     touched_fields.add(name_field)
             setattr(sample, 'time_update', self.now_moment)
+            sample.version += 1
 
         updated = PlmSampleWeight.objects.bulk_update(
-                        samples_to_update.values(), sorted(touched_fields | {'time_update'})
+                        samples_to_update.values(), sorted(touched_fields | {'time_update', 'version'})
                     )
 
         return updated
@@ -157,9 +160,10 @@ class PLMSamplesWeightManager():
             sample_to_update = samples_to_update[data['client_sample']] #take sample with client id
             setattr(sample_to_update, 'weight', weight_record) # Filling new value
             setattr(sample_to_update, 'time_update', self.now_moment)
+            sample_to_update.version += 1
 
         # Update all samples
-        PlmSample.objects.bulk_update(samples_to_update.values(), sorted({'weight', 'time_update'}))
+        PlmSample.objects.bulk_update(samples_to_update.values(), sorted({'weight', 'time_update', 'version'}))
 
         return len(weights)
 
@@ -194,7 +198,8 @@ def update_plm_nob_tem_analysis(payload_json, selected_plm_project):
                 )
 
             setattr(sample, 'time_update', django.utils.timezone.now())
+            sample.version += 1
 
-        PlmSample.objects.bulk_update(samples_to_update.values(), sorted(touched_fields | {'time_update'}))
+        PlmSample.objects.bulk_update(samples_to_update.values(), sorted(touched_fields | {'time_update', 'version'}))
 
         return {'updated':len(payload_json)}

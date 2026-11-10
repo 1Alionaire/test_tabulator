@@ -10,3 +10,14 @@ def get_active_project(id, type):
     if type == "plm":
         return get_object_or_404(PlmProject.objects.select_related('project', 'analyst'),
                                  pk=id, project__deleted=False)
+
+class VersionConflictError(Exception):
+    def __init__(self, message="Someone already update data. Please reload page"):
+        super().__init__(message)
+
+
+def check_version(entity, record):
+    if int(entity.version) != int(record.get('version')):
+        raise VersionConflictError()
+    else:
+        return
