@@ -6,7 +6,7 @@ from django.utils import timezone
 from utils.utils import generate_rand_string_4
 # import files
 from api.v1.signals import MainProjectDeleteSignal, MainProjectCreateSignal
-from api.v1.utils import check_version
+from api.v1.utils import check_versions
 
 class MainProjectError(Exception):
     pass
@@ -55,11 +55,12 @@ class MainProjectTableManager():
         touched_fields = set() # init touched field set for bulk update
 
         projects_to_update = {project.id: project for project in
-                              MainProject.active_objects.select_for_update().filter(pk__in=id_list)} #taking all projects, that we will update
+                              MainProject.active_objects.order_by("pk").select_for_update().filter(pk__in=id_list)} #taking all projects, that we will update
+
+        check_versions(projects_to_update, work_data)
 
         for record_row in work_data: # going through loop
-            project = projects_to_update[int(record_row.get('id'))] # taking project from queryset
-            check_version(project, record_row) # check version row
+            project = projects_to_update[record_row.get('id')] # taking project from queryset
             for name_field, value in record_row.items(): # updating every field
                 if name_field != 'id':
                     setattr(project, name_field, value)

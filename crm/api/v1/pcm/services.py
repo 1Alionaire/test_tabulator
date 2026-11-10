@@ -5,6 +5,7 @@ from django.db.models import Max
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from pcm.models import PcmProject, PcmSample, SampleQCAcceptOrReject
+from api.v1.utils import check_versions
 
 PCM_ENTRY_FIELDS = {'client_sample', 'iwa_owa', 'location', 'time_in', 'time_out',
                     'flow_rate_before', 'flow_rate_after', 'sample_volume', 'segment_area'}
@@ -129,6 +130,7 @@ class PCMSamplesDataEntryManager():
         samples = {sample.id : sample for sample in
                     PcmSample.objects.select_for_update().filter(pcm_project=self.pcm_project, pk__in=update_ids)}
 
+        check_versions(samples, self.data_to_update)
         touched_fields = set()
         for element in self.data_to_update:
             sample = samples[element['id']]

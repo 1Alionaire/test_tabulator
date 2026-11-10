@@ -83,7 +83,7 @@ class PcmDataEntryManagerSerializer(serializers.Serializer):
         missing = all_ids - existing
         if missing:
             raise serializers.ValidationError(
-                {"non_field_errors": [f"Do not found: {sorted(missing)}"]}
+                {"error": [f"Do not found: {sorted(missing)}"]}
             )
 
         return attrs

@@ -15,9 +15,7 @@ class VersionConflictError(Exception):
     def __init__(self, message="Someone already update data. Please reload page"):
         super().__init__(message)
 
-
-def check_version(entity, record):
-    if int(entity.version) != int(record.get('version')):
+def check_versions(entities, records):
+    conflicted = sorted(r["id"] for r in records if entities[r["id"]].version != r["version"])
+    if conflicted:
         raise VersionConflictError()
-    else:
-        return

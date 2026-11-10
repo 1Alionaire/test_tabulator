@@ -80,6 +80,7 @@ function markDirty(row, field) {
   const id = row.getData().id;
   if (!updatedData.has(id)) updatedData.set(id, {});
   updatedData.get(id)[field] = row.getData()[field];
+  updatedData.get(id)['version'] = row.getData()['version'];
 }
 
 (async () => {

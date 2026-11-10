@@ -4,7 +4,7 @@ from django.db import transaction
 
 from plm.models import PlmProject, PlmSample, PlmSampleWeight, SampleMethod
 from tem.models import TEMGridRecord
-from api.v1.utils import check_version
+from api.v1.utils import check_versions
 
 class PLMSamplesEntryManager():
     def __init__(self, plm_project, input_data, mode):
@@ -50,9 +50,10 @@ class PLMSamplesEntryManager():
         samples_to_update = {sample.id: sample for sample in
                              PlmSample.objects.select_for_update().filter(pk__in=update_ids)}
 
+        check_versions(samples_to_update, work_data)
+
         for element in work_data:
             sample = samples_to_update[int(element['id'])]
-            check_version(sample, element)
             for field_name, value in element.items():
                 if field_name != 'id':
                     setattr(sample, field_name, value)
