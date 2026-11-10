@@ -113,34 +113,84 @@ temTable = new Tabulator("#samples-tem-table", {
               width: 80, 
               editable: false,
               headerSort: false,
-            }, 
-            {
-              title:"Asbestos<br>Type", 
-              field:"tem_asb_type", 
-              width: 80, 
-              formatter: "lookup",
-              formatterParams: Object.fromEntries(tableOptions['sampleAsbestosType'].map(o => [o.value, o.label])),
-              editor: "list",
-              headerSort: false,
-              editable: checkTEMforPS,
-              editorParams: { values: tableOptions['sampleAsbestosType'] },
             },
             {
-              title:"Visual<br>Estimation", 
-              field:"tem_asb_point", 
-              width: 90, 
-              editor: tabulatorNumberEditor, 
-              headerSort: false,
-              editable: checkTEMforPS,
-            },
+                title: "Asbestos Grid I",
+                columns: [
+                {
+                  title:"Asbestos<br>Type",
+                  field:"tem_asb_type_grid_1",
+                  width: 80,
+                  formatter: "lookup",
+                  formatterParams: Object.fromEntries(tableOptions['sampleAsbestosType'].map(o => [o.value, o.label])),
+                  editor: "list",
+                  headerSort: false,
+                  editable: checkTEMforPS,
+                  editorParams: { values: tableOptions['sampleAsbestosType'] },
+                },
+                {
+                  title:"Visual<br>Estimation",
+                  field:"tem_asb_point_grid_1",
+                  width: 90,
+                  editor: tabulatorNumberEditor,
+                  headerSort: false,
+                  editable: checkTEMforPS,
+                },
+                {
+                  title:"Asbestos %",
+                  field:"tem_asb_percent_grid_1",
+                  width: 100,
+                  editable: false,
+                  headerSort: false,
+                },
+                  ]
+                },
             {
-              title:"Asbestos %", 
-              field:"tem_asb_percent", 
-              width: 100, 
-              editable: false,
-              headerSort: false,
-            },
-
+                title: "Asbestos Grid II",
+                columns: [
+                {
+                  title:"Asbestos<br>Type",
+                  field:"tem_asb_type_grid_2",
+                  width: 80,
+                  formatter: "lookup",
+                  formatterParams: Object.fromEntries(tableOptions['sampleAsbestosType'].map(o => [o.value, o.label])),
+                  editor: "list",
+                  headerSort: false,
+                  editable: checkTEMforPS,
+                  editorParams: { values: tableOptions['sampleAsbestosType'] },
+                },
+                {
+                  title:"Visual<br>Estimation",
+                  field:"tem_asb_point_grid_2",
+                  width: 90,
+                  editor: tabulatorNumberEditor,
+                  headerSort: false,
+                  editable: checkTEMforPS,
+                },
+                {
+                  title:"Asbestos %",
+                  field:"tem_asb_percent_grid_2",
+                  width: 100,
+                  editable: false,
+                  headerSort: false,
+                },
+                  ]
+                },
+                {
+                  title:"Asbestos<br>Type",
+                  field:"tem_asb_type_total",
+                  width: 90,
+                  editor: tabulatorTextEditor,
+                  headerSort: false,
+                  editable: false,
+                },
+                {
+                  title:"Asbestos %<br>Total",
+                  field:"tem_asb_percent_total",
+                  width: 100,
+                  headerSort: false,
+                  editable: false,
+                },
             {
               title:"Method", 
               field:"method", 
@@ -217,18 +267,18 @@ temTable = new Tabulator("#samples-tem-table", {
         let currentRow = cell.getRow();
         const tableData = temTable.getRows();
 
-        if (cell.getField() === 'tem_asb_point') {
-          if ([2, 3, 4, 5, 6, 7].includes(currentRow.getData().tem_asb_type)) {
+        if (cell.getField() === 'tem_asb_point_grid_1') {
+          if ([2, 3, 4, 5, 6, 7].includes(currentRow.getData().tem_asb_type_grid_1)) {
             result = Math.round((+(cell.getValue()) * (Number(currentRow.getData().weight__residue)) / 100 ) * 100) / 100;
             if (isFinite(result)) {
-                currentRow.update({tem_asb_percent:result});
+                currentRow.update({tem_asb_percent_grid_1:result});
             }
             else {
-                currentRow.update({tem_asb_percent:0});
+                currentRow.update({tem_asb_percent_grid_1:0});
             }
           };
 
-          if (Number(currentRow.getData().tem_asb_percent) < 1) {
+          if (Number(currentRow.getData().tem_asb_percent_grid_1) < 1) {
               let var_homogenity = cell.getRow().getData().homo_area;
               let getCurrentPosition = cell.getRow().getPosition() 
               fillTEMAsbResultSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'delete');
@@ -238,6 +288,29 @@ temTable = new Tabulator("#samples-tem-table", {
               fillTEMAsbResultSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'fill');
           }
         };
+
+        if (cell.getField() === 'tem_asb_point_grid_2') {
+          if ([2, 3, 4, 5, 6, 7].includes(currentRow.getData().tem_asb_type_grid_2)) {
+            result = Math.round((+(cell.getValue()) * (Number(currentRow.getData().weight__residue)) / 100 ) * 100) / 100;
+            if (isFinite(result)) {
+                currentRow.update({tem_asb_percent_grid_2:result});
+            }
+            else {
+                currentRow.update({tem_asb_percent_grid_2:0});
+            }
+          };
+
+          if (Number(currentRow.getData().tem_asb_percent_grid_2) < 1) {
+              let var_homogenity = cell.getRow().getData().homo_area;
+              let getCurrentPosition = cell.getRow().getPosition()
+              fillTEMAsbResultSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'delete');
+          } else {
+              let var_homogenity = cell.getRow().getData().homo_area;
+              let getCurrentPosition = cell.getRow().getPosition()
+              fillTEMAsbResultSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'fill');
+          }
+        };
+
 
         if (cell.getField() === 'tem_grid_box_id_1') {
           currentRow.update({tem_grid_box_id_2:all_grid_ids[cell.getValue()]});

@@ -5,14 +5,14 @@ from users.models import User
 from api.v1.main.serializers import UserChoiceSerializer
 
 PLM_DATA_ENTRY_CREATE_FIELDS = ['row_number', 'client_sample', 'homo_area', 'layer',
-                  'description', 'location', 'method', 'lab_sample' ]
+                  'description', 'location', 'method', 'lab_sample', 'version']
 
 PLM_DATA_ENTRY_UPDATE_FIELDS = [*PLM_DATA_ENTRY_CREATE_FIELDS, 'id']
 
 PLM_WEIGHT_CREATE_FIELDS = ['client_sample', 'w_crucible',
                            'w_crucible_with_sample', 'w_sample', 'w_sample_ashed',
                            'org',  'w_petri', 'w_petri_with_sample',
-                           'residue', 'caco3']
+                           'residue', 'caco3', 'version']
 
 PLM_WEIGHT_UPDATE_FIELDS = [*PLM_WEIGHT_CREATE_FIELDS, 'id']
 
@@ -155,9 +155,13 @@ class PlmTemAnalysisTableSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlmSample
         fields = ['id', 'row_number', 'tem_is_qc_sample', 'is_blank', 'client_sample',
-                  'lab_sample', 'layer', 'homo_area', 'weight__residue', 'tem_asb_type',
-                  'tem_asb_point', 'tem_asb_percent', 'method', 'tem_microscope_alignment', 'tem_eccentricity_adjusted',
-                  'tem_grid_pre_acceptability', 'tem_grid_box', 'tem_grid_box_id_1', 'tem_grid_box_id_2', 'tem_na_or_ps']
+                  'lab_sample', 'layer', 'homo_area', 'weight__residue',
+                  'tem_asb_type_grid_1', 'tem_asb_point_grid_1', 'tem_asb_percent_grid_1',
+                  'tem_asb_type_grid_2', 'tem_asb_point_grid_2', 'tem_asb_percent_grid_2',
+                  'tem_asb_type_total', 'tem_asb_percent_total',
+                  'tem_microscope_alignment', 'tem_eccentricity_adjusted', 'tem_grid_pre_acceptability',
+                  'tem_grid_box', 'tem_grid_box_id_1', 'tem_grid_box_id_2',
+                  'tem_na_or_ps', 'tem_is_qc_sample', 'version']
 
 class PlmTemperatureSerializer(serializers.ModelSerializer):
     class Meta:

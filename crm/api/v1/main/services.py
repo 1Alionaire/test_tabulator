@@ -17,7 +17,6 @@ class MainProjectTableManager():
         self.data_to_update = input_data.get('updated', [])
         self.data_to_create = input_data.get('created', [])
         self.data_to_delete = input_data.get('deleted', [])
-        self.now_moment = timezone.now()
         self.user = user
 
     def table_update_processing(self) -> dict:
@@ -33,7 +32,7 @@ class MainProjectTableManager():
 
     def _delete_data(self):
         projects_to_delete = {project.id : project for project in
-                                            MainProject.active_objects.select_for_update().filter(pk__in=self.data_to_delete)}
+                                            MainProject.active_objects.select_for_update().filter(pk__in=self.data_to_delete).order_by('id')}
 
         for project in projects_to_delete.values():
             previous_lab_id = project.lab_id
@@ -41,12 +40,11 @@ class MainProjectTableManager():
             setattr(project, 'lab_id', new_lab_id)
             setattr(project, 'lab_id_sort', MainProject._make_sort_key(new_lab_id))
             setattr(project, 'deleted', True)
-            setattr(project, 'time_update', self.now_moment)
-            setattr(project, 'version', project.version+1) #version change by alibek
+            project += 1 #version change by alibek
             MainProjectDeleteSignal(project).delete_secondary_info()
 
         return MainProject.active_objects.bulk_update(
-            projects_to_delete.values(), sorted({'lab_id', 'lab_id_sort', 'deleted', 'time_update', 'version'})
+            projects_to_delete.values(), sorted({'lab_id', 'lab_id_sort', 'deleted', 'version'})
         )
 
     def _update_data(self):
@@ -69,11 +67,10 @@ class MainProjectTableManager():
                     new_lab_id_sort = MainProject._make_sort_key(value)
                     setattr(project, 'lab_id_sort', new_lab_id_sort)
                     touched_fields.add('lab_id_sort')
-            setattr(project, 'time_update', self.now_moment)
-            setattr(project, 'version', project.version+1)
+            project.version += 1
 
         return MainProject.active_objects.bulk_update(
-            projects_to_update.values(), sorted(touched_fields | {'time_update', 'version'})
+            projects_to_update.values(), sorted(touched_fields | {'version'})
         )
 
     def _create_data(self):
@@ -82,12 +79,9 @@ class MainProjectTableManager():
         for data in self.data_to_create:
             lab_id_sort = MainProject._make_sort_key(data['lab_id'])
             saved_projects.append(MainProject(status=MainProjectStatus.New,
-                                              time_create=self.now_moment,
-                                              time_update=self.now_moment,
                                               deleted=False,
                                               login_by=self.user,
                                               lab_id_sort = lab_id_sort,
-                                              version = 1,
                                               **data))
 
         MainProject.objects.bulk_create(saved_projects)

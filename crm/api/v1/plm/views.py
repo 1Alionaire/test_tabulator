@@ -89,7 +89,7 @@ class PlmAnalystAPI(generics.RetrieveUpdateAPIView):
                         date_analyze=now_time,
                         time_update=now_time)
 
-class PlmSampleDataEntry(APIView):
+class PlmSampleDataEntry(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, id):
         samples_data = PlmSample.objects.filter(plm_project=get_active_project(id, 'plm'))
@@ -105,11 +105,13 @@ class PlmSampleDataEntry(APIView):
             result = PLMSamplesEntryManager(plm_project=project,
                                             input_data=data,
                                             mode='patch').table_update_processing()
+        except VersionConflictError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except PlmEntrySampleError as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except InterruptedError:
             return Response(
-                {"detail": "Data integrity constraint violation."},
+                {"error": "Data integrity constraint violation."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -134,7 +136,7 @@ class PlmSampleDataEntry(APIView):
 
         return Response(result, status=status.HTTP_200_OK)
 
-class PlmSampleWeightAPI(APIView):
+class PlmSampleWeightAPI(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, id):
         samples_data = PlmSampleWeight.objects.filter(plm_project=get_active_project(id, 'plm'))

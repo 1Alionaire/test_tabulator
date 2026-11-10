@@ -72,7 +72,7 @@ class MainProjectAPIList(generics.ListAPIView):
             'company'
         )
 
-class MainProjectChangesView(APIView):
+class MainProjectChangesView(generics.GenericAPIView):
     def post(self, request):
         serializer = MainProjectChangesSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

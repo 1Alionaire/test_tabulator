@@ -2,6 +2,7 @@ from finance.models import Company
 from django.db import transaction
 from django.utils.text import slugify
 from django.utils import timezone
+from api.v1.utils import check_versions
 
 class CompanyPriceTableManager():
     def __init__(self, input_data):
@@ -9,7 +10,6 @@ class CompanyPriceTableManager():
         self.data_to_update = input_data.get('updated', [])
         self.data_to_create = input_data.get('created', [])
         self.data_to_delete = input_data.get('deleted', [])
-        self.now_moment = timezone.now()
 
     def table_update_processing(self) -> dict:
         result = {'status': 'ok'}
@@ -26,18 +26,19 @@ class CompanyPriceTableManager():
         touched_fields = set()
 
         companies_to_update = {project.id : project for project in
-                               Company.objects.select_for_update().filter(pk__in=id_list)}
+                               Company.objects.select_for_update().filter(pk__in=id_list).order_by('id')}
 
+        check_versions(companies_to_update, work_data)
         for record_row in work_data:
             company = companies_to_update[int(record_row.get('id'))]
             for name_field, value in record_row.items():
                 if name_field != 'id':
                     setattr(company, name_field, value)
                     touched_fields.add(name_field)
-            setattr(company, 'time_update', self.now_moment)
+            company.version += 1
 
         return Company.objects.bulk_update(
-            companies_to_update.values(), sorted(touched_fields | {'time_update'})
+            companies_to_update.values(), sorted(touched_fields | {'version'})
         )
 
     def _create_data(self) -> int:

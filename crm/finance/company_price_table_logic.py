@@ -55,7 +55,7 @@ class CompanyPriceTableManager():
         touched_fields = set()
 
         companies_to_update = {project.id : project for project in 
-                                Company.objects.select_for_update().filter(pk__in=id_list)}
+                                Company.objects.select_for_update().filter(pk__in=id_list).order_by('id')}
 
         for record_row in work_data:
             company = companies_to_update[int(record_row.get('id'))]

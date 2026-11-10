@@ -5,7 +5,7 @@ from api.v1.main.serializers import UserChoiceSerializer
 from users.models import User
 
 PCM_DATA_ENTRY_CREATE_FIELDS = ['client_sample', 'row_number', 'lab_sample', 'iwa_owa',
-              'location', 'time_in', 'time_out', 'flow_rate_before', 'flow_rate_after']
+              'location', 'time_in', 'time_out', 'flow_rate_before', 'flow_rate_after', 'version']
 
 PCM_DATA_ENTRY_UPDATE_FIELDS = [*PCM_DATA_ENTRY_CREATE_FIELDS, 'id']
 

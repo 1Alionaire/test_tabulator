@@ -99,11 +99,10 @@ class PCMSamplesDataEntryManager():
     # same two save modes as PLM data entry:
     # 'update'      - edited saved rows + new rows added at the end of the table
     # 'put' - rows were deleted or inserted above saved rows: the whole table replaces
-    #                 every sample of the project, analysis results are not kept
+    #  every sample of the project, analysis results are not kept
     def __init__(self, pcm_project, input_data, mode):
         self.pcm_project = pcm_project
         self.mode = mode
-        self.now_moment = timezone.now()
         if mode == 'update':
             self.data_to_update = input_data.get('updated', [])
             self.data_to_create = input_data.get('created', [])
@@ -128,7 +127,7 @@ class PCMSamplesDataEntryManager():
         update_ids = {int(item['id']) for item in self.data_to_update}
 
         samples = {sample.id : sample for sample in
-                    PcmSample.objects.select_for_update().filter(pcm_project=self.pcm_project, pk__in=update_ids)}
+                    PcmSample.objects.select_for_update().filter(pcm_project=self.pcm_project, pk__in=update_ids).order_by('pk')}
 
         check_versions(samples, self.data_to_update)
         touched_fields = set()
@@ -138,12 +137,11 @@ class PCMSamplesDataEntryManager():
                 if field_name != 'id':
                     setattr(sample, field_name, value)
                     touched_fields.add(field_name)
-            setattr(sample, 'time_update', self.now_moment)
             calculate_sample_results(sample)
 
         # volume and results are recalculated from the edited fields
         return PcmSample.objects.bulk_update(
-            samples.values(), sorted(touched_fields | {'sample_volume', 'time_update'})
+            samples.values(), sorted(touched_fields | {'sample_volume'})
         )
 
     def _create_data(self):
@@ -189,10 +187,12 @@ class PCMSamplesAnalysisManager():
         with transaction.atomic():
             update_ids = {int(row['id']) for row in self.data}
             samples = {sample.id : sample for sample in
-                        PcmSample.objects.select_for_update().filter(pcm_project=self.pcm_project, pk__in=update_ids)}
+                        PcmSample.objects.select_for_update().filter(pcm_project=self.pcm_project, pk__in=update_ids).order_by('pk')}
 
             z_criterion = self.pcm_project.z_criterion_record
             sr = z_criterion.relative_std_deviation_low if z_criterion else None
+
+            check_versions(samples, self.data)
 
             now = timezone.now()
             for row in self.data:
@@ -201,9 +201,9 @@ class PCMSamplesAnalysisManager():
                 calculate_sample_results(sample)
                 sample.qc_accept_or_reject = calculate_qc_accept_or_reject(
                     sample.fiber_per_mm, sample.qc_fiber_per_mm, sr)
-                sample.time_update = self.now_moment
+                sample.version += 1
 
             result['updated'] = PcmSample.objects.bulk_update(
-                samples.values(), sorted(PCM_ANALYSIS_FIELDS | PCM_RESULT_FIELDS | {'sample_volume', 'time_update'})
+                samples.values(), sorted(PCM_ANALYSIS_FIELDS | PCM_RESULT_FIELDS | {'sample_volume', 'version'})
             )
         return result

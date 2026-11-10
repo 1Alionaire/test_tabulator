@@ -80,6 +80,11 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
               field:"row_number", 
               visible: false
             },
+            {
+              title:"Version",
+              field:"version",
+              visible: false
+            },
             { 
               title:"Client ID", 
               field:"client_sample", 
@@ -251,11 +256,11 @@ async function entrySaveChanges() {
       if (resultJSON.updated) {resultMessage += `Updated: ${resultJSON.updated}`};
       if (resultJSON.created) {resultMessage += `Created: ${resultJSON.created}`};
 
-      let dirtyRows = []
+      dirtyRows.splice(0);
       dataEntryTable.setData(URLS.dataEntryURL);
-      dirtyRows.length = 0;
       entryDeletedIds.clear();
-      showToast("Refreshed", "success");
+      entryDeletedIdsInEnd.clear();
+      // showToast("Refreshed", "success");
       nobTable.setData(URLS.nobGetURL);
       temTable.setData(URLS.temGetURL);
 

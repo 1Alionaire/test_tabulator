@@ -15,7 +15,7 @@ from api.v1.finance.services import CompanyPriceTableManager
 class CompanyPriceError(Exception):
     pass
 
-class CompanyPriceTableView(APIView):
+class CompanyPriceTableView(generics.GenericAPIView):
     def get(self, request):
         samples_data = Company.objects.all().order_by('name')
         serializer = CompanyGetListSerializer(samples_data, many=True)

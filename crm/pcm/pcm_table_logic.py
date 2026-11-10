@@ -26,7 +26,7 @@ class PCMTimeTableManager():
         id_list = [element.get('id') for element in work_data]
 
         records_for_update = {record.id : record for record in 
-                                            PcmSampleTimeTableRecord.objects.select_for_update().filter(pk__in=id_list)}
+                                            PcmSampleTimeTableRecord.objects.select_for_update().filter(pk__in=id_list).order_by('id')}
 
         for record_row in work_data:
             sample = records_for_update[int(record_row.get('id'))]

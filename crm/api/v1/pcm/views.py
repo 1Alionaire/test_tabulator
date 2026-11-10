@@ -1,11 +1,13 @@
 from datetime import datetime
 import django
+from debug_toolbar.store import serialize
 from django.db.models import F
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from rest_framework import status, generics
 
 from rest_framework.response import Response
+from rest_framework.serializers import BaseSerializer
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
@@ -69,10 +71,17 @@ class PcmAnalystAPI(generics.RetrieveUpdateAPIView):
                         )
 
 # PCM Data Entry table API
-class PcmSampleDataEntry(APIView):
+class PcmSampleDataEntry(generics.GenericAPIView):
+    # serializer_class = PcmDataEntryGetListSerializer
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return PcmDataEntryGetListSerializer
+        return PcmDataEntryManagerSerializer
+
     def get(self, request, id):
         samples_data = PcmSample.objects.filter(pcm_project=get_active_project(id, "pcm"))
-        serializer = PcmDataEntryGetListSerializer(samples_data, many=True)
+        # serializer = PcmDataEntryGetListSerializer(samples_data, many=True)
+        serializer = self.get_serializer(samples_data, many=True)
         return Response(serializer.data)
 
     def patch(self, request, id):
@@ -109,7 +118,7 @@ class PcmSampleDataEntry(APIView):
 
         return Response(result, status=status.HTTP_200_OK)
 
-class PcmSampleAnalysis(APIView):
+class PcmSampleAnalysis(generics.GenericAPIView):
     def get(self, request, id):
         samples_data = PcmSample.objects.filter(pcm_project=get_active_project(id, "pcm"))
         serializer = PcmAnalysisGetListSerializer(samples_data, many=True)
@@ -132,7 +141,7 @@ class PcmSampleAnalysis(APIView):
             )
         return Response(result, status=status.HTTP_200_OK)
 
-class PcmSampleQc(APIView):
+class PcmSampleQc(generics.GenericAPIView):
     def get(self, request, id):
         samples_data = PcmSample.objects.filter(pcm_project=get_active_project(id, "pcm"))
         serializer = PcmQCGetListSerializer(samples_data, many=True)
