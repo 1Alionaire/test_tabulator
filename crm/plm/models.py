@@ -89,6 +89,7 @@ class SampleASbestosType(models.IntegerChoices):
     Trem = 6, 'Tremolite'
     Act = 7, 'Actinolite'
     NotAnalyzed = 8, 'Not analyzed'
+    NotSubmitted = 9, 'Not submitted'
 
 class SampleTexture(models.IntegerChoices):
     NonFibs = 1, 'Non-Fibs'
@@ -205,6 +206,8 @@ class PlmSample(BaseModel):
     tem_is_qc_sample = models.BooleanField(default=False)
 
     def __str__(self):
+        if self.lab_sample is None or self.lab_sample == "":
+            return self.client_sample
         return self.lab_sample
 
 

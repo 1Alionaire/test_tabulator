@@ -14,10 +14,10 @@ function checkTEMforPS(cell) {
   if (cell.getRow().getData().tem_na_or_ps != 'PS') return true
 }
 
-function fillTEMAsbResultSamplesSameHA (table, homo_area, type) {
+function fillTEMAsbResultSamplesSameHA (table, selectedHomo_area, type) {
     for (row of table ) {
-        if (row.getData().homo_area  == homo_area) {
-            if (type == 'fill') {
+        if (row.getData().homo_area === selectedHomo_area && row.getData().tem_asb_type_total != 9) {
+            if (type === 'fill') {
                 row.update({tem_na_or_ps:'PS'})
             } else {
                 row.update({tem_na_or_ps:''})
@@ -25,6 +25,9 @@ function fillTEMAsbResultSamplesSameHA (table, homo_area, type) {
         };
     };
 }
+
+asbestosTypeNumbers = [2, 3, 4, 5, 6, 7]
+samplesTypeObject = Object.fromEntries(tableOptions['sampleAsbestosType'].map(o => [o.value, o.label]));
 
 temTable = new Tabulator("#samples-tem-table", {
         rowHeader: {
@@ -122,7 +125,7 @@ temTable = new Tabulator("#samples-tem-table", {
                   field:"tem_asb_type_grid_1",
                   width: 80,
                   formatter: "lookup",
-                  formatterParams: Object.fromEntries(tableOptions['sampleAsbestosType'].map(o => [o.value, o.label])),
+                  formatterParams: samplesTypeObject,
                   editor: "list",
                   headerSort: false,
                   editable: checkTEMforPS,
@@ -153,7 +156,7 @@ temTable = new Tabulator("#samples-tem-table", {
                   field:"tem_asb_type_grid_2",
                   width: 80,
                   formatter: "lookup",
-                  formatterParams: Object.fromEntries(tableOptions['sampleAsbestosType'].map(o => [o.value, o.label])),
+                  formatterParams: samplesTypeObject,
                   editor: "list",
                   headerSort: false,
                   editable: checkTEMforPS,
@@ -262,55 +265,32 @@ temTable = new Tabulator("#samples-tem-table", {
 
     temTable.on("tableBuilt", () => bindTypeToEdit(temTable)); 
 
-
     temTable.on("cellEdited", function(cell) {
         let currentRow = cell.getRow();
         const tableData = temTable.getRows();
+        let weight_residue = Number(currentRow.getData().weight__residue)
+        let var_homogenity = cell.getRow().getData().homo_area;
+        let getCurrentPosition = cell.getRow().getPosition()
 
-        if (cell.getField() === 'tem_asb_point_grid_1') {
-          if ([2, 3, 4, 5, 6, 7].includes(currentRow.getData().tem_asb_type_grid_1)) {
-            result = Math.round((+(cell.getValue()) * (Number(currentRow.getData().weight__residue)) / 100 ) * 100) / 100;
-            if (isFinite(result)) {
-                currentRow.update({tem_asb_percent_grid_1:result});
-            }
-            else {
-                currentRow.update({tem_asb_percent_grid_1:0});
-            }
+        if (cell.getField() === 'tem_asb_point_grid_1' || cell.getField() === 'tem_asb_point_grid_2') {
+          if (asbestosTypeNumbers.includes(currentRow.getData().tem_asb_type_grid_1) || asbestosTypeNumbers.includes(currentRow.getData().tem_asb_type_grid_2)) {
+            currentRow.update({tem_asb_percent_grid_1:calcTEMAsbPercent(currentRow.getData().tem_asb_point_grid_1, weight_residue)});
+            currentRow.update({tem_asb_percent_grid_2:calcTEMAsbPercent(currentRow.getData().tem_asb_point_grid_2, weight_residue)});
           };
 
-          if (Number(currentRow.getData().tem_asb_percent_grid_1) < 1) {
-              let var_homogenity = cell.getRow().getData().homo_area;
-              let getCurrentPosition = cell.getRow().getPosition() 
+          currentRow.update({tem_asb_percent_total:updateTEMAsbResultPercent(currentRow)});
+          currentRow.update({tem_asb_type_total:updateTEMAsbResultType(currentRow, samplesTypeObject)})
+
+          if (Number(currentRow.getData().tem_asb_percent_total) < 1) {
               fillTEMAsbResultSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'delete');
           } else {
-              let var_homogenity = cell.getRow().getData().homo_area;
-              let getCurrentPosition = cell.getRow().getPosition() 
               fillTEMAsbResultSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'fill');
           }
         };
 
-        if (cell.getField() === 'tem_asb_point_grid_2') {
-          if ([2, 3, 4, 5, 6, 7].includes(currentRow.getData().tem_asb_type_grid_2)) {
-            result = Math.round((+(cell.getValue()) * (Number(currentRow.getData().weight__residue)) / 100 ) * 100) / 100;
-            if (isFinite(result)) {
-                currentRow.update({tem_asb_percent_grid_2:result});
-            }
-            else {
-                currentRow.update({tem_asb_percent_grid_2:0});
-            }
-          };
-
-          if (Number(currentRow.getData().tem_asb_percent_grid_2) < 1) {
-              let var_homogenity = cell.getRow().getData().homo_area;
-              let getCurrentPosition = cell.getRow().getPosition()
-              fillTEMAsbResultSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'delete');
-          } else {
-              let var_homogenity = cell.getRow().getData().homo_area;
-              let getCurrentPosition = cell.getRow().getPosition()
-              fillTEMAsbResultSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'fill');
-          }
-        };
-
+        if (cell.getField() === 'tem_asb_type_grid_1' || cell.getField() === 'tem_asb_type_grid_2') {
+            currentRow.update({tem_asb_type_total:updateTEMAsbResultType(currentRow, samplesTypeObject)})
+        }
 
         if (cell.getField() === 'tem_grid_box_id_1') {
           currentRow.update({tem_grid_box_id_2:all_grid_ids[cell.getValue()]});
@@ -318,6 +298,57 @@ temTable = new Tabulator("#samples-tem-table", {
     });
 
 })();
+
+function updateTEMAsbResultPercent(inputCurrentRow) {
+    let percent_1 = inputCurrentRow.getData().tem_asb_percent_grid_1;
+    let percent_2 = inputCurrentRow.getData().tem_asb_percent_grid_2;
+    if (percent_1 != NaN) percent_1 = 0;
+    if (percent_2 != NaN) percent_2 = 0;
+    result = Math.round((+((inputCurrentRow.getData().tem_asb_percent_grid_1) + (inputCurrentRow.getData().tem_asb_percent_grid_2)) / 2) * 100) / 100;
+    if (isFinite(result)) {
+        return result;
+    }
+    else {
+        return 0;
+    }
+}
+
+function updateTEMAsbResultType(inputCurrentRow, tableOptions) {
+    let type1 = inputCurrentRow.getData().tem_asb_type_grid_1;
+    let type2 = inputCurrentRow.getData().tem_asb_type_grid_2;
+    if (isEmpty(type2) || type2 === 1) {
+        if (asbestosTypeNumbers.includes(type1)) {
+            return tableOptions[type1]
+        }
+    }
+    else if (isEmpty(type1) || type1 === 1) {
+        if (asbestosTypeNumbers.includes(type2)) {
+            return tableOptions[type2]
+        }
+    }
+    else {
+        if (type1 == type2) {
+            if (asbestosTypeNumbers.includes(type1)) {
+                return tableOptions[type1]
+            }
+        }
+        else {
+            if (asbestosTypeNumbers.includes(type1) && asbestosTypeNumbers.includes(type2)) {
+                return tableOptions[type1].concat('/', tableOptions[type2])
+            }
+        }
+    };
+}
+
+function calcTEMAsbPercent (inputPoint, residue) {
+    let result = Math.round((+(inputPoint) * residue / 100 ) * 100) / 100;
+    if (isFinite(result)) {
+        return result;
+    }
+    else {
+        return 0;
+    }
+}
 
 document.getElementById("tem-save-toggle").addEventListener("click", temSaveChanges);
 

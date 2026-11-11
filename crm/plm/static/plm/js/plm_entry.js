@@ -147,20 +147,26 @@ dataEntryTable = new Tabulator("#samples-data-entry-table", {
           markDirty(cell.getRow(), cell.getField());
         }
         else {
-          if (!dirtyRows.includes(cell.getRow().getData())) {
-            dirtyRows.push(cell.getRow().getData());
-          };
-        };
+            if (!dirtyRows.includes(row.getData())) {
+                dirtyRows.push(cell.getRow().getData());
+            };
+        }
       });
 
       dataEntryTable.on("clipboardPasted", (clipboard, rowData, rows) => {
         const fields = new Set(rowData.flatMap(Object.keys));
 
         rows.forEach((row) => {
-          fields.forEach((field) => markDirty(row, field));
-          if (!dirtyRows.includes(row.getData())) {
-            dirtyRows.push(row.getData());
-          };
+          fields.forEach((field) =>  {
+              if (row.getData().id) {
+                markDirty(row, field);
+              }
+              else {
+                if (!dirtyRows.includes(row.getData())) {
+                  dirtyRows.push(row.getData());
+                };
+              };
+          });
         });
     });
 })();

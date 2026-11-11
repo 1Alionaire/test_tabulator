@@ -1,11 +1,10 @@
 from datetime import datetime
 import django
-from django.db.models import F
+from django.db.models import F, Q
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from rest_framework import status, generics
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from api.v1.main.views import MainProjectAPIList
 
@@ -22,7 +21,6 @@ from api.v1.plm.serializers import (PlmMainProjectSerializer, # Main project in 
                                     PlmProjectFormSerializer)
 
 from main.models import MainProject, MainTypeAnalysis, MainProjectStatus
-from pcm.models import PcmSample
 from plm.models import (PlmProject,
                         SampleMethod,
                         SampleASbestosType,
@@ -43,6 +41,7 @@ from api.v1.utils import get_active_project
 from api.v1.plm.services import (PLMSamplesEntryManager,
                                  PLMSamplesWeightManager,
                                  update_plm_nob_tem_analysis)
+from django.utils import timezone
 
 class PlmEntrySampleError(Exception):
     pass
@@ -83,16 +82,16 @@ class PlmAnalystAPI(generics.RetrieveUpdateAPIView):
     def perform_update(self, serializer):
         project = get_active_project(self.kwargs['id'], "plm")
         analyst = self.request.user
-        now_time = django.utils.timezone.now()
         MainProjectUpdateSignal(project).update_status(MainProjectStatus.InProcess)
         serializer.save(analyst=analyst,
-                        date_analyze=now_time,
-                        time_update=now_time)
+                        date_analyze=timezone.now())
 
 class PlmSampleDataEntry(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, id):
-        samples_data = PlmSample.objects.filter(plm_project=get_active_project(id, 'plm'))
+        samples_data = PlmSample.objects.filter(plm_project=get_active_project(id, 'plm')).exclude(Q(is_qc_sample=True) |
+                                                                                                   Q(tem_is_qc_sample=True) |
+                                                                                                   Q(is_blank=True))
         serializer = PlmSampleEntryGetListSerializer(samples_data, many=True)
         return Response(serializer.data)
 
@@ -151,6 +150,8 @@ class PlmSampleWeightAPI(generics.GenericAPIView):
             project = get_active_project(id, "plm")
             result = PLMSamplesWeightManager(plm_project=project,
                                             input_data=data).table_update_processing()
+        except VersionConflictError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except PlmEntrySampleError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except InterruptedError:
@@ -183,6 +184,8 @@ class PlmNobAnalysisApi(generics.ListAPIView):
             result = update_plm_nob_tem_analysis(data, project)
         except PlmEntrySampleError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except VersionConflictError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except InterruptedError:
             return Response(
                 {"detail": "Data integrity constraint violation."},
@@ -213,6 +216,8 @@ class PlmTemAnalysisApi(generics.ListAPIView):
             result = update_plm_nob_tem_analysis(data, project)
         except PlmEntrySampleError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except VersionConflictError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except InterruptedError:
             return Response(
                 {"detail": "Data integrity constraint violation."},

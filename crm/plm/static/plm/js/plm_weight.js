@@ -235,7 +235,8 @@ function weightCollectChanges() {
                         w_petri:returnNull(data.w_petri),
                         w_petri_with_sample:returnNull(data.w_petri_with_sample),
                         residue:returnNull(data.residue),
-                        caco3 : returnNull(data.caco3)};
+                        caco3 : returnNull(data.caco3),
+                        version: data.version};
 
     // in case its new cell
     if (isEmpty(String(data.id)) || data.id === undefined || data.id === null ) {
