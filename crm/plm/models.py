@@ -168,7 +168,7 @@ class PlmSample(BaseModel):
     other_fiber_percent = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, default=0)
 
     # asb info
-    asb_type = models.PositiveSmallIntegerField(choices=SampleASbestosType, default = SampleASbestosType.NAD , null=True, blank=True)
+    asb_type = models.PositiveSmallIntegerField(choices=SampleASbestosType, default = SampleASbestosType.NAD)
     asb_point_1 = models.PositiveSmallIntegerField(default=50)
     asb_point_2 = models.PositiveSmallIntegerField(default=50)
     asb_point_3 = models.PositiveSmallIntegerField(default=50)

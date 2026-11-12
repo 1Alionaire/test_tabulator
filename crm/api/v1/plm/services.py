@@ -195,20 +195,17 @@ def update_plm_nob_tem_analysis(payload_json, selected_plm_project, type='nob'):
                     record_row[field] = PlmSample._meta.get_field(field).get_default()
                 setattr(sample, field, record_row[field])
 
-            if 'tem_grid_box' in record_row and 'tem_grid_box_id_1' in record_row and 'tem_grid_box_id_2' in record_row:
-                TEMGridRecord.objects.filter(grid_box=record_row['tem_grid_box'],
-                                             grid_id_1=record_row['tem_grid_box_id_1'],
-                                             grid_id_2=record_row['tem_grid_box_id_2'],
-                                             qc=False).update(
-                    plm_tem_project=selected_plm_project,
-                    plm_tem_sample=sample,
-                    filled=True,
-                )
+            TEMGridRecord.objects.filter(grid_box=record_row['tem_grid_box'],
+                                         grid_id_1=record_row['tem_grid_box_id_1'],
+                                         grid_id_2=record_row['tem_grid_box_id_2'],
+                                         qc=False).update(
+                plm_tem_project=selected_plm_project,
+                plm_tem_sample=sample,
+                filled=True,
+            )
 
             sample.version += 1
 
-        calculate_plm_nob_analysis(samples_to_update.values())
-        mark_not_analyzed_samples(list(samples_to_update.values()))
         PlmSample.objects.bulk_update(samples_to_update.values(), FIELDS_NOB_FOR_UPDATE + FIELDS_NOB_FOR_CALCULATE)
 
         return {'updated': len(payload_json)}
@@ -315,24 +312,22 @@ def calculate_plm_nob_analysis(samples):
 def mark_not_analyzed_samples(samples):
     for sample in samples:
         if (sample.asb_type in ASB_TYPES_ARRAY and sample.asb_percent > 1):
-            if (sample.method != SampleMethod.Sample1981):
-                sample.tem_na_or_ps = 'PS'
+            sample.tem_na_or_ps = 'PS'
             index = samples.index(sample)
             for another_sample in samples[index + 1:]:
                 if another_sample.is_original_sample():
                     if ( another_sample.homo_area == sample.homo_area
                       and another_sample.asb_type != SampleASbestosType.NotSubmitted):
+                        print(f'lab sample: {another_sample.lab_sample}')
                         another_sample.asb_type = SampleASbestosType.NotAnalyzed
-                        if (another_sample.method != SampleMethod.Sample1981):
-                            another_sample.tem_na_or_ps = 'PS'
-        else:
+                        another_sample.tem_na_or_ps = 'PS'
+
+        elif sample.asb_type in [SampleASbestosType.NAD, SampleASbestosType.NotSubmitted]:
+            sample.tem_na_or_ps = None
             index = samples.index(sample)
-            if (sample.method != SampleMethod.Sample1981):
-                sample.tem_na_or_ps = 'PS'
             for another_sample in samples[index + 1:]:
                 if another_sample.is_original_sample():
                     if ( another_sample.homo_area == sample.homo_area
                       and another_sample.asb_type == SampleASbestosType.NotAnalyzed):
                         another_sample.asb_type = SampleASbestosType.NAD
-                        if (another_sample.method != SampleMethod.Sample1981):
-                            another_sample.tem_na_or_ps = None
+                        another_sample.tem_na_or_ps = None
