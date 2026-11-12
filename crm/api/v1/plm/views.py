@@ -1,12 +1,13 @@
 from datetime import datetime
 import django
-from django.db.models import F, Q
+from django.db.models import F
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from rest_framework import status, generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from api.v1.main.views import MainProjectAPIList
+from api.v1.utils import VersionConflictError
 
 from api.v1.plm.serializers import (PlmMainProjectSerializer, # Main project in main page
                                     PlmAnalystSerializer,
@@ -89,9 +90,7 @@ class PlmAnalystAPI(generics.RetrieveUpdateAPIView):
 class PlmSampleDataEntry(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, id):
-        samples_data = PlmSample.objects.filter(plm_project=get_active_project(id, 'plm')).exclude(Q(is_qc_sample=True) |
-                                                                                                   Q(tem_is_qc_sample=True) |
-                                                                                                   Q(is_blank=True))
+        samples_data = PlmSample.original_samples.filter(plm_project=get_active_project(id, 'plm'))
         serializer = PlmSampleEntryGetListSerializer(samples_data, many=True)
         return Response(serializer.data)
 
@@ -181,7 +180,7 @@ class PlmNobAnalysisApi(generics.ListAPIView):
         data = serializer.validated_data
         try:
             project = get_active_project(id, "plm")
-            result = update_plm_nob_tem_analysis(data, project)
+            result = update_plm_nob_tem_analysis(data, project, type='nob')
         except PlmEntrySampleError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except VersionConflictError as e:
@@ -213,7 +212,7 @@ class PlmTemAnalysisApi(generics.ListAPIView):
         data = serializer.validated_data
         try:
             project = get_active_project(id, "plm")
-            result = update_plm_nob_tem_analysis(data, project)
+            result = update_plm_nob_tem_analysis(data, project, type='tem')
         except PlmEntrySampleError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except VersionConflictError as e:

@@ -65,7 +65,6 @@ class MainProjectStatus(models.IntegerChoices):
     Overdue = 3, 'Overdue'
     Done = 4, 'Done'
 
-
 class ActiveProject(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(deleted=False)

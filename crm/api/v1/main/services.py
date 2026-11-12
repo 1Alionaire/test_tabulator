@@ -75,7 +75,6 @@ class MainProjectTableManager():
 
     def _create_data(self):
         saved_projects = []
-
         for data in self.data_to_create:
             lab_id_sort = MainProject._make_sort_key(data['lab_id'])
             saved_projects.append(MainProject(status=MainProjectStatus.New,

@@ -131,6 +131,18 @@ class PlmWeightManagerSerializer(serializers.Serializer):
         max_length=500,
     )
 
+READ_ONLY_NOB_FIELDS = ['id', 'row_number', 'client_sample', 'lab_sample',
+                            'layer', 'homo_area', 'morphology', 'ri_alpha_oil',
+                            'ri_delta_oil', 'sign_of_elongation', 'extinction_angle', 'pleochroism_color',
+                            'birefringence', 'other_fiber_property', 'asb_percent', 'method', 'weight__residue']
+
+ALL_NOB_FIELDS = [*READ_ONLY_NOB_FIELDS,
+                  'color', 'texture', 'other_fiber', 'other_fiber_percent',
+                  'asb_type', 'method', 'weight__residue',
+                  'asb_point_1', 'asb_point_2', 'asb_point_3', 'asb_point_4',
+                  'asb_point_5', 'asb_point_6', 'asb_point_7', 'asb_point_8',
+                  'version', 'analysis_temperature']
+
 class PlmNobAnalysisTableSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(min_value=1)
     weight__residue = serializers.DecimalField(
@@ -139,12 +151,8 @@ class PlmNobAnalysisTableSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = PlmSample
-        fields = ['id', 'row_number', 'tem_na_or_ps', 'client_sample', 'lab_sample',
-                  'layer', 'color', 'texture', 'homo_area', 'morphology',
-                  'ri_alpha_oil', 'ri_delta_oil', 'sign_of_elongation', 'extinction_angle', 'pleochroism_color',
-                  'birefringence', 'other_fiber', 'other_fiber_property', 'other_fiber_percent', 'asb_type',
-                  'asb_point_1', 'asb_point_2', 'asb_point_3', 'asb_point_4', 'asb_point_5', 'asb_point_6', 'asb_point_7', 'asb_point_8',
-                  'asb_percent', 'method', 'weight__residue' ]
+        fields = ALL_NOB_FIELDS
+        read_only_fields = READ_ONLY_NOB_FIELDS
 
 class PlmTemAnalysisTableSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(min_value=1)

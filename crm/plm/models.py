@@ -127,8 +127,9 @@ class SampleOtherFiber(models.IntegerChoices):
 class SampleOtherFiberProperty(models.IntegerChoices):
     Isotropic = 1, 'Isotropic'
     Ribbon = 2, 'Ribbon'
-    Medula = 3, 'Medula'
-    Cylindrical = 4, 'Cylindrical'
+    Cylindrical = 3, 'Cylindrical'
+    Medula = 4, 'Medula'
+
 
 class PlmSample(BaseModel):
     #general data
@@ -210,6 +211,11 @@ class PlmSample(BaseModel):
             return self.client_sample
         return self.lab_sample
 
+    def is_original_sample(self):
+        if self.is_qc_sample == False and self.tem_is_qc_sample == False and self.is_blank == False:
+            return True
+        else:
+            return False
 
 # Weights
 class PlmSampleWeight(BaseModel):

@@ -66,9 +66,9 @@ function fillTEMPSSamplesSameHA (table, homo_area, type) {
 }
 
 function checkFirstFourPoints(cell) {
-  if (cell.getRow().getData().asb_point_1 == '50' && 
-      cell.getRow().getData().asb_point_2 == '50' && 
-      cell.getRow().getData().asb_point_3 == '50' && 
+  if (cell.getRow().getData().asb_point_1 == '50' &&
+      cell.getRow().getData().asb_point_2 == '50' &&
+      cell.getRow().getData().asb_point_3 == '50' &&
       cell.getRow().getData().asb_point_4 == '50' ) return true
 }
 
@@ -105,12 +105,23 @@ nobTable = new Tabulator("#samples-nob-table", {
             {
               title:"ID", 
               field:"id", 
-              width: 80, 
-              headerSort: false,
+              width: 80,
               visible: false
             },
             {
-              title:"Row Number", 
+              title:"Version",
+              field:"version",
+              width: 80,
+              visible: false
+            },
+            {
+              title:"Temperature",
+              field:"analysis_temperature",
+              width: 80,
+              visible: false
+            },
+            {
+              title:"Row Number",
               field:"row_number", 
               width: 80, 
               headerSort: false,
@@ -391,15 +402,11 @@ nobTable = new Tabulator("#samples-nob-table", {
         const tableData = nobTable.getRows();
 
         if (cell.getField() === 'other_fiber') {
-            if (cell.getValue() == null) {currentRow.update({other_fiber_property:null})};
-            if (cell.getValue() == 1) {currentRow.update({other_fiber_property:1})};
-            if (cell.getValue() == 2) {currentRow.update({other_fiber_property:2})};
-            if (cell.getValue() == 3) {currentRow.update({other_fiber_property:4})};
-            if (cell.getValue() == 4) {currentRow.update({other_fiber_property:3})};
+            currentRow.update({other_fiber_property:cell.getValue()})
         };
 
         if (cell.getField() === 'asb_type') {
-            if (cell.getValue() == null || cell.getValue() == 1  ) {
+            if (cell.getValue() == null || cell.getValue() == 1) {
                 let var_homogenity = cell.getRow().getData().homo_area;
                 let getCurrentPosition = cell.getRow().getPosition();
 
