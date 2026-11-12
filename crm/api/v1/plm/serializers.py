@@ -143,6 +143,8 @@ ALL_NOB_FIELDS = [*READ_ONLY_NOB_FIELDS,
                   'asb_point_5', 'asb_point_6', 'asb_point_7', 'asb_point_8',
                   'version', 'analysis_temperature']
 
+
+
 class PlmNobAnalysisTableSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(min_value=1)
     weight__residue = serializers.DecimalField(
@@ -170,6 +172,8 @@ class PlmTemAnalysisTableSerializer(serializers.ModelSerializer):
                   'tem_microscope_alignment', 'tem_eccentricity_adjusted', 'tem_grid_pre_acceptability',
                   'tem_grid_box', 'tem_grid_box_id_1', 'tem_grid_box_id_2',
                   'tem_na_or_ps', 'tem_is_qc_sample', 'version']
+
+        read_only_fields = READ_ONLY_NOB_FIELDS
 
 class PlmTemperatureSerializer(serializers.ModelSerializer):
     class Meta:

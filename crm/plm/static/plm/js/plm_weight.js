@@ -220,7 +220,6 @@ function weightCollectChanges() {
 
   for (const cell of weightTable.getEditedCells()) {  // going through all edited cells
     const data = cell.getRow()?.getData();  //parse data from whole row?
-    console.log(data.id)
     if (!data) continue; // if we dont have data -> continue
 
     const clientId = String(data.client_sample);           

@@ -156,11 +156,11 @@ class PLMSamplesWeightManager():
 
 FIELDS_NOB_FOR_UPDATE = ['color', 'other_fiber', 'other_fiber_percent', 'asb_type', 'analysis_temperature',
                         'asb_point_1', 'asb_point_2', 'asb_point_3', 'asb_point_4',
-                        'asb_point_5', 'asb_point_6', 'asb_point_7', 'asb_point_8', 'texture']
+                        'asb_point_5', 'asb_point_6', 'asb_point_7', 'asb_point_8', 'texture', 'version']
 
 FIELDS_NOB_FOR_CALCULATE = ['other_fiber_property', 'ri_alpha_oil', 'ri_delta_oil', 'morphology',
                             'sign_of_elongation', 'extinction_angle', 'pleochroism_color', 'birefringence',
-                            'tem_na_or_ps', 'asb_percent', 'version']
+                            'tem_na_or_ps', 'asb_percent']
 
 FIELDS_TEM_FOR_UPDATE = []
 
@@ -315,6 +315,8 @@ def calculate_plm_nob_analysis(samples):
 def mark_not_analyzed_samples(samples):
     for sample in samples:
         if (sample.asb_type in ASB_TYPES_ARRAY and sample.asb_percent > 1):
+            if (sample.method != SampleMethod.Sample1981):
+                sample.tem_na_or_ps = 'PS'
             index = samples.index(sample)
             for another_sample in samples[index + 1:]:
                 if another_sample.is_original_sample():
@@ -325,6 +327,8 @@ def mark_not_analyzed_samples(samples):
                             another_sample.tem_na_or_ps = 'PS'
         else:
             index = samples.index(sample)
+            if (sample.method != SampleMethod.Sample1981):
+                sample.tem_na_or_ps = 'PS'
             for another_sample in samples[index + 1:]:
                 if another_sample.is_original_sample():
                     if ( another_sample.homo_area == sample.homo_area

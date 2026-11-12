@@ -502,13 +502,25 @@ nobTable = new Tabulator("#samples-nob-table", {
 
 })();
 
+const SEND_FIELDS = ['id', 'color', 'other_fiber', 'other_fiber_percent', 'asb_type', 'analysis_temperature',
+                        'asb_point_1', 'asb_point_2', 'asb_point_3', 'asb_point_4',
+                        'asb_point_5', 'asb_point_6', 'asb_point_7', 'asb_point_8', 'texture', 'version'];
+//nobTable
+function collectPayload(table) {
+  return table.getData()
+    .map((d) => Object.fromEntries(
+      SEND_FIELDS.map((f) => [f, d[f] ?? null])
+    ));
+}
+
 document.getElementById("nob-save-toggle").addEventListener("click", nobSaveChanges);
 async function nobSaveChanges() {
+    const payload = collectPayload(nobTable);
     try {
       const response = await fetch(URLS.PLMNOBAnalysisURL, {
         method: "PATCH",
         headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
-        body: JSON.stringify(nobTable.getData()),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
