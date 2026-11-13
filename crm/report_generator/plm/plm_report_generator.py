@@ -147,11 +147,14 @@ def plm_asb_status(s):
     return asb_status(s.asb_type, s.asb_percent)
 
 def tem_asb_status(s):
-    status = asb_status(s.tem_asb_type, s.tem_asb_percent)
-    # PS (positive stop) — HA уже позитивный, TEM не делали
-    if status == NAD and s.tem_na_or_ps == 'PS':
+    if s.tem_na_or_ps == 'PS':
         return NOT_ANALYZED
-    return status
+    if s.tem_asb_percent_total > 1:
+        return POSITIVE
+    if 0< s.tem_asb_percent_total < 1:
+        return TRACE
+    if s.is_sample_tem_clean():
+        return NAD
 
 def fmt_asb_result(status, asb_type, asb_percent, nad_text='NAD'):
     if status == NAD:
@@ -191,7 +194,14 @@ def fmt_nob_asb_result(s):
 def fmt_tem_asb_result(s):
     if s.method not in TEM_METHODS:
         return None
-    return fmt_asb_result(tem_asb_status(s), s.tem_asb_type, s.tem_asb_percent)
+    if s.tem_na_or_ps == 'PS':
+        return "Not Analyzed"
+    if 0 < s.tem_asb_percent_total < 1:
+        return f' Trace {s.tem_asb_type_total}'
+    if s.tem_asb_percent_total > 1:
+        return f'{s.tem_asb_percent_total}% \n {s.tem_asb_type_total}'
+    return s.tem_asb_type_total
+    # return fmt_asb_result(tem_asb_status(s), s.tem_asb_type, s.tem_asb_percent)
 
 COLUMNS = [
     ('Client\nID',          0.40 * inch, lambda s: s.client_sample,                   False),
