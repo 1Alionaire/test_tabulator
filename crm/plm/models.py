@@ -1,3 +1,5 @@
+from decimal import Decimal, ROUND_HALF_UP
+
 from django.db import models
 from main.models import BaseModel
 from django.utils import timezone
@@ -132,6 +134,60 @@ class SampleOtherFiberProperty(models.IntegerChoices):
 
 
 class PlmSample(BaseModel):
+    ASBESTOS_PARAMETERS = {
+        2: {'morphology': 1, 'sign_of_elongation': 1, 'extinction_angle': 1, 'pleochroism_color': 1,
+            'birefringence': 1},
+        3: {'morphology': 2, 'sign_of_elongation': 1, 'extinction_angle': 1, 'pleochroism_color': 1,
+            'birefringence': 2},
+        4: {'morphology': 2, 'sign_of_elongation': 2, 'extinction_angle': 1, 'pleochroism_color': 2,
+            'birefringence': 2},
+        5: {'morphology': 2, 'sign_of_elongation': 1, 'extinction_angle': 1, 'pleochroism_color': 1,
+            'birefringence': 2},
+        6: {'morphology': 2, 'sign_of_elongation': 1, 'extinction_angle': 2, 'pleochroism_color': 1,
+            'birefringence': 2},
+        7: {'morphology': 2, 'sign_of_elongation': 1, 'extinction_angle': 2, 'pleochroism_color': 1,
+            'birefringence': 2},
+    };
+
+    ASB_OIL_PARAMETERS = {2: {'delta': {19: '1.557', 20: '1.557',
+                                        21: '1.556', 22: '1.556',
+                                        23: '1.555', 24: '1.555',
+                                        25: '1.554', 26: '1.554',
+                                        27: '1.553'},
+                              'alpha': {19: '1.552', 20: '1.552',
+                                        21: '1.551', 22: '1.551',
+                                        23: '1.550', 24: '1.550',
+                                        25: '1.549', 26: '1.549',
+                                        27: '1.548'}},
+                          3: {'delta': {19: '1.700', 20: '1.700',
+                                        21: '1.699', 22: '1.699',
+                                        23: '1.698', 24: '1.698',
+                                        25: '1.698', 26: '1.698',
+                                        27: '1.697'},
+                              'alpha': {19: '1.682', 20: '1.682',
+                                        21: '1.681', 22: '1.681',
+                                        23: '1.680', 24: '1.680',
+                                        25: '1.679', 26: '1.679',
+                                        27: '1.678'}},
+                          5: {'delta': {19: '1.626', 20: '1.626',
+                                        21: '1.625', 22: '1.625',
+                                        23: '1.625', 24: '1.625',
+                                        25: '1.624', 26: '1.624',
+                                        27: '1.623'},
+                              'alpha': {19: '1.611', 20: '1.611',
+                                        21: '1.611', 22: '1.611',
+                                        23: '1.610', 24: '1.610',
+                                        25: '1.609', 26: '1.609',
+                                        27: '1.608'}},
+                          }
+
+    ASB_TYPES_ARRAY = [SampleASbestosType.Chry,
+                       SampleASbestosType.Amo,
+                       SampleASbestosType.Croc,
+                       SampleASbestosType.Anth,
+                       SampleASbestosType.Trem,
+                       SampleASbestosType.Act]
+
     #general data
     plm_project = models.ForeignKey('plm.PlmProject', on_delete=models.CASCADE, related_name='plm_samples')
     homo_area = models.CharField(max_length=7, default='', blank=True)
@@ -168,7 +224,7 @@ class PlmSample(BaseModel):
     other_fiber_percent = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, default=0)
 
     # asb info
-    asb_type = models.PositiveSmallIntegerField(choices=SampleASbestosType, default = SampleASbestosType.NAD)
+    asb_type = models.PositiveSmallIntegerField(choices=SampleASbestosType, default = SampleASbestosType.NAD, blank=True, null=True)
     asb_point_1 = models.PositiveSmallIntegerField(default=50)
     asb_point_2 = models.PositiveSmallIntegerField(default=50)
     asb_point_3 = models.PositiveSmallIntegerField(default=50)
@@ -216,6 +272,114 @@ class PlmSample(BaseModel):
             return True
         else:
             return False
+
+    @staticmethod
+    def _round(value, places='0.01'):
+        return value.quantize(Decimal(places), rounding=ROUND_HALF_UP)
+
+    def plm_nob_parameter_fill(self):
+        self.ri_alpha_oil = self.ASB_OIL_PARAMETERS[self.asb_type]['alpha'][self.analysis_temperature]
+        self.ri_delta_oil = self.ASB_OIL_PARAMETERS[self.asb_type]['delta'][self.analysis_temperature]
+        self.morphology = self.ASBESTOS_PARAMETERS[self.asb_type]['morphology']
+        self.sign_of_elongation = self.ASBESTOS_PARAMETERS[self.asb_type]['sign_of_elongation']
+        self.extinction_angle = self.ASBESTOS_PARAMETERS[self.asb_type]['extinction_angle']
+        self.pleochroism_color = self.ASBESTOS_PARAMETERS[self.asb_type]['pleochroism_color']
+        self.birefringence = self.ASBESTOS_PARAMETERS[self.asb_type]['birefringence']
+
+    def plm_nob_parameter_clean(self):
+        self.ri_alpha_oil = None
+        self.ri_delta_oil = None
+        self.morphology = None
+        self.sign_of_elongation = None
+        self.extinction_angle = None
+        self.pleochroism_color = None
+        self.birefringence = None
+        self.asb_percent = 0
+        self.asb_point_1 = 50
+        self.asb_point_2 = 50
+        self.asb_point_3 = 50
+        self.asb_point_4 = 50
+        self.asb_point_5 = 50
+        self.asb_point_6 = 50
+        self.asb_point_7 = 50
+        self.asb_point_8 = 50
+        self.tem_na_or_ps = None
+
+    def calculate_plm_nob_asb_percent(self):
+        if self.asb_point_1 == 50 and self.asb_point_2 == 50 and self.asb_point_3 == 50 and self.asb_point_4 == 50:
+            count_points = 0
+            for point in [self.asb_point_5 + self.asb_point_6 + self.asb_point_7 + self.asb_point_8]:
+                if point != 50:
+                    count_points += 1
+            self.asb_percent = PlmSample._round(Decimal(count_points / 4))
+        else:
+            sum_point = sum([self.asb_point_1, self.asb_point_2, self.asb_point_3, self.asb_point_4])
+            if self.method == SampleMethod.Sample1981:
+                self.asb_percent = PlmSample._round(400 / Decimal(sum_point))
+            else:
+                self.asb_percent = PlmSample._round((400 / Decimal(sum_point) * self.weight.residue) / 100)
+
+    def calculate_tem_result(self):
+        if self.weight is None:
+            return
+        if self.tem_asb_percent_grid_1 is None:
+            self.tem_asb_percent_grid_1 = 0
+        if self.tem_asb_percent_grid_2 is None:
+            self.tem_asb_percent_grid_2 = 0
+
+        self.tem_asb_percent_grid_1 = self._round((Decimal(self.tem_asb_point_grid_1) * self.weight.residue) / 100, '0.1' )
+        self.tem_asb_percent_grid_2 = self._round((Decimal(self.tem_asb_point_grid_2) * self.weight.residue) / 100,'0.1')
+
+        self.tem_asb_percent_total = PlmSample._round((self.tem_asb_percent_grid_1 + self.tem_asb_percent_grid_2) / 2, '0.1')
+
+    def is_sample_tem_clean(self):
+        if self.tem_asb_type_grid_1 is not None and self.tem_asb_type_grid_2 is not None:
+            if self.tem_asb_type_grid_1 == SampleASbestosType.NAD and self.tem_asb_type_grid_2 == SampleASbestosType.NAD:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    def is_sample_tem_not_analyzed(self):
+        if self.tem_asb_type_grid_1 is not None and self.tem_asb_type_grid_2 is not None:
+            if self.tem_asb_type_grid_1 == SampleASbestosType.NotAnalyzed and self.tem_asb_type_grid_2 == SampleASbestosType.NotAnalyzed:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    def is_sample_tem_has_asbest(self):
+        if self.tem_asb_type_grid_1 is not None and self.tem_asb_type_grid_2 is not None:
+            if self.tem_asb_type_grid_1 in self.ASB_TYPES_ARRAY or self.tem_asb_type_grid_2 in self.ASB_TYPES_ARRAY:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    def write_tem_asb_result(self):
+        if self.is_sample_tem_not_analyzed():
+            self.tem_asb_type_total = SampleASbestosType.NotAnalyzed.label
+            return
+        if self.is_sample_tem_clean():
+            self.tem_asb_type_total = SampleASbestosType.NAD.label
+            return
+        if self.is_sample_tem_has_asbest():
+            if self.tem_asb_type_grid_1 == self.tem_asb_type_grid_2:
+                self.tem_asb_type_total = SampleASbestosType(self.tem_asb_type_grid_1).label
+                return
+            else:
+                if self.tem_asb_type_grid_1 in self.ASB_TYPES_ARRAY and self.tem_asb_type_grid_2 in self.ASB_TYPES_ARRAY:
+                    self.tem_asb_type_total = SampleASbestosType(self.tem_asb_type_grid_1).label + '/' + SampleASbestosType(self.tem_asb_type_grid_2).label
+                    return
+                else:
+                    if self.tem_asb_type_grid_1 in self.ASB_TYPES_ARRAY:
+                        self.tem_asb_type_total = SampleASbestosType(self.tem_asb_type_grid_1).label
+                    else:
+                        self.tem_asb_type_total = SampleASbestosType(self.tem_asb_type_grid_2).label
+
 
 # Weights
 class PlmSampleWeight(BaseModel):

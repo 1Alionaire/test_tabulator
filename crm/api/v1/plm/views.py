@@ -201,7 +201,8 @@ class PlmTemAnalysisApi(generics.ListAPIView):
     def get_queryset(self):
         return (
             PlmSample.objects
-            .filter(plm_project_id=self.kwargs["id"])  # подставь своё имя FK на проект
+            .filter(plm_project_id=self.kwargs["id"])
+            .exclude(method=SampleMethod.Sample1981) # подставь своё имя FK на проект
             .select_related("weight")
             .order_by("row_number")
         )

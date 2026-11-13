@@ -156,6 +156,17 @@ class PlmNobAnalysisTableSerializer(serializers.ModelSerializer):
         fields = ALL_NOB_FIELDS
         read_only_fields = READ_ONLY_NOB_FIELDS
 
+
+READ_ONLY_TEM_FIELDS = ['id', 'row_number', 'tem_is_qc_sample', 'is_blank', 'client_sample',
+                        'lab_sample', 'layer', 'homo_area', 'weight__residue',
+                        'tem_asb_percent_grid_1', 'tem_asb_percent_grid_2', 'tem_asb_type_total', 'tem_asb_percent_total',
+                         'tem_microscope_alignment', 'tem_eccentricity_adjusted', 'tem_grid_pre_acceptability',
+                        'tem_na_or_ps' ]
+
+ALL_TEM_FIELDS = [*READ_ONLY_TEM_FIELDS,
+                  'tem_asb_type_grid_1', 'tem_asb_point_grid_1', 'tem_asb_type_grid_2', 'tem_asb_point_grid_2',
+                   'tem_grid_box', 'tem_grid_box_id_1', 'tem_grid_box_id_2', 'version']
+
 class PlmTemAnalysisTableSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(min_value=1)
     weight__residue = serializers.DecimalField(
@@ -164,16 +175,9 @@ class PlmTemAnalysisTableSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = PlmSample
-        fields = ['id', 'row_number', 'tem_is_qc_sample', 'is_blank', 'client_sample',
-                  'lab_sample', 'layer', 'homo_area', 'weight__residue',
-                  'tem_asb_type_grid_1', 'tem_asb_point_grid_1', 'tem_asb_percent_grid_1',
-                  'tem_asb_type_grid_2', 'tem_asb_point_grid_2', 'tem_asb_percent_grid_2',
-                  'tem_asb_type_total', 'tem_asb_percent_total',
-                  'tem_microscope_alignment', 'tem_eccentricity_adjusted', 'tem_grid_pre_acceptability',
-                  'tem_grid_box', 'tem_grid_box_id_1', 'tem_grid_box_id_2',
-                  'tem_na_or_ps', 'tem_is_qc_sample', 'version']
+        fields = ALL_TEM_FIELDS
 
-        read_only_fields = READ_ONLY_NOB_FIELDS
+        read_only_fields = READ_ONLY_TEM_FIELDS
 
 class PlmTemperatureSerializer(serializers.ModelSerializer):
     class Meta:

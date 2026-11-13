@@ -1,6 +1,6 @@
 from main.models import MainTypeAnalysis, MainProjectStatus, MainProject
 from pcm.models import PcmProject, PcmSample
-from plm.models import PlmProject, PlmSample, PlmSampleWeight
+from plm.models import PlmProject, PlmSample, PlmSampleWeight, SampleMethod, SampleASbestosType
 from tem.models import TEMGridRecord
 
 import math
@@ -35,9 +35,7 @@ class MainProjectCreateSignal:
         PlmSample.objects.bulk_create([
             PlmSample(plm_project = created_plm_project,
                       row_number = (i + 1),
-                      lab_sample = str(self.main_project.lab_id) + '-' + str(i + 1),
-                      method = 1,
-                      version = 1) for i in range(sum_samples)
+                      lab_sample = str(self.main_project.lab_id) + '-' + str(i + 1)) for i in range(sum_samples)
         ])
         if amount_nob_samples > 0:
             PlmSampleWeight.objects.bulk_create([

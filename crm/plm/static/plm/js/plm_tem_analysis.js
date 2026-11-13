@@ -16,11 +16,17 @@ function checkTEMforPS(cell) {
 
 function fillTEMAsbResultSamplesSameHA (table, selectedHomo_area, type) {
     for (row of table ) {
-        if (row.getData().homo_area === selectedHomo_area && row.getData().tem_asb_type_total != 9) {
+        if (row.getData().homo_area === selectedHomo_area) {
             if (type === 'fill') {
                 row.update({tem_na_or_ps:'PS'})
+                row.update({tem_asb_type_grid_1:8})
+                row.update({tem_asb_type_grid_2:8})
+                row.update({tem_asb_type_total:'Not analyzed'})
             } else {
                 row.update({tem_na_or_ps:''})
+                row.update({tem_asb_type_grid_1:1})
+                row.update({tem_asb_type_grid_2:1})
+                row.update({tem_asb_type_total:'NAD'})
             };
         };
     };
@@ -281,15 +287,28 @@ temTable = new Tabulator("#samples-tem-table", {
           currentRow.update({tem_asb_percent_total:updateTEMAsbResultPercent(currentRow)});
           currentRow.update({tem_asb_type_total:updateTEMAsbResultType(currentRow, samplesTypeObject)})
 
-          if (Number(currentRow.getData().tem_asb_percent_total) < 1) {
-              fillTEMAsbResultSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'delete');
-          } else {
+          if (Number(currentRow.getData().tem_asb_percent_total) > 1) {
               fillTEMAsbResultSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'fill');
           }
         };
 
         if (cell.getField() === 'tem_asb_type_grid_1' || cell.getField() === 'tem_asb_type_grid_2') {
             currentRow.update({tem_asb_type_total:updateTEMAsbResultType(currentRow, samplesTypeObject)})
+            if (cell.getField() === 'tem_asb_type_grid_1' && cell.getValue() === 1) {
+                currentRow.update({tem_asb_percent_grid_1:0});
+                currentRow.update({tem_asb_point_grid_1:0});
+                currentRow.update({tem_asb_percent_total:updateTEMAsbResultPercent(currentRow)});
+            };
+            if (cell.getField() === 'tem_asb_type_grid_2' && cell.getValue() === 1) {
+                currentRow.update({tem_asb_percent_grid_2:0})
+                currentRow.update({tem_asb_point_grid_2:0});
+                currentRow.update({tem_asb_percent_total:updateTEMAsbResultPercent(currentRow)});
+            }
+        }
+
+        if (currentRow.getData().tem_asb_type_grid_1 === 1 && currentRow.getData().tem_asb_type_grid_2 === 1) {
+            fillTEMAsbResultSamplesSameHA(tableData.slice(getCurrentPosition), var_homogenity, 'delete');
+            currentRow.update({tem_asb_type_total:'NAD'})
         }
 
         if (cell.getField() === 'tem_grid_box_id_1') {
@@ -327,9 +346,12 @@ function updateTEMAsbResultType(inputCurrentRow, tableOptions) {
         }
     }
     else {
-        if (type1 == type2) {
+        if (type1 === type2) {
             if (asbestosTypeNumbers.includes(type1)) {
                 return tableOptions[type1]
+            } else {
+                console.log('here!')
+                return 'NAD'
             }
         }
         else {
