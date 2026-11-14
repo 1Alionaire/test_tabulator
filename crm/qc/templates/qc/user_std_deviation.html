@@ -1,9 +1,14 @@
-{% extends 'base.html' %} {% load static %} {% block content%}
-<main class="main">
+{% extends 'base.html' %} {% load static %} {% block extra_css %}
+<link
+  type="text/css"
+  href="{% static 'qc/css/qc_std_deviation.css' %}"
+  rel="stylesheet"
+/>{% endblock %} {% block content%}
+<main class="main std-deviation-page">
     <form id="form" method="POST">
       {% csrf_token %}
-    <div class="input">
-      <div class="input-filter-field">
+    <div class="input std-deviation-fields">
+      <div class="option-filter">
         <label>Year</label>
         <select id="year" name="year">
           <option value=2026>2026</option>
@@ -42,12 +47,101 @@
       <button type="submit">Apply</button>
     </div>
     </form>
+
+    <hr class="std-deviation-divider" />
+
+    <section class="std-deviation-list">
+      <h3 class="std-deviation-list__title">My records</h3>
+      <div class="std-deviation-table-wrap">
+        <div id="std-deviation-table"></div>
+      </div>
+    </section>
 </main>
 {% endblock%} {% block extra_js %}
 <script>
 const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 const apiUrl = "{% url 'api:v1:qc:pcm_std_deviation' %}";
+// one record: 0 is a placeholder, replaced with the row id
+const detailUrlTemplate = "{% url 'api:v1:qc:pcm_std_deviation_detail' 0 %}";
+const detailUrl = (id) => detailUrlTemplate.replace(/0\/$/, `${id}/`);
 const form = document.getElementById('form');
+
+// month options, taken from the form's own <select>
+const MONTH_OPTIONS = [...document.getElementById('month').options]
+  .map(o => ({ value: Number(o.value), label: o.text }));
+const MONTH_LABELS = Object.fromEntries(MONTH_OPTIONS.map(o => [o.value, o.label]));
+
+// records of the current analyst (the API filters by request.user)
+const recordsTable = new Tabulator("#std-deviation-table", {
+  ajaxURL: apiUrl,
+  height: "100%",
+  layout: "fitColumns",
+  placeholder: "No records yet",
+  editorEmptyValue: null,   // cleared cell -> null
+  columnDefaults: {
+    headerHozAlign: "center",
+    hozAlign: "center",
+  },
+  columns: [
+    { title: "Year", field: "year", editor: tabulatorNumberEditor },
+    {
+      title: "Month", field: "month",
+      editor: "list", editorParams: { values: MONTH_OPTIONS },
+      formatter: (cell) => MONTH_LABELS[cell.getValue()] ?? "",
+    },
+    { title: "Low", field: "relative_std_deviation_low", editor: tabulatorNumberEditor },
+    { title: "Medium", field: "relative_std_deviation_medium", editor: tabulatorNumberEditor },
+    { title: "High", field: "relative_std_deviation_high", editor: tabulatorNumberEditor },
+  ],
+});
+
+// DRF errors: {field: ["msg"]}, {non_field_errors: ["msg"]} (e.g. month already exists) or {detail: "msg"}
+function errorText(body) {
+  return Object.entries(body)
+    .map(([field, errors]) => {
+      const text = [].concat(errors).join(' ');
+      return field === 'non_field_errors' || field === 'detail' ? text : `${field}: ${text}`;
+    })
+    .join('; ');
+}
+
+let saveQueue = Promise.resolve();
+
+// fires when the editor closes (cursor leaves the cell / Enter) and the value changed
+recordsTable.on("cellEdited", (cell) => {
+  const id = cell.getRow().getData().id;
+  const field = cell.getField();
+  const value = cell.getValue();
+  const oldValue = cell.getOldValue();
+  // the number editor returns text: "2026" vs 2026 is not a real change
+  if (String(value ?? '') === String(oldValue ?? '')) return;
+  // one request at a time: the server saves the whole record, parallel PATCHes could overwrite each other
+  saveQueue = saveQueue.then(() => patchRecord(cell.getRow(), id, field, value, oldValue));
+});
+
+async function patchRecord(row, id, field, value, oldValue) {
+  try {
+    const response = await fetch(detailUrl(id), {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken,
+      },
+      body: JSON.stringify({ [field]: value }),
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      showToast(`Error: ${errorText(body) || response.status}`, "error", 6000);
+      row.update({ [field]: oldValue });   // update() does not fire cellEdited -> no new PATCH
+      return;
+    }
+    row.update(await response.json());     // value as the server stored it (e.g. 0.12 -> "0.1200")
+    showToast("Saved", "success");
+  } catch (e) {
+    showToast(`Error: ${e.message}`, "error");
+    row.update({ [field]: oldValue });
+  }
+}
 
 form.addEventListener('submit', sendData);
 
@@ -57,6 +151,9 @@ async function sendData(event) {
   const data = Object.fromEntries(new FormData(form));
   delete data.csrfmiddlewaretoken;  // токен уходит в заголовке, в теле он не нужен
 
+  // double click on Apply would send two POSTs that both pass the "already exists" check
+  const applyButton = form.querySelector('button[type="submit"]');
+  applyButton.disabled = true;
   try {
     const response = await fetch(apiUrl, {
       method: "POST",
@@ -67,12 +164,16 @@ async function sendData(event) {
       body: JSON.stringify(data),
     });
     if (!response.ok) {
-      console.error(response.status, await response.text());
+      const body = await response.json().catch(() => ({}));
+      showToast(`Error: ${errorText(body) || response.status}`, "error", 6000);
       return;
     }
-    console.log(await response.json());
+    showToast("Saved", "success");
+    recordsTable.setData();  // reload the list with the new record
   } catch (e) {
-    console.error(e);
+    showToast(`Error: ${e.message}`, "error");
+  } finally {
+    applyButton.disabled = false;
   }
 }
 </script>

@@ -1,0 +1,41 @@
+/* page = form on top (own height) + line + records list (takes the rest of the window) */
+.std-deviation-page {
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px 20px;
+}
+
+/* form fields side by side, each field = label over input */
+.std-deviation-fields {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 10px 20px;
+}
+
+.std-deviation-divider {
+    width: 100%;
+    margin: 0;
+    border: none;
+    border-top: 1px solid #c4cad3;
+}
+
+.std-deviation-list {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.std-deviation-list__title {
+    margin: 0;
+    font-size: 16px;
+}
+
+/* Tabulator height: "100%" needs a parent with a real height */
+.std-deviation-table-wrap {
+    flex: 1;
+    min-height: 0;
+}

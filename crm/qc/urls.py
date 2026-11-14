@@ -5,7 +5,7 @@ from qc import views
 app_name = 'qc'
 
 urlpatterns = [
-    path('user/plm/', views.UserPcmMenuView.as_view(), name='user_pcm_main'),
+    path('user/pсm/', views.UserPcmMenuView.as_view(), name='user_pcm_main'),
     path('user/plm/', views.UserPlmMenuView.as_view(), name='user_plm_main'),
 
     path('user/pcm/std-deviation/<int:id>/', views.UserPcmStdDeviationView.as_view(), name='user_pcm_std_deviation'),
