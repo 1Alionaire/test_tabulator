@@ -5,6 +5,6 @@
   rel="stylesheet"
 />{% endblock %} {% block content%}
 <main class="center-menu">
-  <h1>User PCM menu</h1>
+    <a href="{% url 'qc:user_pcm_std_deviation' user.id %}" class="menu-btn">Standard Deviation</a>
 </main>
 {% endblock%} {% block extra_js %} {% endblock %}

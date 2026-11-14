@@ -1,5 +1,3 @@
-from datetime import datetime
-import django
 from django.db.models import F
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET

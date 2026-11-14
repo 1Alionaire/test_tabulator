@@ -1,0 +1,80 @@
+{% extends 'base.html' %} {% load static %} {% block content%}
+<main class="main">
+    <form id="form" method="POST">
+      {% csrf_token %}
+    <div class="input">
+      <div class="input-filter-field">
+        <label>Year</label>
+        <select id="year" name="year">
+          <option value=2026>2026</option>
+          <option value=2027>2027</option>
+        </select>
+      </div>
+      <div class="option-filter">
+        <label>Month</label>
+        <select id="month" name="month">
+          <option value=1>January</option>
+          <option value=2>February</option>
+          <option value=3>March</option>
+          <option value=4>April</option>
+          <option value=5>May</option>
+          <option value=6>June</option>
+          <option value=7>July</option>
+          <option value=8>August</option>
+          <option value=9>September</option>
+          <option value=10>October</option>
+          <option value=11>November</option>
+          <option value=12>December</option>
+        </select>
+      </div>
+      <div class="option-filter">
+        <label>Low</label>
+        <input step="0.0001" min="0" max="1" type="number" id="relative_std_deviation_low" name="relative_std_deviation_low" />
+      </div>
+      <div class="option-filter">
+        <label>Medium</label>
+        <input step="0.0001" min="0" max="1" type="number" id="relative_std_deviation_medium" name="relative_std_deviation_medium" />
+      </div>
+      <div class="option-filter">
+        <label>High</label>
+        <input step="0.0001" min="0" max="1" type="number" id="relative_std_deviation_high" name="relative_std_deviation_high" />
+      </div>
+      <button type="submit">Apply</button>
+    </div>
+    </form>
+</main>
+{% endblock%} {% block extra_js %}
+<script>
+const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+const apiUrl = "{% url 'api:v1:qc:pcm_std_deviation' %}";
+const form = document.getElementById('form');
+
+form.addEventListener('submit', sendData);
+
+async function sendData(event) {
+  event.preventDefault();  // главное исправление: браузер больше не отправляет форму сам
+
+  const data = Object.fromEntries(new FormData(form));
+  delete data.csrfmiddlewaretoken;  // токен уходит в заголовке, в теле он не нужен
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken,
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      console.error(response.status, await response.text());
+      return;
+    }
+    console.log(await response.json());
+  } catch (e) {
+    console.error(e);
+  }
+}
+</script>
+
+{% endblock %}

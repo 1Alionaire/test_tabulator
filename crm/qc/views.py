@@ -38,6 +38,15 @@ class UserPcmMenuView(LoginRequiredMixin, TemplateView):
         }
     template_name = 'qc/user_pcm_menu.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+class UserPcmStdDeviationView(LoginRequiredMixin, TemplateView):
+    extra_context = {
+        'title': 'QC PCM'
+        }
+    template_name = 'qc/user_std_deviation.html'
 
 class ManagerPlmMenuView(LoginRequiredMixin, TemplateView):
     extra_context = {

@@ -34,7 +34,7 @@ class PcmZCriterionPerAnalystMonth(BaseModel):
     relative_std_deviation_high = models.DecimalField(max_digits=6, decimal_places=4, blank=True, null=True)
 
     def __str__(self):
-        return str(self.year) + '-' + str(self.month) + '-' + self.analyst.username
+        return str(self.year) + '-' + str(self.month) #+ '-' + self.analyst.username
 
 class PlmTypeQCSample(models.IntegerChoices):
     Replicate = 1, 'Replicate'

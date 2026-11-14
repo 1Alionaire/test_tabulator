@@ -8,6 +8,8 @@ urlpatterns = [
     path('user/plm/', views.UserPcmMenuView.as_view(), name='user_pcm_main'),
     path('user/plm/', views.UserPlmMenuView.as_view(), name='user_plm_main'),
 
+    path('user/pcm/std-deviation/<int:id>/', views.UserPcmStdDeviationView.as_view(), name='user_pcm_std_deviation'),
+
     path('manager/pcm/', views.ManagerPcmMenuView.as_view(), name='manager_pcm_main'),
 
     path('manager/plm/', views.ManagerPlmMenuView.as_view(), name='manager_plm_main'),
