@@ -5,6 +5,7 @@ from django.db.models import F
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from rest_framework import status, generics
+from rest_framework.exceptions import ValidationError
 
 from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
@@ -60,6 +61,10 @@ class PcmAnalystAPI(generics.RetrieveUpdateAPIView):
         pcm_project = get_active_project(self.kwargs['id'], "pcm")
         pcm_analyst = self.request.user
         now_time = django.utils.timezone.now()
+        if not PcmZCriterionPerAnalystMonth.objects.filter(month=datetime.now().month,
+                                                           year=datetime.now().year,
+                                                           analyst=pcm_analyst).exists():
+            raise ValidationError('Месяц должен быть от 1 до 12.')
         z_record = PcmZCriterionPerAnalystMonth.objects.filter(month=datetime.now().month,
                                      year=datetime.now().year,
                                      analyst=pcm_analyst).first()
@@ -67,7 +72,6 @@ class PcmAnalystAPI(generics.RetrieveUpdateAPIView):
         serializer.save(analyst=pcm_analyst,
                         date_analyze=now_time,
                         z_criterion_record=z_record,
-                        time_update=now_time,
                         )
 
 # PCM Data Entry table API
