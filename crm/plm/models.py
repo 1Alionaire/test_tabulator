@@ -273,10 +273,6 @@ class PlmSample(BaseModel):
         else:
             return False
 
-    @staticmethod
-    def _round(value, places='0.01'):
-        return value.quantize(Decimal(places), rounding=ROUND_HALF_UP)
-
     def plm_nob_parameter_fill(self):
         self.ri_alpha_oil = self.ASB_OIL_PARAMETERS[self.asb_type]['alpha'][self.analysis_temperature]
         self.ri_delta_oil = self.ASB_OIL_PARAMETERS[self.asb_type]['delta'][self.analysis_temperature]

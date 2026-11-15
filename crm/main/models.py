@@ -1,3 +1,5 @@
+from decimal import Decimal, ROUND_HALF_UP
+
 from django.db import models
 from django.utils import timezone
 import re
@@ -10,6 +12,10 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True
+
+    def _round(value, places='0.01'):
+        return value.quantize(Decimal(places), rounding=ROUND_HALF_UP)
+
 
     def save(self, *args, **kwargs):
         # Если объект уже существует в БД (обновление, а не создание)

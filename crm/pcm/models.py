@@ -1,3 +1,5 @@
+import math
+
 from django.db import models
 from main.models import BaseModel
 from django.utils import timezone
@@ -85,6 +87,74 @@ class PcmSample(BaseModel):
     time_analysis = models.TimeField(blank=True, null=True)
     segment_area = models.DecimalField(max_digits=6, decimal_places=5, default=Decimal("0.00785"))
     qc_accept_or_reject = models.PositiveSmallIntegerField(choices=SampleQCAcceptOrReject.choices, null=True, blank=True)
+
+    def __str__(self):
+        return self.lab_sample
+
+    def average_flow_rate(self):
+        if self.flow_rate_before is None or self.flow_rate_after is None:
+            return None
+        return (self.flow_rate_before + self.flow_rate_after) / 2
+
+    def sampling_minutes(self):
+        if self.time_in is None or self.time_out is None:
+            return None
+        minutes_in = self.time_in.hour * 60 + self.time_in.minute
+        minutes_out = self.time_out.hour * 60 + self.time_out.minute
+        return (minutes_out - minutes_in) % (24 * 60)  # sampling past midnight
+
+    def calculate_sample_volume(self):
+        # liters = average flow rate (L/min) * sampling time (min)
+        minutes = self.sampling_minutes()
+        flow_rate = self.average_flow_rate()
+        if minutes is None or flow_rate is None:
+            return None
+        self.sample_volume =  PcmSample._round(flow_rate * minutes)
+
+    def calculate_sample_fiber_per_mm(self, original=True):
+        if original:
+            if (self.amount_fibers is None) or (self.fields is None) or (self.segment_area is None):
+                return None
+            else:
+                fiber_density = ((self.amount_fibers / self.fields) / self.segment_area)
+        else:
+            if (self.qc_amount_fibers is None) or (self.qc_fields is None) or (self.segment_area is None):
+                return None
+            else:
+                fiber_density = ((self.qc_amount_fibers / self.qc_fields) / self.segment_area)
+
+        return PcmSample._round(fiber_density, '0.01')
+
+
+    def calculate_sample_fiber_per_cub_cm(self, original=True):
+        if original:
+            if (self.amount_fibers is None) or (self.fields is None) or (self.sample_volume is None):
+                return None
+            fiber_concentration = ((self.amount_fibers / self.fields) * 49) / self.sample_volume
+        else:
+            if (self.qc_amount_fibers is None) or (self.qc_fields is None) or (self.sample_volume is None):
+                return None
+            fiber_concentration = ((self.qc_amount_fibers / self.qc_fields) * 49) / self.sample_volume
+
+        return PcmSample._round(fiber_concentration, '0.001')
+
+    def calculate_qc_accept_or_reject(self, std_dev_low):
+        # |√X₁ − √X₂| <= 2.77 × ((√X₁ + √X₂) / 2) × Sr -> Accept, otherwise Reject
+        # X₁ = original F/mm², X₂ = QC F/mm²; no QC count or no Sr (empty or 0) -> no verdict
+        if self.fiber_per_mm is None or not self.qc_fiber_per_mm or not std_dev_low:
+            return None
+        # float math in the same order as qcUpdateResult in pcm_qc.js, so browser and server agree
+        sqrt_original = math.sqrt(float(self.fiber_per_mm))
+        sqrt_qc = math.sqrt(float(self.qc_fiber_per_mm))
+        limit = 2.77 * ((sqrt_original + sqrt_qc) / 2) * float(std_dev_low)
+
+        if abs(sqrt_original - sqrt_qc) <= limit:
+            self.qc_accept_or_reject = SampleQCAcceptOrReject.Accept
+            return None
+
+        self.qc_accept_or_reject = SampleQCAcceptOrReject.Reject
+        return None
+
 
 class PcmSampleTimeTableRecord(BaseModel):
     analyst = models.ForeignKey(

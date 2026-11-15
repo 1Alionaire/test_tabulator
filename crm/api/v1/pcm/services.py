@@ -16,68 +16,13 @@ PCM_ANALYSIS_FIELDS = {'amount_fibers', 'fields', 'qc_amount_fibers', 'qc_fields
 PCM_RESULT_FIELDS = {'fiber_per_mm', 'fiber_per_cub_cm', 'qc_fiber_per_mm', 'qc_fiber_per_cub_cm',
                      'qc_accept_or_reject'}
 
-
-def _round(value, places):
-    return value.quantize(Decimal(places), rounding=ROUND_HALF_UP)
-
-
-def sampling_minutes(sample):
-    if sample.time_in is None or sample.time_out is None:
-        return None
-    minutes_in = sample.time_in.hour * 60 + sample.time_in.minute
-    minutes_out = sample.time_out.hour * 60 + sample.time_out.minute
-    return (minutes_out - minutes_in) % (24 * 60)  # sampling past midnight
-
-
-def average_flow_rate(sample):
-    if sample.flow_rate_before is None or sample.flow_rate_after is None:
-        return None
-    return (sample.flow_rate_before + sample.flow_rate_after) / 2
-
-
-def calculate_sample_volume(sample):
-    # liters = average flow rate (L/min) * sampling time (min)
-    minutes = sampling_minutes(sample)
-    flow_rate = average_flow_rate(sample)
-    if minutes is None or flow_rate is None:
-        return None
-    return _round(flow_rate * minutes, '0.01')
-
-
-def calculate_fiber_results(amount_fibers, fields, sample_volume, segment_area):
-    if (amount_fibers is None) or (fields is None) or (sample_volume is None) or (segment_area is None):
-        return None, None
-
-    fiber_density = ((amount_fibers / fields) / segment_area)
-    fiber_concentration = ((amount_fibers / fields) * 49) / sample_volume
-
-    return _round(fiber_density, '0.01'), _round(fiber_concentration, '0.001')
-
 def calculate_sample_results(sample):
     # volume typed by hand is kept until time in/out and both flow rates are filled
-    calculated_volume = calculate_sample_volume(sample)
-    if calculated_volume is not None:
-        sample.sample_volume = calculated_volume
-
-    sample.fiber_per_mm, sample.fiber_per_cub_cm = calculate_fiber_results(
-        sample.amount_fibers, sample.fields, sample.sample_volume, sample.segment_area)
-
-    sample.qc_fiber_per_mm, sample.qc_fiber_per_cub_cm = calculate_fiber_results(
-        sample.qc_amount_fibers, sample.qc_fields, sample.sample_volume, sample.segment_area)
-
-def calculate_qc_accept_or_reject(fiber_per_mm, qc_fiber_per_mm, sr):
-    # |√X₁ − √X₂| <= 2.77 × ((√X₁ + √X₂) / 2) × Sr -> Accept, otherwise Reject
-    # X₁ = original F/mm², X₂ = QC F/mm²; no QC count or no Sr (empty or 0) -> no verdict
-    if fiber_per_mm is None or not qc_fiber_per_mm or not sr:
-        return None
-    # float math in the same order as qcUpdateResult in pcm_qc.js, so browser and server agree
-    sqrt_original = math.sqrt(float(fiber_per_mm))
-    sqrt_qc = math.sqrt(float(qc_fiber_per_mm))
-    limit = 2.77 * ((sqrt_original + sqrt_qc) / 2) * float(sr)
-    if abs(sqrt_original - sqrt_qc) <= limit:
-        return SampleQCAcceptOrReject.Accept
-    return SampleQCAcceptOrReject.Reject
-
+    sample.calculate_sample_volume()
+    sample.fiber_per_mm = sample.calculate_sample_fiber_per_mm(original=True)
+    sample.fiber_per_cub_cm = sample.calculate_sample_fiber_per_cub_cm(original=True)
+    sample.qc_fiber_per_mm = sample.calculate_sample_fiber_per_mm(original=False)
+    sample.qc_fiber_per_cub_cm = sample.calculate_sample_fiber_per_cub_cm(original=False)
 
 # updating sample function
 def set_sample_fields(sample, row, field_names):
@@ -112,7 +57,6 @@ class PCMSamplesDataEntryManager():
         else:
             raise ValueError(f'unknown data entry save mode: {mode}')
 
-
     def table_update_processing(self) -> dict:
         with transaction.atomic():
             # one data entry save per project at a time: new row numbers depend on the saved samples
@@ -137,7 +81,7 @@ class PCMSamplesDataEntryManager():
                 if field_name != 'id':
                     setattr(sample, field_name, value)
                     touched_fields.add(field_name)
-            calculate_sample_results(sample)
+            sample.calculate_sample_volume()
 
         # volume and results are recalculated from the edited fields
         return PcmSample.objects.bulk_update(
@@ -153,7 +97,8 @@ class PCMSamplesDataEntryManager():
         samples = [self._new_sample(row, position)
                    for position, row in enumerate(self.data_to_create, start=last_row_number + 1)]
         for sample in samples:
-            calculate_sample_results(sample)
+            sample.calculate_sample_volume()
+
         PcmSample.objects.bulk_create(samples)
         return len(samples)
 
@@ -173,7 +118,6 @@ class PCMSamplesDataEntryManager():
         sample = PcmSample(pcm_project=self.pcm_project, row_number=position,
                            lab_sample=f'{self.pcm_project.project.lab_id}-{position}')
         set_sample_fields(sample, row, PCM_ENTRY_FIELDS)
-        calculate_sample_results(sample)
         return sample
 
 class PCMSamplesAnalysisManager():
@@ -190,17 +134,15 @@ class PCMSamplesAnalysisManager():
                         PcmSample.objects.select_for_update().filter(pcm_project=self.pcm_project, pk__in=update_ids).order_by('pk')}
 
             z_criterion = self.pcm_project.z_criterion_record
-            sr = z_criterion.relative_std_deviation_low if z_criterion else None
+            std_dev_low = z_criterion.relative_std_deviation_low if z_criterion else None
 
             check_versions(samples, self.data)
 
-            now = timezone.now()
             for row in self.data:
                 sample = samples[int(row['id'])]
                 set_sample_fields(sample, row, PCM_ANALYSIS_FIELDS)
                 calculate_sample_results(sample)
-                sample.qc_accept_or_reject = calculate_qc_accept_or_reject(
-                    sample.fiber_per_mm, sample.qc_fiber_per_mm, sr)
+                sample.calculate_qc_accept_or_reject(std_dev_low)
                 sample.version += 1
 
             result['updated'] = PcmSample.objects.bulk_update(
