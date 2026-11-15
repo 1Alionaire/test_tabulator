@@ -150,8 +150,9 @@ class PcmReportGenerator:
         medium = self.project.z_criterion_record.relative_std_deviation_medium
         high = self.project.z_criterion_record.relative_std_deviation_high
         microscope = self.project.analyst.pcm_microscope
-        NOTES.append(f'Microscope: {microscope} Analyst RSD: Low:{low} Medium: {medium} High : {high}')
-        return NOTES
+        note = NOTES.copy()
+        note.append(f'Microscope: {microscope} {170 * "\u00A0"} Analyst RSD: Low : {low} Medium : {medium} High : {high}')
+        return note
 
     def _details_rows(self):
         project = self.project

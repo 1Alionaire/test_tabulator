@@ -56,9 +56,9 @@ CONTENT_WIDTH = PAGE_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
 # ---------- Text styles ----------
 STYLES = {
     'table_header': ParagraphStyle('table_header', fontName=FONT, fontSize=7, leading=8, alignment=TA_CENTER),
-    'table_cell': ParagraphStyle('table_cell', fontName=FONT, fontSize=8, leading=9, alignment=TA_CENTER),
+    'table_cell': ParagraphStyle('table_cell', fontName=FONT, fontSize=9, leading=9, alignment=TA_CENTER),
     'detail': ParagraphStyle('detail', fontName=FONT, fontSize=9, leading=11, alignment=TA_LEFT),
-    'note': ParagraphStyle('note', fontName=NOTE_FONT, fontSize=6, leading=7.5, alignment=TA_LEFT),
+    'note': ParagraphStyle('note', fontName=NOTE_FONT, fontSize=8, leading=7.5, alignment=TA_LEFT),
 }
 
 
