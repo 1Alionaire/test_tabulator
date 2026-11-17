@@ -20,8 +20,8 @@ jobs:
           --health-cmd pg_isready --health-interval 5s
           --health-timeout 5s --health-retries 10
     env:
-      DJANGO_SECRET_KEY: ci-only-not-a-secret
-      DJANGO_ALLOWED_HOSTS: localhost
+      SECRET_KEY: ci-only-not-a-secret
+      ALLOWED_HOSTS: localhost
       DATABASE_URL: postgres://allab:allab@localhost:5432/allab
     defaults:
       run:
