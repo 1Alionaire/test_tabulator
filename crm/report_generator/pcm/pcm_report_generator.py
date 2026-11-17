@@ -90,17 +90,21 @@ COLUMNS = [
                  highlight=is_above_limit),
 ]
 
-NOTES = [
-    'PCM - Phase Contrast Microscopy, NIOSH Method 7400 ("A" counting rules). '
-    'PCM does not distinguish asbestos from other fibers.',
-    'IWA - Inside Work Area. OWA - Outside Work Area.',
-    'Volume = average flow rate × sampling time. '
-    f'Fibers/mm² = fibers counted / (fields counted × {FIELD_AREA_MM2} mm²). '
-    f'Fibers/cc = fibers/mm² × {FILTER_COLLECTION_AREA_MM2} mm² / (volume × 1000).',
-    'The results relate only to the items tested.',
-    'The report shall not be reproduced without the written approval of the laboratory.',
-]
+# NOTES = [
+#     'PCM - Phase Contrast Microscopy, NIOSH Method 7400 ("A" counting rules). '
+#     'PCM does not distinguish asbestos from other fibers.',
+#     'IWA - Inside Work Area. OWA - Outside Work Area.',
+#     'Volume = average flow rate × sampling time. '
+#     f'Fibers/mm² = fibers counted / (fields counted × {FIELD_AREA_MM2} mm²). '
+#     f'Fibers/cc = fibers/mm² × {FILTER_COLLECTION_AREA_MM2} mm² / (volume × 1000).',
+#     'The results relate only to the items tested.',
+#     'The report shall not be reproduced without the written approval of the laboratory.',
+# ]
 
+NOTES = [
+    'The samples listed above are analyzed by Phase Contrast Microscopy (PCM) as per NIOSH Issue 3 dated 14 June 2019.  The detection limit of this method is 7  f/mm2 or 5.5 f/100 f.',
+    'The results relate only to the items calibrated or tested.  The certificate of report shall not be reproduced without approval of the laboratory.',
+]
 
 class PcmReportGenerator:
     def __init__(self, pcm_project):
@@ -108,6 +112,7 @@ class PcmReportGenerator:
         self.main_project = pcm_project.project     # client, address, lab id
         self.samples = list(PcmSample.objects.filter(pcm_project=pcm_project).order_by('row_number', 'id'))
         self.report_date = timezone.localdate()
+
 
     def build(self):
         """Returns the PDF as BytesIO, ready for FileResponse."""
@@ -119,7 +124,7 @@ class PcmReportGenerator:
                 details_table(self._details_rows()),
                 Spacer(1, 0.25 * inch),
                 signature_block(),
-                *notes_block(NOTES),
+                *notes_block(self._create_note()),
             ]),
         ]
         return build_pdf(story, self._draw_page_header, title=f'PCM Report {self.main_project.lab_id}')
@@ -139,6 +144,15 @@ class PcmReportGenerator:
                 LAB_INFO['elap'],
             ],
         )
+
+    def _create_note(self):
+        low = self.project.z_criterion_record.relative_std_deviation_low
+        medium = self.project.z_criterion_record.relative_std_deviation_medium
+        high = self.project.z_criterion_record.relative_std_deviation_high
+        microscope = self.project.analyst.pcm_microscope
+        note = NOTES.copy()
+        note.append(f'Microscope: {microscope} {170 * "\u00A0"} Analyst RSD: Low : {low} Medium : {medium} High : {high}')
+        return note
 
     def _details_rows(self):
         project = self.project

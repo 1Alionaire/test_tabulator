@@ -46,7 +46,7 @@ def generate_qc_sample(inp_project, copy_of_sample, copy_of_weight, max_row_numb
     sample = PlmSample(plm_project=inp_project, 
                         row_number=max_row_number,
                         client_sample=(prefix + copy_of_sample.client_sample),
-                        lab_sample=(prefix + copy_of_sample.lab_sample),
+                        lab_sample=copy_of_sample.lab_sample,
                         weight=copy_of_weight,
                         is_qc_sample = is_nob_qb, 
                         tem_is_qc_sample = is_tem_qc,

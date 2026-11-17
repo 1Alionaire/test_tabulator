@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,13 +26,17 @@ load_dotenv(BASE_DIR / ".env")
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-only-for-local")
 
+DATABASES = {"default": dj_database_url.config(conn_max_age=600)}
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG =  os.environ.get("DJANGO_DEBUG", "0") == "1"
-ALLOWED_HOSTS =  []#os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
+DEBUG = False #os.environ.get("DJANGO_DEBUG", "0") == "1"
+ALLOWED_HOSTS = os.environ["ALLOWED_HOSTS"].split(",")#os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
 render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+
 if render_host:
     ALLOWED_HOSTS.append(render_host)
 
+CSRF_TRUSTED_ORIGINS = [f"https://{h}" for h in ALLOWED_HOSTS]
 
 # Application definition
 
@@ -107,30 +112,30 @@ WSGI_APPLICATION = 'crm.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-if os.environ.get("POSTGRES_DB"):
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get("POSTGRES_DB"),
-            "USER": os.environ.get("POSTGRES_USER"),
-            "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
-            "HOST": os.environ.get("POSTGRES_HOST", "db"),
-            "PORT": os.environ.get("POSTGRES_PORT", "5432"),
-            "CONN_MAX_AGE": 60,
-            "CONN_HEALTH_CHECKS": True,
-        }
-    }
-elif DEBUG:
-    # Только для локальной разработки
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
-else:
-    # На сервере без Postgres лучше упасть сразу, чем молча писать в SQLite и терять данные
-    raise ValueError("POSTGRES_DB не задан, а DEBUG=False")
+# if os.environ.get("POSTGRES_DB"):
+#     DATABASES = {
+#         "default": {
+#             "ENGINE": "django.db.backends.postgresql",
+#             "NAME": os.environ.get("POSTGRES_DB"),
+#             "USER": os.environ.get("POSTGRES_USER"),
+#             "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
+#             "HOST": os.environ.get("POSTGRES_HOST", "db"),
+#             "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+#             "CONN_MAX_AGE": 60,
+#             "CONN_HEALTH_CHECKS": True,
+#         }
+#     }
+# elif DEBUG:
+#     # Только для локальной разработки
+#     DATABASES = {
+#         "default": {
+#             "ENGINE": "django.db.backends.sqlite3",
+#             "NAME": BASE_DIR / "db.sqlite3",
+#         }
+#     }
+# else:
+#     # На сервере без Postgres лучше упасть сразу, чем молча писать в SQLite и терять данные
+#     raise ValueError("POSTGRES_DB не задан, а DEBUG=False")
 
 # DATABASES = {
 #     'default': {
@@ -175,8 +180,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / "static"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
