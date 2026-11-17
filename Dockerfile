@@ -4,5 +4,5 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-RUN useradd -m app && mkdir -p /app/staticfiles /app/media && chown -R app /app
+RUN useradd -m app && mkdir -p /app/crm/staticfiles /app/crm/media && chown -R app /app
 USER app
