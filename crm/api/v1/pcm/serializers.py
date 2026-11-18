@@ -94,7 +94,7 @@ class PcmAnalysisGetListSerializer(serializers.ModelSerializer):
     class Meta:
         model = PcmSample
         fields = ['id',  'lab_sample',  'client_sample', 'location', 'sample_volume',
-                  'amount_fibers', 'fields', 'segment_area', 'fiber_per_mm', 'fiber_per_cub_cm',]
+                  'amount_fibers', 'fields', 'segment_area', 'fiber_per_mm', 'fiber_per_cub_cm', 'version']
 
 class PcmQCGetListSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(min_value=1)
@@ -102,7 +102,7 @@ class PcmQCGetListSerializer(serializers.ModelSerializer):
         model = PcmSample
         fields = ['id',  'lab_sample',  'client_sample', 'sample_volume', 'time_analysis',
                   'amount_fibers', 'fields', 'fiber_per_mm', 'fiber_per_cub_cm',
-                  'qc_amount_fibers', 'segment_area', 'qc_fields', 'qc_fiber_per_mm', 'qc_fiber_per_cub_cm' , 'qc_accept_or_reject']
+                  'qc_amount_fibers', 'segment_area', 'qc_fields', 'qc_fiber_per_mm', 'qc_fiber_per_cub_cm' , 'qc_accept_or_reject', 'version']
         # QC table needs the volume for F/cc, but must not change it; accept/reject is calculated on the server
         read_only_fields = ['sample_volume', 'qc_accept_or_reject']
 

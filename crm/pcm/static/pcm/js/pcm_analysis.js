@@ -57,6 +57,11 @@ const analysisTable = new Tabulator("#samples-analysis-table", {
               visible: false
             },
             {
+              title:"version",
+              field:"version",
+              visible: false
+            },
+            {
               title:"Lab Sample",
               field:"lab_sample",
               width: 140,
@@ -126,6 +131,7 @@ async function analysisSaveChanges() {
       id: row.id,
       amount_fibers: row.amount_fibers,
       fields: row.fields,
+      version: row.version,
     }));
 
   try {

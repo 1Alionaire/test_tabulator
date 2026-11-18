@@ -72,6 +72,11 @@ const statusOptions = await response.json(); //collect into status dict
               visible: false
             },
             {
+              title:"version",
+              field:"version",
+              visible: false
+            },
+            {
               title:"Lab Sample",
               field:"lab_sample",
               width: 140,
@@ -138,6 +143,7 @@ async function qcSaveChanges() {
       id: row.id,
       qc_amount_fibers: row.qc_amount_fibers,
       qc_fields: row.qc_fields,
+      version: row.version,
     }));
 
   try {
