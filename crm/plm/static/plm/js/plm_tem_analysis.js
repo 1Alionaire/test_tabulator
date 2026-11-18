@@ -36,17 +36,11 @@ asbestosTypeNumbers = [2, 3, 4, 5, 6, 7]
 samplesTypeObject = Object.fromEntries(tableOptions['sampleAsbestosType'].map(o => [o.value, o.label]));
 
 temTable = new Tabulator("#samples-tem-table", {
-        rowHeader: {
-            resizable: false, frozen: true, width: 40,
-            hozAlign: "center", formatter: "rownum",
-            cssClass: "range-header-col", editor: false
-        },
-        history:true,
-        height: "100%",
-        width: "100%", 
-        layout:"fitColumns",
-        editTriggerEvent: "dblclick",
         ajaxURL: URLS.PLMTEMAnalysisURL,
+        columnDefaults: {
+          ...columnDefaultParameters
+        },
+        ...universalTabulatorParameters,
         selectableRange: true,
         selectableRangeColumns: true,
         selectableRangeRows: true,
@@ -54,24 +48,15 @@ temTable = new Tabulator("#samples-tem-table", {
         editorEmptyValue: null,
         selectableRangeClearCellsValue: null,
 
-        columnDefaults: {
-          headerHozAlign: "center",
-          hozAlign: "center",
-          vertAlign: "middle",
-        },
         columns:[
             {
               title:"ID", 
-              field:"id", 
-              width: 80, 
-              headerSort: false,
+              field:"id",
               visible: false
             },
             {
               title:"Row Number", 
-              field:"row_number", 
-              width: 80, 
-              headerSort: false,
+              field:"row_number",
               visible: false
             },
             {

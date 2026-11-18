@@ -38,37 +38,47 @@ const entryDeletedIds = new Set();
 const dirtyRows = [];
 const entryDeletedIdsInEnd = new Set();
 
+const columnDefaultParameters = {
+  headerHozAlign: "center",
+  hozAlign: "center",
+  vertAlign: "middle",
+};
 
-(async () => { 
-const response = await fetch(URLS.tableOptionsGetURL);
-const tableOptions = await response.json();
-
-dataEntryTable = new Tabulator("#samples-data-entry-table", {
-        rowHeader: {
+const universalTabulatorParameters = {
+    rowHeader: {
             resizable: false, frozen: true, width: 40,
             hozAlign: "center", formatter: "rownum",
             cssClass: "range-header-col", editor: false
         },
-        history:true,
-        height: "100%",
-        width: "100%", 
-        layout:"fitColumns",
-        editTriggerEvent: "dblclick",
+    history:true,
+    height: "100%",
+    width: "100%",
+    layout:"fitColumns",
+    editTriggerEvent: "dblclick",
+};
+
+(async () => {
+const response = await fetch(URLS.tableOptionsGetURL);
+const tableOptions = await response.json();
+
+dataEntryTable = new Tabulator("#samples-data-entry-table", {
         ajaxURL: URLS.dataEntryURL,
-        selectableRange: true,
         columnDefaults: {
           contextMenu: cellMenu,
-          headerHozAlign: "center",
-          hozAlign: "center",
-          vertAlign: "middle", 
+          ...columnDefaultParameters,
         },
+        ...universalTabulatorParameters,
+        selectableRange: true,
+        selectableRangeRows: true,
         clipboard: true,
+        selectableRangeClearCells: true,
+        selectableRangeClearCellsValue: null,
+        editorEmptyValue: null,
         clipboardCopyStyled: false,
         clipboardCopyConfig: { rowHeaders: false, columnHeaders: false },
         clipboardCopyRowRange: "range",
         clipboardPasteParser: "range",
         clipboardPasteAction: "range",
-        editorEmptyValue: null,
         columns:[
             {
               title:"ID", 

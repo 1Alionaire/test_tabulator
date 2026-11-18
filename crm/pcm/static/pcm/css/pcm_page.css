@@ -8,6 +8,12 @@
 .work-space {
     width: 100%;
     min-width: 0;
+    /* toolbar is on top (.main-window is a column): take the rest of the window height,
+       so the table's height: "100%" is the window, the table scrolls and the page does not */
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .panel-btn {
@@ -34,6 +40,7 @@ a.panel-btn {
     padding: 10px 10px;
     display: none;
     height: 100%;
+    min-height: 0;
     flex-direction: column;
     gap: 10px;
 }
