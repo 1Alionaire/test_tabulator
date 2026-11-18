@@ -50,6 +50,8 @@ const analysisTable = new Tabulator("#samples-analysis-table", {
         clipboardCopyRowRange: "range",
         clipboardPasteParser: "range",
         clipboardPasteAction: "range",
+        selectableRangeClearCells: true,
+        selectableRangeClearCellsValue: null,
         columns:[
             {
               title:"ID",

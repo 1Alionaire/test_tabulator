@@ -66,28 +66,26 @@ let weightTable;
 (async () => { 
 
 weightTable = new Tabulator("#samples-weight-table", {
-        rowHeader: {
-            resizable: false, frozen: true, width: 40,
-            hozAlign: "center", formatter: "rownum",
-            cssClass: "range-header-col", editor: false
-        },
-        history:true,
-        height: "100%",
-        width: "100%", 
-        layout:"fitColumns",
-        editTriggerEvent: "dblclick",
         ajaxURL: URLS.weightURL,
-        selectableRange: true,
-        selectableRangeColumns: true,
-        selectableRangeRows: true,
-        selectableRangeClearCells: true,
-
+        height: "100%",   // table scrolls inside itself, not the page
         columnDefaults: {
           contextMenu: cellWeightMenu,
           headerHozAlign: "center",
           hozAlign: "center",
           vertAlign: "middle",
         },
+        selectableRange: true,
+        selectableRangeRows: true,
+        clipboard: true,
+        selectableRangeClearCells: true,
+        selectableRangeClearCellsValue: null,
+        editorEmptyValue: null,
+        clipboardCopyStyled: false,
+        clipboardCopyConfig: { rowHeaders: false, columnHeaders: false },
+        clipboardCopyRowRange: "range",
+        clipboardPasteParser: "range",
+        clipboardPasteAction: "range",
+
         columns:[
             {
               title:"ID", 

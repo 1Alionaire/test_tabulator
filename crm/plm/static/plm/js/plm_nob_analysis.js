@@ -77,41 +77,26 @@ const optionsResponse = await fetch(URLS.tableOptionsGetURL);
 const tableOptions = await optionsResponse.json();
 
 nobTable = new Tabulator("#samples-nob-table", {
-        rowHeader: {
-            resizable: false, frozen: true, width: 40,
-            hozAlign: "center", formatter: "rownum",
-            cssClass: "range-header-col", editor: false
-        },
-        history:true,
-        height: '100%',
-        
-        width: "100%", 
-        layout:"fitColumns",
-        editTriggerEvent: "dblclick",
         ajaxURL: URLS.PLMNOBAnalysisURL,
+        columnDefaults: {
+          ...columnDefaultParameters
+        },
+        ...universalTabulatorParameters,
         selectableRange: true,
         selectableRangeColumns: true,
         selectableRangeRows: true,
         selectableRangeClearCells: true,
         selectableRangeClearCellsValue: null,   // Delete/Backspace по диапазону
-        editorEmptyValue: null,      
-
-        columnDefaults: {
-          headerHozAlign: "center",
-          hozAlign: "center",
-          vertAlign: "middle",
-        },
+        editorEmptyValue: null,
         columns:[
             {
               title:"ID", 
-              field:"id", 
-              width: 80,
+              field:"id",
               visible: false
             },
             {
               title:"Version",
               field:"version",
-              width: 80,
               visible: false
             },
             {
@@ -388,8 +373,8 @@ nobTable = new Tabulator("#samples-nob-table", {
 
     nobTable.on("cellEditing", function(cell) {
         let currentRow = cell.getRow();
-        if (cell.getField() == 'asb_point_1' || cell.getField() == 'asb_point_2' || cell.getField() == 'asb_point_3' || cell.getField() == 'asb_point_4' 
-        || cell.getField() == 'asb_point_5' || cell.getField() == 'asb_point_6' || cell.getField() == 'asb_point_7' || cell.getField() == 'asb_point_8')  {
+        if (cell.getField() === 'asb_point_1' || cell.getField() === 'asb_point_2' || cell.getField() === 'asb_point_3' || cell.getField() === 'asb_point_4'
+        || cell.getField() === 'asb_point_5' || cell.getField() === 'asb_point_6' || cell.getField() === 'asb_point_7' || cell.getField() === 'asb_point_8')  {
           if (cell.getValue() == null) {
             let field = cell.getField();
             currentRow.update({field:50});
@@ -406,7 +391,7 @@ nobTable = new Tabulator("#samples-nob-table", {
         };
 
         if (cell.getField() === 'asb_type') {
-            if (cell.getValue() == null || cell.getValue() == 1) {
+            if (cell.getValue() == null || cell.getValue() === 1) {
                 let var_homogenity = cell.getRow().getData().homo_area;
                 let getCurrentPosition = cell.getRow().getPosition();
 
@@ -482,7 +467,7 @@ nobTable = new Tabulator("#samples-nob-table", {
             };
         };
 
-        if (cell.getField() == 'asb_point_5' || cell.getField() == 'asb_point_6' || cell.getField() == 'asb_point_7' || cell.getField() == 'asb_point_8') {
+        if (cell.getField() === 'asb_point_5' || cell.getField() === 'asb_point_6' || cell.getField() === 'asb_point_7' || cell.getField() === 'asb_point_8') {
           if ([2, 3, 4, 5, 6, 7].includes(currentRow.getData().asb_type)) {
             let count_points = 0
             if (currentRow.getData().asb_point_5 != 50) count_points += 1
