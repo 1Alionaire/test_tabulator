@@ -70,9 +70,7 @@ weightTable = new Tabulator("#samples-weight-table", {
         height: "100%",   // table scrolls inside itself, not the page
         columnDefaults: {
           contextMenu: cellWeightMenu,
-          headerHozAlign: "center",
-          hozAlign: "center",
-          vertAlign: "middle",
+            ...columnDefaultParameters,
         },
         selectableRange: true,
         selectableRangeRows: true,
@@ -85,20 +83,16 @@ weightTable = new Tabulator("#samples-weight-table", {
         clipboardCopyRowRange: "range",
         clipboardPasteParser: "range",
         clipboardPasteAction: "range",
-
+        ...universalTabulatorParameters,
         columns:[
             {
               title:"ID", 
-              field:"id", 
-              width: 80, 
-              headerSort: false,
+              field:"id",
               visible: false
             },
             {
               title:"Row Number", 
               field:"sample__row_number",
-              width: 80, 
-              headerSort: false,
               visible: false
             },
             {
@@ -181,24 +175,45 @@ weightTable = new Tabulator("#samples-weight-table", {
             },
           ],
       });
-      weightTable.on("tableBuilt", () => bindTypeToEdit(weightTable)); 
+      weightTable.on("tableBuilt", () => bindTypeToEdit(weightTable));
 
-      weightTable.on("cellEdited", () => calculateWeights());
+      weightTable.on("cellEdited", (cell) => {
+          cell.getRow().update({ _dirty: true });
+          calculateWeights();
+        });
+
+    weightTable.on("clipboardPasted", (clipboard, rowData, rows) => {
+      for (const row of rows) {
+        const component = row.getComponent?.() ?? row;
+        component.update({ _dirty: true });
+      }
+      calculateWeights();
+    });
 })();
 
 
 function calculateWeights() {
-  const data = weightTable.getRows();
-  for (row of data) {
-    let varCrucible = row.getData().w_crucible;
-    if (varCrucible) {
-        row.update({w_sample: Math.round(((row.getData().w_crucible_with_sample || 0) - (varCrucible || 0)) * 10000) / 10000 });
-        row.update({org:  Math.round( (((row.getData().w_sample || 0) - ((row.getData().w_sample_ashed || 0) - (varCrucible || 0))) / (row.getData().w_sample || 0) * 100 ) * 100 ) / 100 });
-        row.update({residue: Math.round(  ((((row.getData().w_petri_with_sample || 0) - ((row.getData().w_petri || 0))) / (row.getData().w_sample || 0)) * 100)   * 100) / 100});
-        row.update({caco3: Math.round( ((100 - row.getData().residue - row.getData().org)) * 100) / 100 });
-    }
+  const updates = [];
+
+  for (const row of weightTable.getRows()) {
+    const d = row.getData();
+    const crucible = Number(d.w_crucible);
+    if (!crucible) continue;
+
+    const wSample = round4((Number(d.w_crucible_with_sample) || 0) - crucible);
+    const org = wSample
+      ? round2((wSample - ((Number(d.w_sample_ashed) || 0) - crucible)) / wSample * 100)
+      : 0;
+    const residue = wSample
+      ? round2(((Number(d.w_petri_with_sample) || 0) - (Number(d.w_petri) || 0)) / wSample * 100)
+      : 0;
+
+    row.update({ w_sample: wSample, org, residue, caco3: round2(100 - residue - org) });
   }
 }
+
+const round2 = (n) => Math.round(n * 100) / 100;
+const round4 = (n) => Math.round(n * 10000) / 10000;
 
 function returnNull(inputValue){
   if (isEmpty(inputValue)) {
@@ -212,47 +227,41 @@ function returnNull(inputValue){
 // ============================ Save changes ===========================
 document.getElementById("weight-save-toggle").addEventListener("click", weightSaveChanges);
 
-function weightCollectChanges() {
-  const updatedData = {}; // initialize update dict 
-  const createdData = {};  // initialize create dict 
+const WEIGHT_FIELDS = [
+  "client_sample", "w_crucible", "w_crucible_with_sample",
+  "w_sample", "w_sample_ashed", "org",
+  "w_petri", "w_petri_with_sample", "residue", "caco3",
+];
 
-  for (const cell of weightTable.getEditedCells()) {  // going through all edited cells
-    const data = cell.getRow()?.getData();  //parse data from whole row?
-    if (!data) continue; // if we dont have data -> continue
+const SERVICE_FIELDS = new Set(["_uid", "_dirty", "id", "version", "sample", "sample__row_number"]);
 
-    const clientId = String(data.client_sample);           
-
-    let all_data_row = {id:data.id,
-                        client_sample: returnNull(data.client_sample),
-                        w_crucible : returnNull(data.w_crucible), 
-                        w_crucible_with_sample : returnNull(data.w_crucible_with_sample), 
-                        w_sample : returnNull(data.w_sample),
-                        w_sample_ashed : returnNull(data.w_sample_ashed), 
-                        org: returnNull(data.org),
-                        w_petri:returnNull(data.w_petri),
-                        w_petri_with_sample:returnNull(data.w_petri_with_sample),
-                        residue:returnNull(data.residue),
-                        caco3 : returnNull(data.caco3),
-                        version: data.version};
-
-    // in case its new cell
-    if (isEmpty(String(data.id)) || data.id === undefined || data.id === null ) {
-        createdData[clientId] = all_data_row
-    }
-    // in case its already existing cell 
-    else {        
-        updatedData[clientId] = all_data_row
-      };
-  }
-
-    const result = {
-      updated: Object.values(updatedData),
-      created: Object.values(createdData),
-      deleted: [...weightDeletedIds],
-    };
-  return result;
+function isRowEmpty(data) {
+  return Object.entries(data).every(
+    ([k, v]) => SERVICE_FIELDS.has(k) || v === null || v === undefined || v === ""
+  );
 }
 
+function weightCollectChanges() {
+  const updated = [];
+  const created = [];
+
+  for (const data of weightTable.getData()) {
+    if (!data._dirty || isRowEmpty(data)) continue;
+
+    const row = {
+      ...Object.fromEntries(WEIGHT_FIELDS.map((f) => [f, returnNull(data[f])])),
+      version: data.version,
+    };
+
+    if (data.id) {
+      updated.push({ id: data.id, ...row });
+    } else {
+      created.push(row);
+    }
+  }
+
+  return { updated, created, deleted: [...weightDeletedIds] };
+}
 async function weightSaveChanges() {
     try {
       const changes = weightCollectChanges();
