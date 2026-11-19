@@ -23,7 +23,7 @@ class BaseModel(models.Model):
             self.version += 1
             update_fields = kwargs.get("update_fields")
             if update_fields is not None:
-                kwargs["update_fields"] = set(update_fields) | {"version", "updated_at"}
+                kwargs["update_fields"] = set(update_fields) | {"version", "time_update"}
 
         super().save(*args, **kwargs)
 

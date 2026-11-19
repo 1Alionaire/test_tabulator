@@ -1,3 +1,5 @@
+from django.utils import timezone
+
 from .models import PlmSample, PlmSampleWeight, PlmProject, SampleMethod, SampleASbestosType
 from django.db import transaction
 import django.utils
@@ -10,7 +12,7 @@ from django.db.models import Q
 from qc.models import PlmQCReplicateDuplicateItem, PlmTypeAnalysisSample, PlmTypeQCSample
 from django.core import serializers
 import json
-from tem.models import TEMGridRecord
+from tem.models import QCTEMGridRecord
 
 PLM_ENTRY_REQUIRED_ON_CREATE = {
     'homo_area', 'client_sample', 'lab_sample', 'description',
@@ -41,7 +43,7 @@ def copy_weight_item(plm_project, sample_to_copy, prefix):
         return copied_weight
     else:
         return None
-
+# function to make copy
 def generate_qc_sample(inp_project, copy_of_sample, copy_of_weight, max_row_number, prefix, is_nob_qb, is_tem_qc):
     sample = PlmSample(plm_project=inp_project, 
                         row_number=max_row_number,
@@ -50,7 +52,7 @@ def generate_qc_sample(inp_project, copy_of_sample, copy_of_weight, max_row_numb
                         weight=copy_of_weight,
                         is_qc_sample = is_nob_qb, 
                         tem_is_qc_sample = is_tem_qc,
-                        asb_type = copy_of_sample.asb_type,
+                        asb_type = SampleASbestosType.NAD,
                         homo_area= copy_of_sample.homo_area,
                         layer= copy_of_sample.layer,
                         description= copy_of_sample.description,
@@ -71,31 +73,35 @@ def generate_qc_sample(inp_project, copy_of_sample, copy_of_weight, max_row_numb
                         other_fiber_percent= copy_of_sample.other_fiber_percent,
                         tem_microscope_alignment=copy_of_sample.tem_microscope_alignment, 
                         tem_eccentricity_adjusted=copy_of_sample.tem_eccentricity_adjusted, 
-                        tem_grid_pre_acceptability=copy_of_sample.tem_grid_pre_acceptability, 
+                        tem_grid_pre_acceptability=copy_of_sample.tem_grid_pre_acceptability,
+                        tem_asb_type_grid_1=SampleASbestosType.NAD,
+                        tem_asb_type_grid_2=SampleASbestosType.NAD,
                         tem_grid_box=copy_of_sample.tem_grid_box,
                         tem_grid_box_id_1=copy_of_sample.tem_grid_box_id_1,
                         tem_grid_box_id_2=copy_of_sample.tem_grid_box_id_2,
                         tem_na_or_ps=copy_of_sample.tem_na_or_ps,
                         is_blank=copy_of_sample.is_blank)
+    sample.write_tem_asb_result()
     sample.full_clean()
     sample.save()
 
     return sample
 
 def generate_plm_qc_sample(max_row_number, select_project):
-    samples_to_copy = PlmSample.original_samples.filter(plm_project=select_project, 
-                                                            method=SampleMethod.Sample1981).exclude(asb_type=SampleASbestosType.NotAnalyzed)
+    samples_to_copy = (PlmSample.original_samples
+                       .filter(plm_project=select_project, method=SampleMethod.Sample1981)
+                       .exclude(asb_type=SampleASbestosType.NotAnalyzed))
         
     amount_rep_samples = math.ceil(PlmSample.original_samples.filter(plm_project=select_project, method=SampleMethod.Sample1981).count() / 15)
     amount_dup_samples = math.ceil(PlmSample.original_samples.filter(plm_project=select_project, method=SampleMethod.Sample1981).count() / 50)
 
     for _ in range(amount_rep_samples):
         random_sample_to_copy = random.choice(samples_to_copy)
-        sample = generate_qc_sample(inp_project=select_project, 
+        generate_qc_sample(inp_project=select_project,
                            copy_of_sample=random_sample_to_copy, 
                            copy_of_weight=None, 
                            max_row_number=max_row_number, 
-                           prefix='R', 
+                           prefix='REP-',
                            is_nob_qb=True, 
                            is_tem_qc=False)
 
@@ -103,11 +109,11 @@ def generate_plm_qc_sample(max_row_number, select_project):
 
     for _ in range(amount_dup_samples):
         random_sample_to_copy = random.choice(samples_to_copy)
-        sample = generate_qc_sample(inp_project=select_project, 
+        generate_qc_sample(inp_project=select_project,
                                    copy_of_sample=random_sample_to_copy, 
                                    copy_of_weight=None, 
                                    max_row_number=max_row_number, 
-                                   prefix='D', 
+                                   prefix='DUP-',
                                    is_nob_qb=True, 
                                    is_tem_qc=False)
         max_row_number += 1
@@ -115,8 +121,9 @@ def generate_plm_qc_sample(max_row_number, select_project):
     return max_row_number
 
 def generate_nob_qc_sample(max_row_number, select_project):
-    samples_to_copy = PlmSample.original_samples.filter(plm_project=select_project, 
-                                                                method=SampleMethod.Sample1986).exclude(asb_type=SampleASbestosType.NotAnalyzed)
+    samples_to_copy = (PlmSample.original_samples
+                       .filter(plm_project=select_project, method=SampleMethod.Sample1986)
+                       .exclude(asb_type=SampleASbestosType.NotAnalyzed))
     amount_rep_samples = math.ceil(PlmSample.original_samples.filter(plm_project=select_project, method=SampleMethod.Sample1986).count() / 15)
     amount_dup_samples = math.ceil(PlmSample.original_samples.filter(plm_project=select_project, method=SampleMethod.Sample1986).count() / 50)
 
@@ -126,11 +133,11 @@ def generate_nob_qc_sample(max_row_number, select_project):
                                               sample_to_copy=random_sample_to_copy,
                                               prefix='R')
 
-        sample = generate_qc_sample(inp_project=select_project, 
+        generate_qc_sample(inp_project=select_project,
                             copy_of_sample=random_sample_to_copy, 
                             copy_of_weight=copied_weight_item, 
                             max_row_number=max_row_number, 
-                            prefix='R', 
+                            prefix='REP-',
                             is_nob_qb=True, 
                             is_tem_qc=False)
         
@@ -150,11 +157,11 @@ def generate_nob_qc_sample(max_row_number, select_project):
         copied_weight_item.full_clean()
         copied_weight_item.save()
 
-        sample = generate_qc_sample(inp_project=select_project, 
+        generate_qc_sample(inp_project=select_project,
                             copy_of_sample=random_sample_to_copy, 
                             copy_of_weight=copied_weight_item, 
                             max_row_number=max_row_number, 
-                            prefix='D', 
+                            prefix='DUP-',
                             is_nob_qb=True, 
                             is_tem_qc=False)
 
@@ -163,17 +170,23 @@ def generate_nob_qc_sample(max_row_number, select_project):
     return max_row_number
 
 def generate_tem_qc_sample(max_row_number, select_project):
-    samples_to_copy = PlmSample.original_samples.filter(plm_project=select_project, method__in=[SampleMethod.Sample1984, 
-                                                                                                SampleMethod.Sample1986, 
-                                                                                                SampleMethod.Sample1994]).exclude(Q(asb_type=SampleASbestosType.NotAnalyzed) | Q(tem_na_or_ps='PS'))
+    samples_to_copy = (PlmSample.original_samples
+                       .filter(plm_project=select_project, method__in=[SampleMethod.Sample1984, SampleMethod.Sample1986, SampleMethod.Sample1994])
+                       .exclude(Q(asb_type=SampleASbestosType.NotAnalyzed) | Q(tem_na_or_ps='PS')))
                 
-    amount_rep_samples = math.ceil(PlmSample.original_samples.filter(plm_project=select_project, method__in=[SampleMethod.Sample1984, 
-                                                                                                            SampleMethod.Sample1986, 
-                                                                                                            SampleMethod.Sample1994]).exclude(Q(asb_type=SampleASbestosType.NotAnalyzed) | Q(tem_na_or_ps='PS')).count() / 15)
+    amount_rep_samples = (math.ceil(PlmSample.original_samples
+                                    .filter(plm_project=select_project, method__in=[SampleMethod.Sample1984,
+                                                                                    SampleMethod.Sample1986,
+                                                                                    SampleMethod.Sample1994])
+                                    .exclude(Q(asb_type=SampleASbestosType.NotAnalyzed) | Q(tem_na_or_ps='PS'))
+                                    .count() / 15))
     
-    amount_dup_samples = math.ceil(PlmSample.original_samples.filter(plm_project=select_project, method__in=[SampleMethod.Sample1984, 
-                                                                                                            SampleMethod.Sample1986, 
-                                                                                                            SampleMethod.Sample1994]).exclude(Q(asb_type=SampleASbestosType.NotAnalyzed) | Q(tem_na_or_ps='PS')).count() / 50)
+    amount_dup_samples = (math.ceil(PlmSample.original_samples
+                                    .filter(plm_project=select_project, method__in=[SampleMethod.Sample1984,
+                                                                                    SampleMethod.Sample1986,
+                                                                                    SampleMethod.Sample1994])
+                                    .exclude(Q(asb_type=SampleASbestosType.NotAnalyzed) | Q(tem_na_or_ps='PS'))
+                                    .count() / 50))
 
     for _ in range(amount_rep_samples):
         random_sample_to_copy = random.choice(samples_to_copy)
@@ -181,26 +194,20 @@ def generate_tem_qc_sample(max_row_number, select_project):
                                               sample_to_copy=random_sample_to_copy,
                                               prefix='R')
 
-        sample = generate_qc_sample(inp_project=select_project, 
+        sample = generate_qc_sample(inp_project=select_project,
                             copy_of_sample=random_sample_to_copy, 
                             copy_of_weight=copied_weight_item, 
                             max_row_number=max_row_number, 
-                            prefix='R', 
+                            prefix='REP-',
                             is_nob_qb=False, 
                             is_tem_qc=True)
 
 
-        tem_grid_book_record = TEMGridRecord.objects.filter(filled=False, qc=True).order_by("position").first() #take the lowest non-filled record
-
-        if tem_grid_book_record is not None:
-            tem_grid_book_record.plm_tem_project = select_project
-            tem_grid_book_record.plm_tem_sample = sample
-            tem_grid_book_record.filled = True
-            tem_grid_book_record.save(update_fields=["plm_tem_project", "plm_tem_sample", "filled"])
-
-        sample.tem_grid_box = tem_grid_book_record.grid_box
-        sample.tem_grid_box_id_1 = tem_grid_book_record.grid_id_1
-        sample.tem_grid_box_id_2 = tem_grid_book_record.grid_id_2
+        grid_record = create_qc_tem_grid_record(select_project, sample)
+        # need to correct
+        sample.tem_grid_box = grid_record.grid_box
+        sample.tem_grid_box_id_1 = grid_record.grid_id_1
+        sample.tem_grid_box_id_2 = grid_record.grid_id_2
         sample.full_clean()
         sample.save(update_fields=["tem_grid_box", "tem_grid_box_id_1", "tem_grid_box_id_2"])
         
@@ -212,25 +219,20 @@ def generate_tem_qc_sample(max_row_number, select_project):
                                               sample_to_copy=random_sample_to_copy,
                                               prefix='D')
 
-        sample = generate_qc_sample(inp_project=select_project, 
+        sample = generate_qc_sample(inp_project=select_project,
                             copy_of_sample=random_sample_to_copy, 
                             copy_of_weight=copied_weight_item, 
                             max_row_number=max_row_number, 
-                            prefix='D', 
+                            prefix='DUP-',
                             is_nob_qb=False, 
                             is_tem_qc=True)
 
-        tem_grid_book_record = TEMGridRecord.objects.filter(filled=False, qc=True).order_by("position").first() #take the lowest non-filled record
+        grid_record = create_qc_tem_grid_record(select_project, sample)
+        # need to correct
+        sample.tem_grid_box = grid_record.grid_box
+        sample.tem_grid_box_id_1 = grid_record.grid_id_1
+        sample.tem_grid_box_id_2 = grid_record.grid_id_2
 
-        if tem_grid_book_record is not None:
-            tem_grid_book_record.plm_tem_project = select_project
-            tem_grid_book_record.plm_tem_sample = sample
-            tem_grid_book_record.filled = True
-            tem_grid_book_record.save(update_fields=["plm_tem_project", "plm_tem_sample", "filled"])
-
-        sample.tem_grid_box = tem_grid_book_record.grid_box
-        sample.tem_grid_box_id_1 = tem_grid_book_record.grid_id_1
-        sample.tem_grid_box_id_2 = tem_grid_book_record.grid_id_2
         sample.full_clean()
         sample.save(update_fields=["tem_grid_box", "tem_grid_box_id_1", "tem_grid_box_id_2"])
         
@@ -238,6 +240,46 @@ def generate_tem_qc_sample(max_row_number, select_project):
 
     return max_row_number
     
+def create_qc_tem_grid_record(input_project, input_sample):
+    year = input_project.date_analyze.year
+    previous = (
+        QCTEMGridRecord.objects
+        .filter(year=year)
+        .order_by("-pk")
+        .first()
+    )
+    if previous:
+        grid_box = previous.grid_box
+        grid_ids = (previous.grid_id_1, previous.grid_id_2)
+        index_grid = QCTEMGridRecord.all_grid_id.index(grid_ids)
+        if index_grid == len(QCTEMGridRecord.all_grid_id) - 1:
+            grid_record = QCTEMGridRecord.objects.create(year=year,
+                                                         grid_box=(grid_box + 1),
+                                                         grid_id_1='A1',
+                                                         grid_id_2='B1',
+                                                         plm_tem_project=input_project,
+                                                         plm_tem_sample=input_sample,)
+        else:
+            new_grid_1 = QCTEMGridRecord.all_grid_id[index_grid + 1][0]
+            new_grid_2 = QCTEMGridRecord.all_grid_id[index_grid + 1][1]
+            grid_record = QCTEMGridRecord.objects.create(year=year,
+                                                         grid_box=grid_box,
+                                                         grid_id_1=new_grid_1,
+                                                         grid_id_2=new_grid_2,
+                                                         plm_tem_project=input_project,
+                                                         plm_tem_sample=input_sample,
+                                                         )
+
+    else:
+        grid_record = QCTEMGridRecord.objects.create(year=year,
+                                       grid_box = 1,
+                                       grid_id_1 = 'A1',
+                                       grid_id_2 = 'B1',
+                                       plm_tem_project=input_project,
+                                       plm_tem_sample=input_sample,
+                                     )
+
+    return grid_record
 
 def generate_qc_entry_process(input_project_id):
     select_project = PlmProject.objects.get(pk=input_project_id)

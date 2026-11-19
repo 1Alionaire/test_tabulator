@@ -236,7 +236,7 @@ class PlmSample(BaseModel):
     asb_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True, null=True)
 
     rest_percent = models.DecimalField(max_digits=5, decimal_places=2, default=100, blank=True, null=True)
-    is_blank = models.BooleanField(default=False)
+    is_blank = models.BooleanField(default=False,  blank=True, null=True)
 
     objects = models.Manager()
     original_samples = OriginalSamples()
@@ -260,7 +260,7 @@ class PlmSample(BaseModel):
     tem_grid_box_id_1 = models.CharField(max_length=7, blank=True, null=True)
     tem_grid_box_id_2 = models.CharField(max_length=7, blank=True, null=True)
     tem_na_or_ps = models.CharField(max_length=3, blank=True, null=True)
-    tem_is_qc_sample = models.BooleanField(default=False)
+    tem_is_qc_sample = models.BooleanField(default=False,  blank=True, null=True)
 
     def __str__(self):
         if self.lab_sample is None or self.lab_sample == "":
