@@ -13,6 +13,8 @@ class TypeSamplingPCM(models.IntegerChoices):
     Ambient = 3, 'Ambient'
     Post = 4, 'Post'
     DuringAsFinals = 5, 'During-as-Finals'
+    Abatement = 6, 'Abatement'
+    AirQuality = 7, 'Air Quality Test'
 
 class PcmProject(BaseModel):
     project = models.OneToOneField('main.MainProject', on_delete=models.CASCADE, related_name='pcm_project') #check
