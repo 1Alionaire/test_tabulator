@@ -1,10 +1,12 @@
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Max
 from rest_framework import status, generics
 from rest_framework.pagination import CursorPagination
 from rest_framework.permissions import IsAuthenticated
 from tem.models import QCTEMGridRecord, TEMGridRecord
 from api.v1.tem.serializers import QCTEMGridBookSerializer, TEMGridBookSerializer
 import django_filters as df
+from django.db import transaction
 
 class QCTEMGridBook(generics.ListAPIView):
     serializer_class = QCTEMGridBookSerializer
@@ -28,7 +30,10 @@ class GridBoxCursorPagination(CursorPagination):
     max_page_size = 1000
     ordering = ("-grid_box", "position")   # или ("-box_number", "number"), если номер коробки — поле в таблице
 
-class TEMGridBook(generics.ListAPIView):
+class TEMGridBook(generics.GenericAPIView):
+    def get(self, request):
+        all_data = 
+        serializer = PlmSampleEntryGetListSerializer(samples_data, many=True)
     serializer_class = TEMGridBookSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = MainProjectFilter
@@ -37,5 +42,17 @@ class TEMGridBook(generics.ListAPIView):
     def get_queryset(self):
         return TEMGridRecord.objects.all()
 
+@transaction.atomic
 def create_grid_book(request):
-    last_box = 
+    try: 
+        last_box = QCTEMGridBook.objects.aggregate(Max('grid_box'))
+        current_year = 2026
+        for position, grids in TEMGridRecord.all_grid_id.items():
+                            TEMGridRecord.objects.create(position=position,
+                                                        year = current_year, 
+                                                        grid_box=last_box + 1,
+                                                        grid_id_1 = grids[0],
+                                                        grid_id_2 = grids[1])
+        return Response(result, status=status.HTTP_200_OK)
+    except:
+        pass                   
