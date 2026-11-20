@@ -6,9 +6,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from tem.models import QCTEMGridRecord, TEMGridRecord
-from api.v1.tem.serializers import QCTEMGridBookSerializer, TEMGridBookSerializer
+from api.v1.tem.serializers import QCTEMGridBookSerializer, TEMGridBookSerializer, TEMGridBookAssignSerializer
 import django_filters as df
 from django.db import transaction
+from .services import OriginalTEMBookManager
 
 class QCTEMGridBook(generics.ListAPIView):
     serializer_class = QCTEMGridBookSerializer
@@ -42,7 +43,7 @@ class TEMGridBook(generics.ListAPIView):
         return TEMGridRecord.objects.all()
 
 class TEMGridBookChangesView(generics.GenericAPIView):
-    serializer_class = TEMGridBookSerializer
+    serializer_class = TEMGridBookAssignSerializer
     @transaction.atomic
     def post(self, request):
         last_box = TEMGridRecord.objects.aggregate(Max('grid_box'))
@@ -57,5 +58,8 @@ class TEMGridBookChangesView(generics.GenericAPIView):
 
     @transaction.atomic
     def patch(self, request):
-        pass
-
+        serializer = self.get_serializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        result = OriginalTEMBookManager(data).assign_grids()
+        return Response({'created': result}, status=status.HTTP_200_OK)

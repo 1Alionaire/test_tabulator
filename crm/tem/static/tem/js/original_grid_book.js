@@ -1,6 +1,24 @@
 // ==================== Generate table ====================
+
+// ==================== CSRF-токен ====================
+function getCookie(name) {
+    let value = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return value ? value.pop() : '';
+}
+const csrftoken = getCookie('csrftoken');
+
+
 const ORIGINALS = new Map();
 let table;
+
+const updatedData = new Map();
+
+function markDirty(row, field) {
+  const id = row.getData().id;
+  if (!updatedData.has(id)) updatedData.set(id, {});
+  updatedData.get(id)[field] = row.getData()[field];
+  updatedData.get(id)['version'] = row.getData()['version'];
+}
 
 (async () => { 
      table = new Tabulator("#main-info", {
@@ -14,10 +32,8 @@ let table;
         width: "100%",  // width 
         layout:"fitColumns", // layout 
         editTriggerEvent: "click", // edit trigger for editing
-        // ajaxURL: URLS.temOriginalGridBoxGetURL, // URL for request
-        pagination:"local", // pagination
-        paginationSize: 400, 
-        paginationSizeSelector:[100, 200, 300], 
+        footerElement: '<span id="main-rows-loaded"></span>' +
+          '<button type="button" id="main-load-more" class="tabulator-page">Load more</button>',
         selectableRows:true,  
         columnDefaults: {
           headerHozAlign: "center",
@@ -48,7 +64,18 @@ let table;
               title:"Grid Box", 
               field:"grid_box", 
               editable: false, 
-              width:120, 
+              width:120,
+              formatter: function (cell) {
+                const row = cell.getRow();
+                const prev = row.getPrevRow();
+                const el = cell.getElement();
+                const value = cell.getValue();
+
+                const isRepeat = prev && prev.getData().grid_box === value && value;
+
+                el.classList.toggle("merged-continue", Boolean(isRepeat));
+                return isRepeat ? "" : (value ?? "");
+              },
             },
             {
               title:"Grid ID I", 
@@ -64,22 +91,35 @@ let table;
             },
             {
               title:"Project", 
-              field:"plm_tem_project__project__lab_id", 
+              field:"plm_tem_project",
               editor: tabulatorTextEditor,
               width:120, 
             },
             {
               title:"Sample", 
-              field:"plm_tem_sample__lab_sample", 
+              field:"plm_tem_sample",
               editor: tabulatorTextEditor,
               width:120, 
             },
           ],
       });
 
+
+     table.on("cellEdited", (cell) => { // in case cell edited
+        if (cell.getRow().getData().id) { // if sample exists
+          markDirty(cell.getRow(), cell.getField()); // mark cell dirty
+        }
+      });
+
      table.on("tableBuilt", () => {
        // document.getElementById("main-load-more").addEventListener("click", loadNextPage);
        loadFirstPage();
+     });
+
+     // infinite scroll: подгружаем следующую страницу, когда до низа осталось меньше SCROLL_LOAD_MARGIN
+     table.on("scrollVertical", (top) => {
+       const holder = table.element.querySelector(".tabulator-tableholder");
+       if (top + holder.clientHeight >= holder.scrollHeight - SCROLL_LOAD_MARGIN) loadNextPage();
      });
   })();
 
@@ -145,3 +185,58 @@ async function loadNextPage() {
     pageLoading = false;
   }
 }
+
+document.getElementById("main-menu-save-toggle").addEventListener("click", saveChanges);
+
+async function saveChanges() {
+  // const payload = {
+  //   updated: Array.from(updatedData, ([id, fields]) => ({
+  //     id: Number(id), ...fields,
+  //   })), //take json with updated data
+  // };
+
+  // const payload = Array.from(updatedData, ([id, fields]) => ({
+  //     id: Number(id),
+  //     ...fields,
+  //   }));
+
+  const payload = Array.from(updatedData, ([id, fields]) => ({
+      id: Number(id),
+      ...fields,
+    }));
+
+  if (!payload.length) {
+    showToast("No changes to save", "info");
+    return;
+  }
+
+  try {
+    const res = await fetch(URLS.temOriginalGridBoxUpdateURL, {
+      method: "PATCH",
+      headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      await showResponseError(res);
+      return;                                   // флаги не снимаем — правки живы
+    }
+
+    updatedData.clear()
+
+    const resultJSON = await res.json();
+
+    let resultMessage = ''
+    if (resultJSON.updated) {resultMessage += `Updated: ${resultJSON.updated}`};
+    showToast(`Table Saved: ${resultMessage}`, "success");
+
+    } catch (e) {
+      if (e.status === 409) {
+        showResponseError(e.message, "error");
+      } else {
+        showToast(`Error: ${e.message}`, "error");
+      }
+    } finally {
+      loadFirstPage();
+    }
+};

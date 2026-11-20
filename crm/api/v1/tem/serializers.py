@@ -20,6 +20,10 @@ class QCTEMGridBookSerializer(serializers.ModelSerializer):
             'plm_tem_sample__lab_sample',
         )
 
+GRID_BOOK_UPDATE_FIELDS = ['id', 'year', 'position',
+            'grid_box', 'grid_id_1', 'grid_id_2',
+            'plm_tem_project', 'plm_tem_sample']
+
 class TEMGridBookSerializer(serializers.ModelSerializer):
     class Meta:
         model = TEMGridRecord
@@ -28,3 +32,16 @@ class TEMGridBookSerializer(serializers.ModelSerializer):
             'grid_box', 'grid_id_1', 'grid_id_2',
             'plm_tem_project', 'plm_tem_sample',
         )
+
+        read_only_fields = ('id', 'year', 'position', 'grid_box',
+                            'grid_id_1', 'grid_id_2')
+
+
+class TEMGridBookAssignSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()  # объявлен явно → доступен для записи
+
+    class Meta:
+        model = TEMGridRecord
+        fields = ('id', 'plm_tem_project', 'plm_tem_sample')
+
+        read_only_fields = ('grid_box', 'grid_id_1', 'grid_id_2')

@@ -22,6 +22,12 @@
   </section>
   <section class="main-window">
     <section class="control-panel">
+      <button type="button" id="main-menu-create-toggle" class="panel-btn">
+        Create Box
+      </button>
+      <button type="button" id="main-menu-save-toggle" class="panel-btn">
+        Save
+      </button>
     </section>
     <section id="main-info"></section>
   </section>
@@ -30,6 +36,7 @@
   // Этот блок ВНУТРИ шаблона, поэтому Django-теги работают
   const URLS = {
     temOriginalGridBoxGetURL: "{% url 'api:v1:tem:original_grid_book_table' %}",
+    temOriginalGridBoxUpdateURL: "{% url 'api:v1:tem:original_grid_book_update' %}",
   };
 </script>
 

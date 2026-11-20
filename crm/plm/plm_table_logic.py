@@ -145,7 +145,7 @@ def generate_nob_qc_sample(max_row_number, select_project):
 
     for _ in range(amount_dup_samples):
         random_sample_to_copy = random.choice(samples_to_copy)
-
+        input_range = 0
         if samples_to_copy[0].weight is not None:
             input_range = (float(random_sample_to_copy.weight.residue -10), float(random_sample_to_copy.weight.residue + 10))
         
