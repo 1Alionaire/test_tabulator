@@ -3,6 +3,8 @@ from django.db.models import Max
 from rest_framework import status, generics
 from rest_framework.pagination import CursorPagination
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
 from tem.models import QCTEMGridRecord, TEMGridRecord
 from api.v1.tem.serializers import QCTEMGridBookSerializer, TEMGridBookSerializer
 import django_filters as df
@@ -30,10 +32,7 @@ class GridBoxCursorPagination(CursorPagination):
     max_page_size = 1000
     ordering = ("-grid_box", "position")   # или ("-box_number", "number"), если номер коробки — поле в таблице
 
-class TEMGridBook(generics.GenericAPIView):
-    def get(self, request):
-        all_data = 
-        serializer = PlmSampleEntryGetListSerializer(samples_data, many=True)
+class TEMGridBook(generics.ListAPIView):
     serializer_class = TEMGridBookSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = MainProjectFilter
@@ -42,17 +41,21 @@ class TEMGridBook(generics.GenericAPIView):
     def get_queryset(self):
         return TEMGridRecord.objects.all()
 
-@transaction.atomic
-def create_grid_book(request):
-    try: 
-        last_box = QCTEMGridBook.objects.aggregate(Max('grid_box'))
+class TEMGridBookChangesView(generics.GenericAPIView):
+    serializer_class = TEMGridBookSerializer
+    @transaction.atomic
+    def post(self, request):
+        last_box = TEMGridRecord.objects.aggregate(Max('grid_box'))
         current_year = 2026
         for position, grids in TEMGridRecord.all_grid_id.items():
-                            TEMGridRecord.objects.create(position=position,
-                                                        year = current_year, 
-                                                        grid_box=last_box + 1,
-                                                        grid_id_1 = grids[0],
-                                                        grid_id_2 = grids[1])
-        return Response(result, status=status.HTTP_200_OK)
-    except:
-        pass                   
+            TEMGridRecord.objects.create(position=position,
+                                         year=current_year,
+                                         grid_box=last_box['grid_box__max'] + 1,
+                                         grid_id_1=grids[0],
+                                         grid_id_2=grids[1])
+        return Response({'created':25}, status=status.HTTP_200_OK)
+
+    @transaction.atomic
+    def patch(self, request):
+        pass
+
