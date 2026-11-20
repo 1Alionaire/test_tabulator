@@ -29,7 +29,7 @@
 {% endblock%} {% block extra_js %} <script>
   // Этот блок ВНУТРИ шаблона, поэтому Django-теги работают
   const URLS = {
-    temOriginalGridBoxGetURL: "{% url 'tem:api_get_original_grid_book_table' %}",
+    temOriginalGridBoxGetURL: "{% url 'api:v1:tem:original_grid_book_table' %}",
   };
 </script>
 

@@ -7,5 +7,6 @@ urlpatterns = [
     path('pcm/', include('api.v1.pcm.urls')),
     path('plm/', include('api.v1.plm.urls')),
     path('finance/', include('api.v1.finance.urls')),
+    path('tem/', include('api.v1.tem.urls')),
     path('qc/', include('api.v1.qc.urls')),
 ]

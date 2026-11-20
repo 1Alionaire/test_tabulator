@@ -3,10 +3,6 @@ from qc.models import PcmZCriterionPerAnalystMonth, Month
 
 # Serializer for all PLM projects table
 class UserPCMStdDeviationSerializer(serializers.ModelSerializer):
-    # class Meta:
-    #     model = PcmZCriterionPerAnalystMonth
-    #     fields = '__all__'
-
     class Meta:
         model = PcmZCriterionPerAnalystMonth
         fields = (

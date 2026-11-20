@@ -4,9 +4,9 @@ from .models import TEMGridRecord, QCTEMGridRecord
 
 @admin.register(TEMGridRecord)
 class TEMGridRecordAdmin(admin.ModelAdmin):
-    list_display = ('grid_box', 'grid_id_1', 'grid_id_2', 'plm_tem_project', 'plm_tem_sample', 'filled', 'qc')
+    list_display = ('grid_box', 'grid_id_1', 'grid_id_2', 'plm_tem_project', 'plm_tem_sample')
     search_fields = ('grid_box', )
-    list_filter = ['year', 'plm_tem_project__project__lab_id']
+    list_filter = ['year',]
 
     list_per_page = 25
 
