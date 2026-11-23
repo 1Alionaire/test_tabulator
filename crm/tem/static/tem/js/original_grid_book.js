@@ -104,7 +104,6 @@ function markDirty(row, field) {
           ],
       });
 
-
      table.on("cellEdited", (cell) => { // in case cell edited
         if (cell.getRow().getData().id) { // if sample exists
           markDirty(cell.getRow(), cell.getField()); // mark cell dirty
@@ -112,7 +111,6 @@ function markDirty(row, field) {
       });
 
      table.on("tableBuilt", () => {
-       // document.getElementById("main-load-more").addEventListener("click", loadNextPage);
        loadFirstPage();
      });
 
@@ -189,17 +187,6 @@ async function loadNextPage() {
 document.getElementById("main-menu-save-toggle").addEventListener("click", saveChanges);
 
 async function saveChanges() {
-  // const payload = {
-  //   updated: Array.from(updatedData, ([id, fields]) => ({
-  //     id: Number(id), ...fields,
-  //   })), //take json with updated data
-  // };
-
-  // const payload = Array.from(updatedData, ([id, fields]) => ({
-  //     id: Number(id),
-  //     ...fields,
-  //   }));
-
   const payload = Array.from(updatedData, ([id, fields]) => ({
       id: Number(id),
       ...fields,
@@ -240,3 +227,14 @@ async function saveChanges() {
       loadFirstPage();
     }
 };
+
+document.getElementById("main-menu-create-toggle").addEventListener("click", async () => {
+    const res = await fetch(URLS.temOriginalGridBoxUpdateURL, {
+      method: "POST",
+      headers: {"Content-Type": "application/json", "X-CSRFToken": csrftoken},
+    });
+    saveChanges();
+    loadFirstPage();
+  }
+);
+
