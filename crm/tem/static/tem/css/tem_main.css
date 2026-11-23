@@ -24,3 +24,7 @@
 .menu-btn:hover {
     background: #1b4591;
 }
+
+.tabulator .tabulator-cell.merged-continue {
+  border-top: none;
+}
