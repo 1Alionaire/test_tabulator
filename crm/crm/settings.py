@@ -8,9 +8,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(BASE_DIR / ".env")
 
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
-DEBUG = int(os.environ.get("DJANGO_DEBUG", 0) )
+DEBUG = int(os.environ.get("DEBUG", 0) )
 
 if not DEBUG:
     DATABASES = {"default": dj_database_url.config(conn_max_age=600)}
